@@ -6,6 +6,8 @@ int main(int argc, char *argv[]) {
     assert(argv[i]);
     printf("argv[%d] = %s\n", i, argv[i]);
   }
+  pid_t p = getpid();
+  printf("%d\n", p)
   assert(!argv[argc]);
   return 0;
 }
