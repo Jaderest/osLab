@@ -1,8 +1,13 @@
 NAME := $(shell basename $(PWD))
 export MODULE := M1
+
+.PHONY: all test
+
 all: $(NAME)-64 $(NAME)-32
 
 include ../Makefile
+
+test: test1 test2
 
 test1:
 	./$(NAME)-64 arg1 arg2 arg3
