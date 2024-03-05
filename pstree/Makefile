@@ -6,3 +6,6 @@ include ../Makefile
 
 test1:
 	./$(NAME)-64 arg1 arg2 arg3
+
+test2:
+	./$(NAME)-32 a b c d e f g h
