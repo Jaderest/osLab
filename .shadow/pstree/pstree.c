@@ -9,6 +9,11 @@
 
 #define MAX_DIRS 256
 
+typedef struct PROCESS {
+  int pid; // pid
+  int ppid; // parents pid
+} Process;
+
 int isNumeric(const char *str) {
   while(*str) {
     if (!isdigit(*str)) {
@@ -20,10 +25,9 @@ int isNumeric(const char *str) {
 }
 
 int main(int argc, char *argv[]) {
-
   DIR *dir;
   struct dirent *entry;
-  char *dirs[MAX_DIRS];
+  Process *process[MAX_DIRS];
   int count = 0;
 
   // open the directory
@@ -34,8 +38,17 @@ int main(int argc, char *argv[]) {
   }
   while((entry = readdir(dir)) != NULL) {
     if (entry->d_type == DT_DIR && entry->d_name[0] != '.' && isNumeric(entry->d_name)) { // ignore. && ..
-      dirs[count] = malloc(strlen(entry->d_name) + 1);
-      strcpy(dirs[count], entry->d_name);
+      //TODO: load its pid and ppid
+      //path to status
+      char statusPath[256];
+      snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", entry->d_name);
+      printf("%s\n", statusPath);
+
+
+      // FILE *status;
+
+      
+
       count++;
     }
     if (count >= MAX_DIRS) {
@@ -47,12 +60,9 @@ int main(int argc, char *argv[]) {
   closedir(dir);
 
   for (int i = 0; i < count; i++) {
-    printf("%s ", dirs[i]);
-    free(dirs[i]);
+    // printf("%d ", process[i]->pid);
+    free(process[i]);
   }
 
-  printf("\n");
-
-  assert(!argv[argc]);
   return 0;
 }
