@@ -41,6 +41,11 @@ void parsePid(const char *statusPath, int *pid, int *ppid) {
   fclose(status);
 }
 
+void printTree(Process *process, int count) {
+  //TODO
+  printf("%d\n", process->pid);
+}
+
 int main(int argc, char *argv[]) {
   DIR *dir;
   struct dirent *entry;
@@ -75,8 +80,9 @@ int main(int argc, char *argv[]) {
 
   closedir(dir);
 
+  printTree(*process, count);
+
   for (int i = 0; i < count; i++) {
-    printf("%d %d\n", process[i]->pid, process[i]->ppid);
     if (process[i] != NULL) {
       free(process[i]);
     }
