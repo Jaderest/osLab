@@ -51,9 +51,14 @@ int main(int argc, char *argv[]) {
         continue;
       }
 
-      process[count] = malloc(2 * sizeof(int));
-      fscanf(status, "Pid: %d\nPPid: %d", &process[count]->pid, &process[count]->ppid);
+      int pid = 0;
+      int ppid = 0;
+      fscanf(status, "Pid: %d\nPPid: %d", &pid, &ppid);
       fclose(status);
+
+      process[count] = malloc(sizeof(Process));
+      process[count]->pid = pid;
+      process[count]->ppid = ppid;
 
       count++;
     }
