@@ -25,14 +25,22 @@ int isNumeric(const char *str) {
 }
 
 void parsePid(const char *statusPath, int *pid, int *ppid) {
-  FILE *status = NULL;
-  status = fopen(statusPath, "r");
-  if (status == NULL) {
-    perror("Error: Unable to open status file");
+  FILE *status = fopen(statusPath, "r");
+  char line[256];
+  
+  while (fgets(line, sizeof(line), status) != NULL) {
+    //TODO:实现分割字符串，以及字符串的比对
+    char *para = strtok(line, " ");
+    if (strcmp(para, "Pid:") == 0) {
+      char *state = para + strlen(para); // 用以记录后面的数字
+      sscanf(state, "%d", pid);
+    } else if (strcmp(para, "PPid:") == 0) {
+      char *state = para + strlen(para);
+      sscanf(state, "%d", ppid);
+    }
   }
-
-
-
+  printf("%d %d\n", *pid, *ppid);
+  
   fclose(status);
 }
 
@@ -50,27 +58,13 @@ int main(int argc, char *argv[]) {
   }
   while((entry = readdir(dir)) != NULL) {
     if (entry->d_type == DT_DIR && entry->d_name[0] != '.' && isNumeric(entry->d_name)) { // ignore. && ..
-      //TODO: load its pid and ppid
+      
       //path to status
       char statusPath[512];
       snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", entry->d_name);
 
-      if (strcmp(entry->d_name, "1") == 0) {
-        // test
-        FILE *file = fopen(statusPath, "r");
-        char line[256];
-
-        if (file == NULL) {
-          perror("Error: Unable file");
-          return 1;
-        }
-
-        while (fgets(line, sizeof(line), file) != NULL) {
-          printf("%s", line);
-        }
-        
-        fclose(file);
-      }
+      process[count] = malloc(sizeof(Process));
+      parsePid(statusPath, &process[count]->pid, &process[count]->ppid);
 
       count++;
     }
