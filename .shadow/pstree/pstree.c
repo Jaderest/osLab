@@ -24,6 +24,18 @@ int isNumeric(const char *str) {
   return 1;
 }
 
+void parsePid(const char *statusPath, int *pid, int *ppid) {
+  FILE *status = NULL;
+  status = fopen(statusPath, "r");
+  if (status == NULL) {
+    perror("Error: Unable to open status file");
+  }
+
+
+
+  fclose(status);
+}
+
 int main(int argc, char *argv[]) {
   DIR *dir;
   struct dirent *entry;
@@ -43,22 +55,22 @@ int main(int argc, char *argv[]) {
       char statusPath[512];
       snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", entry->d_name);
 
-      FILE *status = NULL;
-      status = fopen(statusPath, "r");
-      if (status == NULL) {
-        perror("Error: Unable to open status file");
-        continue;
+      if (strcmp(entry->d_name, "1") == 0) {
+        // test
+        FILE *file = fopen(statusPath, "r");
+        char line[256];
+
+        if (file == NULL) {
+          perror("Error: Unable file");
+          return 1;
+        }
+
+        while (fgets(line, sizeof(line), file) != NULL) {
+          printf("%s", line);
+        }
+        
+        fclose(file);
       }
-
-      int pid = 0;
-      int ppid = 0;
-      fscanf(status, "Pid: %d\nPPid: %d", &pid, &ppid);
-      printf("%d %d\n", pid, ppid);
-      fclose(status);
-
-      process[count] = malloc(sizeof(Process));
-      process[count]->pid = pid;
-      process[count]->ppid = ppid;
 
       count++;
     }
