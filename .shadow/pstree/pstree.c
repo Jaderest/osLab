@@ -30,15 +30,12 @@ void parsePid(const char *statusPath, int *pid, int *ppid) {
   
   while (fgets(line, sizeof(line), status) != NULL) {
     //TODO:实现分割字符串，以及字符串的比对
-    char *para = strtok(line, " ");
-    printf("%s\n", para);
-    // if (strcmp(para, "Pid:") == 0) {
-    //   char *state = para + strlen(para); // 用以记录后面的数字
-    //   sscanf(state, "%d", pid);
-    // } else if (strcmp(para, "PPid:") == 0) {
-    //   char *state = para + strlen(para);
-    //   sscanf(state, "%d", ppid);
-    // }
+    if (strstr(line, "Pid:") != NULL) {
+      sscanf(line, "Pid: %d", pid);
+    } else if (strstr(line, "PPid:") != NULL) {
+      sscanf(line, "PPid: %d", ppid);
+      break;
+    }
   }
   printf("%d %d\n", *pid, *ppid);
   
