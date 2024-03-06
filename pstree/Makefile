@@ -7,6 +7,10 @@ all: $(NAME)-64 $(NAME)-32
 
 include ../Makefile
 
+commit:
+	git add .
+	git commit
+
 test: test1 test2
 
 test1:
