@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     if (entry->d_type == DT_DIR && entry->d_name[0] != '.' && isNumeric(entry->d_name)) { // ignore. && ..
       //TODO: load its pid and ppid
       //path to status
-      char statusPath[256];
+      char statusPath[512];
       snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", entry->d_name);
       printf("%s\n", statusPath);
 
