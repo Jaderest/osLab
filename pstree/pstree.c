@@ -44,10 +44,16 @@ int main(int argc, char *argv[]) {
       snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", entry->d_name);
       printf("%s\n", statusPath);
 
+      FILE *status = NULL;
+      status = fopen(statusPath, "r");
+      if (status == NULL) {
+        perror("Error: Unable to open status file");
+        continue;
+      }
 
-      // FILE *status;
-
-      
+      process[count] = malloc(2 * sizeof(int));
+      fscanf(status, "Pid: %d\nPPid: %d", &process[count]->pid, &process[count]->ppid);
+      fclose(status);
 
       count++;
     }
@@ -60,7 +66,7 @@ int main(int argc, char *argv[]) {
   closedir(dir);
 
   for (int i = 0; i < count; i++) {
-    // printf("%d ", process[i]->pid);
+    printf("%d %d\n", process[i]->pid, process[i]->ppid);
     if (process[i] != NULL) {
       free(process[i]);
     }
