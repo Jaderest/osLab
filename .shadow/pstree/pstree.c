@@ -27,7 +27,7 @@ int isNumeric(const char *str) {
 int main(int argc, char *argv[]) {
   DIR *dir;
   struct dirent *entry;
-  Process *process[MAX_DIRS];
+  Process *process[MAX_DIRS] = {NULL};
   int count = 0;
 
   // open the directory
@@ -61,7 +61,9 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < count; i++) {
     // printf("%d ", process[i]->pid);
-    free(process[i]);
+    if (process[i] != NULL) {
+      free(process[i]);
+    }
   }
 
   return 0;
