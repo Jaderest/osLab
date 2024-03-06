@@ -32,10 +32,9 @@ void parsePid(const char *statusPath, int *pid, int *ppid) {
     //TODO:实现分割字符串，以及字符串的比对
     if (strstr(line, "Pid:") != NULL) {
       sscanf(line, "Pid: %d", pid);
-      continue;
-    } else if (strstr(line, "PPid:") != NULL) {
+    }
+    if (strstr(line, "PPid:") != NULL) {
       sscanf(line, "PPid: %d", ppid);
-      break;
     }
   }
   printf("%d %d\n", *pid, *ppid);
@@ -63,6 +62,8 @@ int main(int argc, char *argv[]) {
       snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", entry->d_name);
 
       process[count] = malloc(sizeof(Process));
+      process[count]->pid = 0;
+      process[count]->ppid = 0;
       parsePid(statusPath, &process[count]->pid, &process[count]->ppid);
 
       count++;
