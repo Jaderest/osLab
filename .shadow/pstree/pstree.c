@@ -29,7 +29,7 @@ void parsePid(const char *statusPath, int *pid, int *ppid) {
   char line[256];
   
   while (fgets(line, sizeof(line), status) != NULL) {
-    //TODO:实现分割字符串，以及字符串的比对
+    //finish!
     if (strstr(line, "Pid:") != NULL) {
       sscanf(line, "Pid: %d", pid);
     }
@@ -37,7 +37,6 @@ void parsePid(const char *statusPath, int *pid, int *ppid) {
       sscanf(line, "PPid: %d", ppid);
     }
   }
-  printf("%d %d\n", *pid, *ppid);
   
   fclose(status);
 }
@@ -77,7 +76,7 @@ int main(int argc, char *argv[]) {
   closedir(dir);
 
   for (int i = 0; i < count; i++) {
-    // printf("%d %d\n", process[i]->pid, process[i]->ppid);
+    printf("%d %d\n", process[i]->pid, process[i]->ppid);
     if (process[i] != NULL) {
       free(process[i]);
     }
