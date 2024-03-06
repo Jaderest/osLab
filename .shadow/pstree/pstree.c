@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
       //path to status
       char statusPath[512];
       snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", entry->d_name);
-      printf("%s\n", statusPath);
 
       FILE *status = NULL;
       status = fopen(statusPath, "r");
@@ -54,6 +53,7 @@ int main(int argc, char *argv[]) {
       int pid = 0;
       int ppid = 0;
       fscanf(status, "Pid: %d\nPPid: %d", &pid, &ppid);
+      printf("%d %d\n", pid, ppid);
       fclose(status);
 
       process[count] = malloc(sizeof(Process));
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   closedir(dir);
 
   for (int i = 0; i < count; i++) {
-    printf("%d %d\n", process[i]->pid, process[i]->ppid);
+    // printf("%d %d\n", process[i]->pid, process[i]->ppid);
     if (process[i] != NULL) {
       free(process[i]);
     }
