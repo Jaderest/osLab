@@ -32,6 +32,7 @@ void parsePid(const char *statusPath, int *pid, int *ppid) {
     //TODO:实现分割字符串，以及字符串的比对
     if (strstr(line, "Pid:") != NULL) {
       sscanf(line, "Pid: %d", pid);
+      continue;
     } else if (strstr(line, "PPid:") != NULL) {
       sscanf(line, "PPid: %d", ppid);
       break;
