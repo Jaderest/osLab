@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
   DIR *dir;
   struct dirent *entry;
   char *dirs[MAX_DIRS];
-  int count;
+  int count = 0;
 
   // open the directory
   dir = opendir("/proc");
