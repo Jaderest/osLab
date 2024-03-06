@@ -5,8 +5,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #define MAX_DIRS 256
+
+int isNumeric(const char *str) {
+  while(*str) {
+    if (!isdigit(*str)) {
+      return 0;
+    }
+    str++;
+  }
+  return 1;
+}
 
 int main(int argc, char *argv[]) {
   for (int i = 0; i < argc; i++) {
@@ -28,7 +39,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   while((entry = readdir(dir)) != NULL) {
-    if (entry->d_type == DT_DIR && entry->d_name[0] != '.') { // ignore. && ..
+    if (entry->d_type == DT_DIR && entry->d_name[0] != '.' && isNumeric(entry->d_name)) { // ignore. && ..
       dirs[count] = malloc(strlen(entry->d_name) + 1);
       strcpy(dirs[count], entry->d_name);
       count++;
