@@ -92,7 +92,15 @@ void printTree(ProcNode* root, int depth) { //recursion
   printf("%s\n", root->name);
 
   for (int i = 0; i < root->childCount; i++) {
+    // if (i == root->childCount - 1) {
+    //   strcpy(blank[i], "  \0");
+    // }
     printTree(root->children[i], depth + 1);
+    // if (i == root->childCount - 1) {
+    //   for (int j = i; j < MAX_DEPTH; j++) {
+    //     strcpy(blank[i], "| \0");
+    //   }
+    // }
   }
 }
 
@@ -109,11 +117,7 @@ void PrintTree(Process *process[], int count) {
   for (int i = 0; i < MAX_DEPTH; i++) {
     strcpy(blank[i], "| \0");
   }
-
-  for (int i = 0; i < MAX_DEPTH; i++) {
-    printf("%s\n", blank[i]);
-  }
-  // printTree(node[0], 0);
+  printTree(node[0], 0);
 }
 
 int main(int argc, char *argv[]) {
