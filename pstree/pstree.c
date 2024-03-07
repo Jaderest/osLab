@@ -74,8 +74,17 @@ void findPPid(ProcNode *child, ProcNode *nodes[], int count) {
 }
 
 void printTree(ProcNode* root, int depth) { //recursion
-  for (int i = 0; i < depth; i++) {
-    printf("  ");
+  switch (depth) {
+    case 0:
+      break;
+    case 1:
+      printf("+-");
+      break;
+    default: {
+      for (int i = 1; i < depth; i++) printf("| ");
+      printf("+-");
+      break;
+    }
   }
   printf("%s\n", root->name);
 
@@ -88,18 +97,14 @@ void PrintTree(Process *process[], int count) {
   //TODO: finish building the tree
   ProcNode *node[MAX_PROC];
   for (int i = 0; i < count; i++) {
-    // printf("%s: pid = %d, ppid = %d\n", process[i]->name, process[i]->pid, process[i]->ppid);
     node[i] = creatNode(process[i]);
   }
 
-  for (int i = 1; i < count; i++) { // 默认进程 1 是第一个读出来的了，所以找node[0]的ppid，但是找了也没事，只是浪费时间
+  for (int i = 0; i < count; i++) { // proc1 must be the first
     findPPid(node[i], node, count);
   }
 
-  printTree(node[0], 1);
-  // for (int i = 0; i < count; i++) {
-  //   printf("%s: pid = %d\n", node[i]->name, node[i]->pid);
-  // }
+  printTree(node[0], 0);
 }
 
 int main(int argc, char *argv[]) {
