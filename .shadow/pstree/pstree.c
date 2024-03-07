@@ -47,14 +47,9 @@ void parsePid(const char *statusPath, Process *process) {
 
 void printTree(Process *process[], int count) {
   //TODO: finish building the tree
-  printf("%s:%d %d\n", process[0]->name, process[0]->pid, process[0]->ppid);
-  printf("%s:%d %d\n", process[1]->name, process[1]->pid, process[1]->ppid);
-  printf("%s:%d %d\n", process[2]->name, process[2]->pid, process[2]->ppid);
-  printf("%s:%d %d\n", process[3]->name, process[3]->pid, process[3]->ppid);
-  printf("%s:%d %d\n", process[4]->name, process[4]->pid, process[4]->ppid);
-  printf("%s:%d %d\n", process[5]->name, process[5]->pid, process[5]->ppid);
-  printf("%s:%d %d\n", process[6]->name, process[6]->pid, process[6]->ppid);
-  printf("%s:%d %d\n", process[7]->name, process[7]->pid, process[7]->ppid);
+  for (int i = 0; i < count; i++) {
+    printf("%s: pid = %d, ppid = %d\n", process[i]->name, process[i]->pid, process[i]->ppid);
+  }
 }
 
 int main(int argc, char *argv[]) {
