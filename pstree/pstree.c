@@ -48,6 +48,7 @@ void parsePid(const char *statusPath, Process *process) {
 typedef struct PROCNODE {
   char name[256];
   int pid;
+  int ppid;
   struct PROCNODE **children;
   int childCount;
 } ProcNode;
@@ -56,21 +57,49 @@ ProcNode *creatNode(Process *p) { // initial
   ProcNode *node = (ProcNode*)malloc(sizeof(ProcNode));
   strcpy(node->name, p->name); // deep copy
   node->pid = p->pid;
+  node->ppid = p->ppid;
   node->children = NULL;
   node->childCount = 0;
   return node;
 }
 
-void printTree(Process *process[], int count) {
+void findPPid(ProcNode *child, ProcNode *nodes[], int count) {
+  for (int i = 0; i < count; i++) {
+    if (child->ppid == nodes[i]->pid) {
+      nodes[i]->children = (ProcNode**)realloc(nodes[i]->children, (nodes[i]->childCount + 1) * sizeof(ProcNode*));
+      nodes[i]->children[nodes[i]->childCount++] = child;
+      return;
+    }
+  }
+}
+
+void printTree(ProcNode* root, int depth) { //recursion
+  for (int i = 0; i < depth; i++) {
+    printf("  ");
+  }
+  printf("%s\n", root->name);
+
+  for (int i = 0; i < root->childCount; i++) {
+    printTree(root->children[i], depth + 1);
+  }
+}
+
+void PrintTree(Process *process[], int count) {
   //TODO: finish building the tree
   ProcNode *node[MAX_PROC];
   for (int i = 0; i < count; i++) {
     // printf("%s: pid = %d, ppid = %d\n", process[i]->name, process[i]->pid, process[i]->ppid);
     node[i] = creatNode(process[i]);
   }
-  for (int i = 0; i < count; i++) {
-    printf("%s: pid = %d\n", node[i]->name, node[i]->pid);
+
+  for (int i = 1; i < count; i++) { // 默认进程 1 是第一个读出来的了，所以找node[0]的ppid，但是找了也没事，只是浪费时间
+    findPPid(node[i], node, count);
   }
+
+  printTree(node[0], 1);
+  // for (int i = 0; i < count; i++) {
+  //   printf("%s: pid = %d\n", node[i]->name, node[i]->pid);
+  // }
 }
 
 int main(int argc, char *argv[]) {
@@ -107,7 +136,7 @@ int main(int argc, char *argv[]) {
 
   closedir(dir);
 
-  printTree(process, count);
+  PrintTree(process, count);
 
   for (int i = 0; i < count; i++) {
     if (process[i] != NULL) {
