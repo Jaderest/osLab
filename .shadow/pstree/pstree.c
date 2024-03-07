@@ -81,8 +81,8 @@ void printTree(ProcNode* root, int depth) { //recursion
       printf("+-");
       break;
     default: {
+      for (int i = 1; i < depth; i++) printf("| ");
       printf("+-");
-      for (int i = 1; i < depth; i++) printf("--");
       break;
     }
   }
