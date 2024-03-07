@@ -96,9 +96,10 @@ void PrintTree(Process *process[], int count) {
     findPPid(node[i], node, count);
   }
 
-  for (int i = 0; i < count; i++) {
-    printf("%s: pid = %d\n", node[i]->name, node[i]->pid);
-  }
+  printTree(node[0], 1);
+  // for (int i = 0; i < count; i++) {
+  //   printf("%s: pid = %d\n", node[i]->name, node[i]->pid);
+  // }
 }
 
 int main(int argc, char *argv[]) {
