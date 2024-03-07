@@ -10,6 +10,7 @@
 #define MAX_DIRS 256
 
 typedef struct PROCESS {
+  char name[256];
   int pid; // pid
   int ppid; // parents pid
 } Process;
@@ -24,17 +25,21 @@ int isNumeric(const char *str) {
   return 1;
 }
 
-void parsePid(const char *statusPath, int *pid, int *ppid) {
+void parsePid(const char *statusPath, Process *process) {
   FILE *status = fopen(statusPath, "r");
   char line[256];
   
   while (fgets(line, sizeof(line), status) != NULL) {
     //finish!
     if (strstr(line, "Pid:") != NULL) {
-      sscanf(line, "Pid: %d", pid);
+      sscanf(line, "Pid: %d", &process->pid);
     }
     if (strstr(line, "PPid:") != NULL) {
-      sscanf(line, "PPid: %d", ppid);
+      sscanf(line, "PPid: %d", &process->ppid);
+    }
+    if (strstr(line, "Name:") != NULL) {
+      //TODO: copy the name of process
+      sscanf(line, "Name: %[^\n]", process->name);
     }
   }
   
@@ -43,8 +48,11 @@ void parsePid(const char *statusPath, int *pid, int *ppid) {
 
 void printTree(Process *process[], int count) {
   //TODO: finish building the tree
-  printf("%d %d\n", process[0]->pid, process[0]->ppid);
-  printf("%d %d\n", process[1]->pid, process[1]->ppid);
+  printf("%s:%d %d\n", process[0]->name, process[0]->pid, process[0]->ppid);
+  printf("%s:%d %d\n", process[1]->name, process[1]->pid, process[1]->ppid);
+  printf("%s:%d %d\n", process[2]->name, process[2]->pid, process[2]->ppid);
+  printf("%s:%d %d\n", process[3]->name, process[3]->pid, process[3]->ppid);
+  printf("%s:%d %d\n", process[4]->name, process[4]->pid, process[4]->ppid);
 }
 
 int main(int argc, char *argv[]) {
@@ -69,7 +77,7 @@ int main(int argc, char *argv[]) {
       process[count] = malloc(sizeof(Process));
       process[count]->pid = 0;
       process[count]->ppid = 0;
-      parsePid(statusPath, &process[count]->pid, &process[count]->ppid);
+      parsePid(statusPath, process[count]);
 
       count++;
     }
