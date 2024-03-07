@@ -16,6 +16,14 @@ typedef struct PROCESS {
   int ppid; // parents pid
 } Process;
 
+typedef struct PROCNODE {
+  char name[256];
+  int pid;
+  int ppid;
+  struct PROCNODE **children;
+  int childCount;
+} ProcNode;
+
 int isNumeric(const char *str) {
   while(*str) {
     if (!isdigit(*str)) {
@@ -26,7 +34,7 @@ int isNumeric(const char *str) {
   return 1;
 }
 
-void parsePid(const char *statusPath, Process *process) {
+void parsePid(const char *statusPath, ProcNode *process) {
   FILE *status = fopen(statusPath, "r");
   char line[256];
   
@@ -44,24 +52,6 @@ void parsePid(const char *statusPath, Process *process) {
   }
   
   fclose(status);
-}
-
-typedef struct PROCNODE {
-  char name[256];
-  int pid;
-  int ppid;
-  struct PROCNODE **children;
-  int childCount;
-} ProcNode;
-
-ProcNode *creatNode(Process *p) { // initial
-  ProcNode *node = (ProcNode*)malloc(sizeof(ProcNode));
-  strcpy(node->name, p->name); // deep copy
-  node->pid = p->pid;
-  node->ppid = p->ppid;
-  node->children = NULL;
-  node->childCount = 0;
-  return node;
 }
 
 void findPPid(ProcNode *child, ProcNode *nodes[], int count) {
@@ -104,26 +94,21 @@ void printTree(ProcNode* root, int depth) { //recursion
   }
 }
 
-void PrintTree(Process *process[], int count) {
-  ProcNode *node[MAX_PROC];
-  for (int i = 0; i < count; i++) {
-    node[i] = creatNode(process[i]);
-  }
-
+void PrintTree(ProcNode *process[], int count) {
   for (int i = 0; i < count; i++) { // proc1 must be the first
-    findPPid(node[i], node, count);
+    findPPid(process[i], process, count);
   }
 
   for (int i = 0; i < MAX_DEPTH; i++) {
     strcpy(blank[i], "| \0");
   }
-  printTree(node[0], 0);
+  printTree(process[0], 0);
 }
 
 int main(int argc, char *argv[]) {
   DIR *dir;
   struct dirent *entry;
-  Process *process[MAX_PROC] = {NULL};
+  ProcNode *process[MAX_PROC] = {NULL};
   int count = 0;
 
   // open the directory
@@ -142,6 +127,9 @@ int main(int argc, char *argv[]) {
       process[count] = malloc(sizeof(Process));
       process[count]->pid = 0;
       process[count]->ppid = 0;
+      process[count]->children = NULL;
+      process[count]->childCount = 0;
+
       parsePid(statusPath, process[count]);
 
       count++;
