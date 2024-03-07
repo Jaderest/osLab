@@ -38,7 +38,6 @@ void parsePid(const char *statusPath, Process *process) {
       sscanf(line, "PPid: %d", &process->ppid);
     }
     if (strstr(line, "Name:") != NULL) {
-      //TODO: copy the name of process
       sscanf(line, "Name: %[^\n]", process->name);
     }
   }
