@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#define MAX_DIRS 256
+#define MAX_PROC 256
 
 typedef struct PROCESS {
   char name[256];
@@ -38,7 +38,6 @@ void parsePid(const char *statusPath, Process *process) {
       sscanf(line, "PPid: %d", &process->ppid);
     }
     if (strstr(line, "Name:") != NULL) {
-      //TODO: copy the name of process
       sscanf(line, "Name: %[^\n]", process->name);
     }
   }
@@ -46,19 +45,38 @@ void parsePid(const char *statusPath, Process *process) {
   fclose(status);
 }
 
+typedef struct PROCNODE {
+  char name[256];
+  int pid;
+  struct PROCNODE **children;
+  int childCount;
+} ProcNode;
+
+ProcNode *creatNode(Process *p) { // initial
+  ProcNode *node = (ProcNode*)malloc(sizeof(ProcNode));
+  strcpy(node->name, p->name); // deep copy
+  node->pid = p->pid;
+  node->children = NULL;
+  node->childCount = 0;
+  return node;
+}
+
 void printTree(Process *process[], int count) {
   //TODO: finish building the tree
-  printf("%s:%d %d\n", process[0]->name, process[0]->pid, process[0]->ppid);
-  printf("%s:%d %d\n", process[1]->name, process[1]->pid, process[1]->ppid);
-  printf("%s:%d %d\n", process[2]->name, process[2]->pid, process[2]->ppid);
-  printf("%s:%d %d\n", process[3]->name, process[3]->pid, process[3]->ppid);
-  printf("%s:%d %d\n", process[4]->name, process[4]->pid, process[4]->ppid);
+  ProcNode *node[MAX_PROC];
+  for (int i = 0; i < count; i++) {
+    // printf("%s: pid = %d, ppid = %d\n", process[i]->name, process[i]->pid, process[i]->ppid);
+    node[i] = creatNode(process[i]);
+  }
+  for (int i = 0; i < count; i++) {
+    printf("%s: pid = %d\n", node[i]->name, node[i]->pid);
+  }
 }
 
 int main(int argc, char *argv[]) {
   DIR *dir;
   struct dirent *entry;
-  Process *process[MAX_DIRS] = {NULL};
+  Process *process[MAX_PROC] = {NULL};
   int count = 0;
 
   // open the directory
@@ -81,7 +99,7 @@ int main(int argc, char *argv[]) {
 
       count++;
     }
-    if (count >= MAX_DIRS) {
+    if (count >= MAX_PROC) {
       fprintf(stderr, "Too many directoris\n");
       break;
     }
