@@ -50,6 +50,9 @@ void printTree(Process *process[], int count) {
   //TODO: finish building the tree
   printf("%s:%d %d\n", process[0]->name, process[0]->pid, process[0]->ppid);
   printf("%s:%d %d\n", process[1]->name, process[1]->pid, process[1]->ppid);
+  printf("%s:%d %d\n", process[2]->name, process[2]->pid, process[2]->ppid);
+  printf("%s:%d %d\n", process[3]->name, process[3]->pid, process[3]->ppid);
+  printf("%s:%d %d\n", process[4]->name, process[4]->pid, process[4]->ppid);
 }
 
 int main(int argc, char *argv[]) {
