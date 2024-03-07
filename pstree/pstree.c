@@ -8,6 +8,7 @@
 #include <ctype.h>
 
 #define MAX_PROC 256
+#define MAX_DEPTH 16
 
 typedef struct PROCESS {
   char name[256];
@@ -73,6 +74,8 @@ void findPPid(ProcNode *child, ProcNode *nodes[], int count) {
   }
 }
 
+char blank[MAX_DEPTH][3];
+
 void printTree(ProcNode* root, int depth) { //recursion
   switch (depth) {
     case 0:
@@ -81,7 +84,7 @@ void printTree(ProcNode* root, int depth) { //recursion
       printf("+-");
       break;
     default: {
-      for (int i = 1; i < depth; i++) printf("| ");
+      for (int i = 0; i < depth - 1; i++) printf("%s", blank[i]);
       printf("+-");
       break;
     }
@@ -94,7 +97,6 @@ void printTree(ProcNode* root, int depth) { //recursion
 }
 
 void PrintTree(Process *process[], int count) {
-  //TODO: finish building the tree
   ProcNode *node[MAX_PROC];
   for (int i = 0; i < count; i++) {
     node[i] = creatNode(process[i]);
@@ -104,7 +106,14 @@ void PrintTree(Process *process[], int count) {
     findPPid(node[i], node, count);
   }
 
-  printTree(node[0], 0);
+  for (int i = 0; i < MAX_DEPTH; i++) {
+    strcpy(blank[i], "| \0");
+  }
+
+  for (int i = 0; i < MAX_DEPTH; i++) {
+    printf("%s\n", blank[i]);
+  }
+  // printTree(node[0], 0);
 }
 
 int main(int argc, char *argv[]) {
