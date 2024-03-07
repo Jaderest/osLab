@@ -39,6 +39,7 @@ void parsePid(const char *statusPath, Process *process) {
     }
     if (strstr(line, "Name:") != NULL) {
       //TODO: copy the name of process
+      sscanf(line, "Name: %[^\n]", process->name);
     }
   }
   
@@ -47,8 +48,8 @@ void parsePid(const char *statusPath, Process *process) {
 
 void printTree(Process *process[], int count) {
   //TODO: finish building the tree
-  printf("%d %d\n", process[0]->pid, process[0]->ppid);
-  printf("%d %d\n", process[1]->pid, process[1]->ppid);
+  printf("%s:%d %d\n", process[0]->name, process[0]->pid, process[0]->ppid);
+  printf("%s:%d %d\n", process[1]->name, process[1]->pid, process[1]->ppid);
 }
 
 int main(int argc, char *argv[]) {
