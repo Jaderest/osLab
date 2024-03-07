@@ -74,8 +74,17 @@ void findPPid(ProcNode *child, ProcNode *nodes[], int count) {
 }
 
 void printTree(ProcNode* root, int depth) { //recursion
-  for (int i = 0; i < depth; i++) {
-    printf("  ");
+  switch (depth) {
+    case 0:
+      break;
+    case 1:
+      printf("+-");
+      break;
+    default: {
+      printf("+-");
+      for (int i = 1; i < depth; i++) printf("--");
+      break;
+    }
   }
   printf("%s\n", root->name);
 
