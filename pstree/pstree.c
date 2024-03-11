@@ -32,7 +32,7 @@ int isNumeric(const char *str) {
     str++;
   }
   return 1;
-}
+} //and now i know why my git have so many bug
 
 void parsePid(const char *statusPath, ProcNode *process) {
   FILE *status = fopen(statusPath, "r");
