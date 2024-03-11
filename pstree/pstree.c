@@ -1,28 +1,18 @@
 #include <stdio.h>
-#include <assert.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
 
-#define MAX_PROC 256
-#define MAX_DEPTH 16
+#define MAX_PROC 512
 
 typedef struct PROCESS {
-  char name[256];
+  char name[128];
   int pid; // pid
   int ppid; // parents pid
+  struct PROCESS **children;
+  int childCount;
 } Process;
 
-typedef struct PROCNODE {
-  char name[256];
-  int pid;
-  int ppid;
-  struct PROCNODE **children;
-  int childCount;
-} ProcNode;
+int _p = 0;
+int _n = 0;
+int _v = 0;
 
 int isNumeric(const char *str) {
   while(*str) {
