@@ -11,10 +11,26 @@ commit:
 	git add .
 	git commit
 
-test: test1 test2
+test: test1 test2 test3 test4 test5 test6
 
 test1:
-	./$(NAME)-64 arg1 arg2 arg3
+	./$(NAME)-64
 
 test2:
-	./$(NAME)-32 a b c d e f g h
+	./$(NAME)-64 -n -V -p
+
+test3:
+	./$(NAME)-64 -n
+	./$(NAME)-64 -V
+	./$(NAME)-64 -p
+
+test4:
+	./$(NAME)-32
+
+test5:
+	./$(NAME)-32 -n -V -p
+
+test6:
+	./$(NAME)-32 -n
+	./$(NAME)-32 -V
+	./$(NAME)-32 -p
