@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #define MAX_PROC 512
+#define MAX_DEPTH 256
 
 typedef struct PROCESS {
   char name[128];
@@ -18,6 +19,7 @@ typedef struct PROCESS {
 int _p = 0;
 int _n = 0;
 int _v = 0;
+int type[MAX_DEPTH]; // 0:└── , 1:├──
 
 int isNumeric(const char *str) {
   while(*str) {
@@ -65,13 +67,16 @@ void findPPid(Process *child, Process *nodes[], int count) {
 
 void printTree(Process *root, int depth, int is_last) {
   for (int i = 0; i < depth - 1; i++) {
-    printf("   ");
+    if (type[i] == 0) printf("│  ");
+    else printf("   ");
   }
   if (depth > 0) {
     if (is_last) {
       printf("└──");
+      type[depth - 1] = 1;
     } else {
       printf("├──");
+      type[depth - 1] = 0;
     }
   }
   printf("%s\n", root->name);
@@ -105,6 +110,7 @@ void PrintTree(Process *process[], int count) {
     }
   }
 
+  for (int i = 0; i < MAX_DEPTH; i++) { type[i] = 0; }
   printTree(process[0], 0, 1);
 }
 
