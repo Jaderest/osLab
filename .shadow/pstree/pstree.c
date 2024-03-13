@@ -65,13 +65,13 @@ void findPPid(Process *child, Process *nodes[], int count) {
 
 void printTree(Process *root, int depth, int is_last) {
   for (int i = 0; i < depth - 1; i++) {
-    printf("    ");
+    printf("   ");
   }
   if (depth > 0) {
     if (is_last) {
-      printf("└── ");
+      printf("└──");
     } else {
-      printf("├── ");
+      printf("├──");
     }
   }
   printf("%s\n", root->name);
