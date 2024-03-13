@@ -63,14 +63,21 @@ void findPPid(Process *child, Process *nodes[], int count) {
   }
 }
 
-void printTree(Process *root, int depth) {
-  for (int i = 0; i < depth; i++) {
-    printf("  ");
+void printTree(Process *root, int depth, int is_last) {
+  for (int i = 0; i < depth - 1; i++) {
+    printf("    ");
+  }
+  if (depth > 0) {
+    if (is_last) {
+      printf("└── ");
+    } else {
+      printf("├── ");
+    }
   }
   printf("%s\n", root->name);
 
   for (int i = 0; i < root->childCount; i++) {
-    printTree(root->children[i], depth + 1);
+    printTree(root->children[i], depth + 1, i == root->childCount - 1);
   }
 }
 
@@ -98,7 +105,7 @@ void PrintTree(Process *process[], int count) {
     }
   }
 
-  printTree(process[0], 0);
+  printTree(process[0], 0, 1);
 }
 
 int main(int argc, char *argv[]) {
