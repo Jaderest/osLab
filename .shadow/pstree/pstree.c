@@ -132,9 +132,10 @@ int main(int argc, char *argv[]) {
   assert(!argv[argc]); // C 标准保证
 
   if (_v == 1) {
-    printf("pstree 1.0\n");
+    printf("pstree 1.1\n");
     printf("This is a minilab finished by Jaderest\n");
     printf("He is really happy to do this as homework in OS class\n");
+    printf("He has finished beautifying the tree\n");
     return 0;
   }
 
