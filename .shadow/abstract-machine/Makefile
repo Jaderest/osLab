@@ -133,7 +133,6 @@ $(LIBS): %:
 	@$(MAKE) -s -C $(AM_HOME)/$* archive
 
 ### Rule (link): objects (`*.o`) and libraries (`*.a`) -> `IMAGE.elf`, the final ELF binary to be packed into image (ld)
-
 $(IMAGE).elf: $(OBJS) am $(LIBS) #在kernel文件夹中make会出现后面的语句+ LD -> build/kernel-x86_64-qemu.elf
 	@echo + LD "->" $(IMAGE_REL).elf
 	@$(LD) $(LDFLAGS) -o $(IMAGE).elf --start-group $(LINKAGE) --end-group
