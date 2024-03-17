@@ -25,6 +25,7 @@ ifeq ($(wildcard $(AM_HOME)/am/include/am.h),)
 endif
 
 ### Check: environment variable `$ARCH` must be in the supported list
+#### native, x86_64-qemu, x86-qemu
 ARCHS = $(basename $(notdir $(shell ls $(AM_HOME)/scripts/*.mk)))
 ifeq ($(filter $(ARCHS), $(ARCH)), )
   $(error Expected $$ARCH in {$(ARCHS)}, Got "$(ARCH)")
@@ -36,6 +37,9 @@ ISA        = $(word 1,$(ARCH_SPLIT))
 PLATFORM   = $(word 2,$(ARCH_SPLIT))
 
 ### Check if there is something to build
+#### 获取SRCS的类型，如果是undefined，说明没有定义SRCS，就报错
+#### ./am/src/x86/qemu/boot/Makefile:SRCS := start.S main.c
+#### ?where to find SRCS
 ifeq ($(flavor SRCS), undefined)
   $(error Nothing to build)
 endif
@@ -46,11 +50,12 @@ endif
 ## 2. General Compilation Targets
 
 ### Create the destination directory (`build/$ARCH`)
+#### 或许可以手动指定ARCH? 然后这里build的文件夹是否可以删掉重新编译？
 WORK_DIR  = $(shell pwd)
 DST_DIR   = $(WORK_DIR)/build/$(ARCH)
 $(shell mkdir -p $(DST_DIR))
 
-### Compilation targets (a binary image or archive)
+### Compilation targets (a binary image or archive) 定义归档位置
 IMAGE_REL = build/$(NAME)-$(ARCH)
 IMAGE     = $(abspath $(IMAGE_REL))
 ARCHIVE   = $(WORK_DIR)/build/$(NAME)-$(ARCH).a
