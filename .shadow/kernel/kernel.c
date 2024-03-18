@@ -32,7 +32,7 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
     .pixels = pixels,
   };
   for (int i = 0; i < w * h; i++) {
-    pixels[i] = 0xff0000;
+    pixels[i] = color;
   }
   ioe_write(AM_GPU_FBDRAW, &event);
 }
