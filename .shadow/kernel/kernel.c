@@ -20,9 +20,9 @@ void print_key() {
   ioe_read(AM_INPUT_KEYBRD, &event);
   if (event.keycode != AM_KEY_NONE && event.keydown) {
     puts("Key pressed: ");
-    // if (strcmp(key_names[event.keycode], "ESCAPE") == 0) { //TODO: strcmp()
-    //   halt(1);
-    // }
+    if (strcmp(key_names[event.keycode], "ESCAPE") == 0) { //TODO: strcmp()
+      halt(1);
+    }
     puts(key_names[event.keycode]);
     puts("\n");
   }
