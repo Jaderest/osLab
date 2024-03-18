@@ -1,7 +1,7 @@
 #include <am.h>
 #include <amdev.h>
 #include <klib.h>
-#include <klib-macros.h>
+#include <klib-macros.h> //没办法自己编译诶...那该怎么办
 
 #define SIDE 16
 

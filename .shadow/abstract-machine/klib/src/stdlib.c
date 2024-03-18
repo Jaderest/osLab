@@ -33,8 +33,9 @@ void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
+  // !我怎么才能调用这个函数
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
-  panic("Not implemented");
+  panic("Not implemented"); //立即停止程序运行、并打印错误信息：表示未实现
 #endif
   return NULL;
 }
