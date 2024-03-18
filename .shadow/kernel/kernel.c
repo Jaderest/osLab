@@ -19,9 +19,7 @@ void print_key() {
   AM_INPUT_KEYBRD_T event = { .keycode = AM_KEY_NONE };
   ioe_read(AM_INPUT_KEYBRD, &event);
   if (event.keycode != AM_KEY_NONE && event.keydown) {
-    if (strcmp(key_names[event.keycode], "ESCAPE") == 0) { //TODO: strcmp()
-      halt(0);
-    }
+    if (event.keycode == AM_KEY_ESCAPE) halt(0);
     puts("Key pressed: ");
     puts(key_names[event.keycode]);
     puts("\n");
@@ -37,7 +35,7 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
   for (int i = 0; i < w * h; i++) {
     pixels[i] = color; //设置像素点
   }
-  ioe_write(AM_GPU_FBDRAW, &event);
+  ioe_write(AM_GPU_FBDRAW, &event); //显示在屏幕上
 }
 
 void splash() {
