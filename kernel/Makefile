@@ -3,7 +3,8 @@ SRCS := kernel.c
 export MODULE  := L0
 export AM_HOME := $(PWD)/../abstract-machine
 ifeq ($(ARCH),)
-export ARCH := x86_64-qemu
+#export ARCH := x86_64-qemu
+export ARCH := x86-qemu
 endif
 
 include $(AM_HOME)/Makefile
@@ -14,4 +15,4 @@ test64:
 	qemu-system-x86_64 -cpu qemu64 -drive format=raw,file=$(PWD)/build/kernel-x86_64-qemu -m 4M
 
 test86: 
-	qemu-system-x86 -cpu qemu64 -drive format=raw,file=$(PWD)/build/kernel-x86_64-qemu -m 4M
+	qemu-system-i386 -cpu qemu32 -drive format=raw,file=$(PWD)/build/kernel-x86-qemu -m 4M
