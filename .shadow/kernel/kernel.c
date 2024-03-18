@@ -20,6 +20,9 @@ void print_key() {
   ioe_read(AM_INPUT_KEYBRD, &event);
   if (event.keycode != AM_KEY_NONE && event.keydown) {
     puts("Key pressed: ");
+    if (strcmp(key_names[event.keycode], "ESCAPE") == 0) {
+      halt(1);
+    }
     puts(key_names[event.keycode]);
     puts("\n");
   }
@@ -45,7 +48,7 @@ void splash() {
 
   for (int x = 0; x * SIDE <= w; x ++) {
     for (int y = 0; y * SIDE <= h; y++) {
-      if ((x & 1) ^ (y & 1)) {
+      if ((x & 1) ^ (y & 1)) { // 这里是画棋盘的
         draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
       }
     }
