@@ -56,6 +56,7 @@ DST_DIR   = $(WORK_DIR)/build/$(ARCH)
 $(shell mkdir -p $(DST_DIR))
 
 ### Compilation targets (a binary image or archive) 定义归档位置
+#### 在kernel文件夹中的build，因为把这个makefile include进去了，所以这里的IMAGE_REL就是kernel文件夹中的build/kernel-x86_64-qemu
 IMAGE_REL = build/$(NAME)-$(ARCH)
 IMAGE     = $(abspath $(IMAGE_REL))
 ARCHIVE   = $(WORK_DIR)/build/$(NAME)-$(ARCH).a
@@ -132,7 +133,7 @@ $(LIBS): %:
 	@$(MAKE) -s -C $(AM_HOME)/$* archive
 
 ### Rule (link): objects (`*.o`) and libraries (`*.a`) -> `IMAGE.elf`, the final ELF binary to be packed into image (ld)
-$(IMAGE).elf: $(OBJS) am $(LIBS)
+$(IMAGE).elf: $(OBJS) am $(LIBS) #在kernel文件夹中make会出现后面的语句+ LD -> build/kernel-x86_64-qemu.elf
 	@echo + LD "->" $(IMAGE_REL).elf
 	@$(LD) $(LDFLAGS) -o $(IMAGE).elf --start-group $(LINKAGE) --end-group
 
