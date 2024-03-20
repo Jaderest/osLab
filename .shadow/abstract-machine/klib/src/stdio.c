@@ -6,6 +6,19 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
+void putint(int n) {
+  if (n < 0) {
+    putch('-');
+    n = -n;
+  }
+  if (n / 10) {
+    putint(n / 10);
+  }
+  putch(n % 10 + '0');
+}
+
+// klib-macro.h提供putstr
+
 int printf(const char *fmt, ...) {
   panic("Not implemented");
 }

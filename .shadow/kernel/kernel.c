@@ -61,6 +61,10 @@ int main(const char *args) {
   puts(args);  // make run mainargs=xxx
   puts("\"\n");
 
+  int len = strlen("oonp");
+  putint(len);
+  putch('\n');
+
   splash();
 
   puts("Press any key to see its key code...\n");
