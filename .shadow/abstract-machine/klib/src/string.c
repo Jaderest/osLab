@@ -12,7 +12,7 @@ size_t strlen(const char *s) {
   return len;
 }
 
-char *strcpy(char *dst, const char *src) {
+char *strcpy(char *dst, const char *src) { // 单线程ok
   assert(dst != NULL && src != NULL);
   char *temp = dst;
   while ((*dst++ = *src++) != '\0');

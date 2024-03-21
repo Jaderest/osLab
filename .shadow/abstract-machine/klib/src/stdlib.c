@@ -1,7 +1,9 @@
 #include <am.h>
 #include <klib.h>
 #include <klib-macros.h>
+#include <stdlib.h>
 
+//以下行是接入标准库或者老师实现的klib的，所以我测试的时候是不是可以暂时使用一下stdlib，，，
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 static unsigned long int next = 1;
 
@@ -33,7 +35,6 @@ void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
-  // !我怎么才能调用这个函数
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
   panic("Not implemented"); //立即停止程序运行、并打印错误信息：表示未实现
 #endif

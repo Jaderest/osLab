@@ -7,21 +7,21 @@
 
 static int w, h;  // Screen size
 
-// typedef struct pictureTypedPNG {
-//   char *path;
-//   int w, h;
-//   long long pictureSize;
-//   // 图像深度、颜色类型、压缩方法、滤波方法、隔行扫描方法
-//   uintptr_t depth, colorType, compressionMethod, filterMethod, interlaceMethod;
-//   uintptr_t *body;
-// } png;
+typedef struct pictureTypedPNG {
+  char *path;
+  int w, h;
+  long long pictureSize;
+  // 图像深度、颜色类型、压缩方法、滤波方法、隔行扫描方法
+  uintptr_t depth, colorType, compressionMethod, filterMethod, interlaceMethod;
+  uintptr_t *body;
+} png;
 
-// png *loadPNG(char *path) {
-//   png *p = (png *)malloc(sizeof(png));
-//   strcpy(p->path, path);
+png *loadPNG(char *path) {
+  png *p = (png *)malloc(sizeof(png));
+  strcpy(p->path, path);
 
-//   return p;
-// }
+  return p;
+}
 
 #define KEYNAME(key) \
   [AM_KEY_##key] = #key,
@@ -84,7 +84,7 @@ int main(const char *args) {
   puts("\"\n");
 
   int len = strlen("oonp");
-  char *s = "oooo";
+  char *s = malloc(len + 1);
   strcpy(s, "oonp");
   puts(s);
   putch('\n');
