@@ -43,35 +43,36 @@ void *malloc(size_t size) {
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
-  mem_block *current, *prev;
-  void *result;
+  panic("Not implemented");
+//   mem_block *current, *prev;
+//   void *result;
 
-  // 对齐内存块大小
-  size = (size + sizeof(mem_block) - 1) / sizeof(mem_block) * sizeof(mem_block);
+//   // 对齐内存块大小
+//   size = (size + sizeof(mem_block) - 1) / sizeof(mem_block) * sizeof(mem_block);
 
-  for (current = free_list, prev = NULL; current != NULL; prev = current, current = current->next) {
-    if (current->size >= size) {
-      if (current->size > size + sizeof(mem_block)) { // 找到足够大的内存块
-        mem_block *split_block = (mem_block *)((char *)current + size);
-        split_block->size = current->size - size - sizeof(mem_block);
-        split_block->next = current->next;
-        if (prev == NULL) {
-          free_list = split_block;
-        } else {
-          prev->next = split_block;
-        }
-      } else { // 使用整个内存块
-        if (prev == NULL) {
-          free_list = current->next;
-        } else {
-          prev->next = current->next;
-        }
-      }
-      result = (void *)((char *)current + sizeof(mem_block));
-      return result;
-    }
-    return NULL;
-  }
+//   for (current = free_list, prev = NULL; current != NULL; prev = current, current = current->next) {
+//     if (current->size >= size) {
+//       if (current->size > size + sizeof(mem_block)) { // 找到足够大的内存块
+//         mem_block *split_block = (mem_block *)((char *)current + size);
+//         split_block->size = current->size - size - sizeof(mem_block);
+//         split_block->next = current->next;
+//         if (prev == NULL) {
+//           free_list = split_block;
+//         } else {
+//           prev->next = split_block;
+//         }
+//       } else { // 使用整个内存块
+//         if (prev == NULL) {
+//           free_list = current->next;
+//         } else {
+//           prev->next = current->next;
+//         }
+//       }
+//       result = (void *)((char *)current + sizeof(mem_block));
+//       return result;
+//     }
+//     return NULL;
+//   }
 #endif
   return NULL;
 }
