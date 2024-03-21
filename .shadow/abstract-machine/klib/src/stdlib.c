@@ -3,7 +3,7 @@
 #include <klib-macros.h>
 #include <stdlib.h>
 
-//以下行是接入标准库或者老师实现的klib的，所以我测试的时候是不是可以暂时使用一下stdlib，，，
+//以下行是接入标准库或者老师实现的klib的，
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 static unsigned long int next = 1;
 
