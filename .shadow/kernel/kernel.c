@@ -88,7 +88,7 @@ int main(const char *args) {
   char s[len + 1];
   strcpy(s, "oonp");
   puts(s);
-  // free(s);
+  free(s);
   putch('\n');
   putint(len);
   putch('\n');
