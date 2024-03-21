@@ -7,6 +7,22 @@
 
 static int w, h;  // Screen size
 
+// typedef struct pictureTypedPNG {
+//   char *path;
+//   int w, h;
+//   long long pictureSize;
+//   // 图像深度、颜色类型、压缩方法、滤波方法、隔行扫描方法
+//   uintptr_t depth, colorType, compressionMethod, filterMethod, interlaceMethod;
+//   uintptr_t *body;
+// } png;
+
+// png *loadPNG(char *path) {
+//   png *p = (png *)malloc(sizeof(png));
+//   strcpy(p->path, path);
+
+//   return p;
+// }
+
 #define KEYNAME(key) \
   [AM_KEY_##key] = #key,
 static const char *key_names[] = { AM_KEYS(KEYNAME) };
@@ -35,10 +51,16 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
   for (int i = 0; i < w * h; i++) {
     pixels[i] = color; //设置像素点
   }
-  ioe_write(AM_GPU_FBDRAW, &event); //显示在屏幕上
+  ioe_write(AM_GPU_FBDRAW, &event);
 }
 
 void splash() {
+  /*
+  显示图片有几种方案：
+  1. 读取图片中的每一个像素点，并且通过本函数赋值显示在屏幕上
+  2. 在.c文件中直接定义一个数组，然后通过本函数显示在屏幕上
+  困难在如何适应屏幕分辨率，有点难开工了真的
+  */
   AM_GPU_CONFIG_T info = {0};
   ioe_read(AM_GPU_CONFIG, &info);
   w = info.width;
@@ -62,6 +84,10 @@ int main(const char *args) {
   puts("\"\n");
 
   int len = strlen("oonp");
+  char *s = (char *)malloc(len + 1);
+  strcpy(s, "oonp");
+  puts(s);
+  putch('\n');
   putint(len);
   putch('\n');
 
