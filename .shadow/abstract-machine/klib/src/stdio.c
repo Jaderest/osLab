@@ -18,7 +18,6 @@ void putint(int n) {
 }
 
 // klib-macro.h提供putstr
-
 int printf(const char *fmt, ...) {
   panic("Not implemented");
 }

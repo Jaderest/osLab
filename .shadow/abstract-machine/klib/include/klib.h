@@ -32,7 +32,7 @@ int    abs       (int x);
 int    atoi      (const char *nptr);
 
 // stdio.h
-void   putint    (int n);
+void   putint    (int n); //单线程ok
 int    printf    (const char *format, ...);
 int    sprintf   (char *str, const char *format, ...);
 int    snprintf  (char *str, size_t size, const char *format, ...);
