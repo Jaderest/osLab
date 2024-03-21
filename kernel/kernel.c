@@ -39,6 +39,12 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
 }
 
 void splash() {
+  /*
+  显示图片有几种方案：
+  1. 读取图片中的每一个像素点，并且通过本函数赋值显示在屏幕上
+  2. 在.c文件中直接定义一个数组，然后通过本函数显示在屏幕上
+  困难在如何适应屏幕分辨率，有点难开工了真的
+  */
   AM_GPU_CONFIG_T info = {0};
   ioe_read(AM_GPU_CONFIG, &info);
   w = info.width;
