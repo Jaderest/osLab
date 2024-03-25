@@ -84,11 +84,9 @@ int main(const char *args) {
   puts("\"\n");
 
   int len = strlen("oonp");
-  // char *s = malloc(len + 1);
   char s[len + 1];
   strcpy(s, "oonp");
   puts(s);
-  free(s);
   putch('\n');
   putint(len);
   putch('\n');
