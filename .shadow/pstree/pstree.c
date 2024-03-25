@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define MAX_PROC 512
-#define MAX_DEPTH 256
+#define MAX_PROC 2048
+#define MAX_DEPTH 1024
 
 typedef struct PROCESS {
   char name[128];
