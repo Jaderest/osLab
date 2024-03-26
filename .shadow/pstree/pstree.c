@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
     assert(argv[i]); // C 标准保证
     if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--show-pids") == 0) {
       _p = 1;
-    } else if (strcmp(argv[i], "-n") == 0 || strcmp(argv[i], "-numeric-sort") == 0) {
+    } else if (strcmp(argv[i], "-n") == 0 || strcmp(argv[i], "--numeric-sort") == 0) {
       _n = 1;
     } else if (strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "--version") == 0) {
       _v = 1;
@@ -132,10 +132,11 @@ int main(int argc, char *argv[]) {
   assert(!argv[argc]); // C 标准保证
 
   if (_v == 1) {
-    printf("pstree 1.1\n");
+    printf("pstree 1.2\n");
     printf("This is a minilab finished by Jaderest\n");
     printf("He is really happy to do this as homework in OS class\n");
     printf("He has finished beautifying the tree\n");
+    printf("fix some bugs\n");
     return 0;
   }
 
