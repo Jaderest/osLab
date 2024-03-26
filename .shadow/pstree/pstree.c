@@ -115,6 +115,8 @@ void PrintTree(Process *process[], int count) {
 }
 
 int main(int argc, char *argv[]) {
+  dup2(fileno(stderr), fileno(stdout));
+
   assert(argv[0]);
   for (int i = 1; i < argc; i++) {
     assert(argv[i]); // C 标准保证
