@@ -115,7 +115,7 @@ void PrintTree(Process *process[], int count) {
 }
 
 int main(int argc, char *argv[]) {
-  dup2(fileno(stderr), fileno(stdout));
+  // dup2(fileno(stderr), fileno(stdout));
 
   assert(argv[0]);
   for (int i = 1; i < argc; i++) {
@@ -134,11 +134,11 @@ int main(int argc, char *argv[]) {
   assert(!argv[argc]); // C 标准保证
 
   if (_v == 1) {
-    printf("pstree 1.2\n");
-    printf("This is a minilab finished by Jaderest\n");
-    printf("He is really happy to do this as homework in OS class\n");
-    printf("He has finished beautifying the tree\n");
-    printf("fix some bugs\n");
+    fprintf(stderr, "pstree 1.2\n");
+    fprintf(stderr, "This is a minilab finished by Jaderest\n");
+    fprintf(stderr, "He is really happy to do this as homework in OS class\n");
+    fprintf(stderr, "He has finished beautifying the tree\n");
+    fprintf(stderr, "fix some bugs\n");
     return 0;
   }
 
