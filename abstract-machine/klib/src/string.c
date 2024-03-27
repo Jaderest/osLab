@@ -12,15 +12,21 @@ size_t strlen(const char *s) {
   return len;
 }
 
-char *strcpy(char *dst, const char *src) {
-  panic("Not implemented");
+char *strcpy(char *dst, const char *src) { // 单线程ok
+  assert(dst != NULL && src != NULL);
+  char *temp = dst;
+  while ((*dst++ = *src++) != '\0');
+  return temp;
 }
 
-char *strncpy(char *dst, const char *src, size_t n) {
-  panic("Not implemented");
+char *strncpy(char *dst, const char *src, size_t n) { // 如果src长度小于n，则运行会发生Segmentation fault
+  assert(dst != NULL && src != NULL);
+  char *temp = dst;
+  while (n-- && (*dst++ = *src++) != '\0');
+  return temp;
 }
 
-char *strcat(char *dst, const char *src) {
+char *strcat(char *dst, const char *src) { //string concatenate
   panic("Not implemented");
 }
 
@@ -33,7 +39,11 @@ int strcmp(const char *s1, const char *s2) {
 }
 
 int strncmp(const char *s1, const char *s2, size_t n) {
-  panic("Not implemented");
+  while(*s1 && *s2 && *s1 == *s2 && n--) {
+    s1++;
+    s2++;
+  }
+  return *s1 - *s2;
 }
 
 void *memset(void *s, int c, size_t n) {

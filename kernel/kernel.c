@@ -7,6 +7,22 @@
 
 static int w, h;  // Screen size
 
+typedef struct pictureTypedPNG {
+  char *path;
+  int w, h;
+  long long pictureSize;
+  // 图像深度、颜色类型、压缩方法、滤波方法、隔行扫描方法
+  uintptr_t depth, colorType, compressionMethod, filterMethod, interlaceMethod;
+  uintptr_t *body;
+} png;
+
+png *loadPNG(char *path) {
+  png *p = (png *)malloc(sizeof(png));
+  strcpy(p->path, path);
+
+  return p;
+}
+
 #define KEYNAME(key) \
   [AM_KEY_##key] = #key,
 static const char *key_names[] = { AM_KEYS(KEYNAME) };
@@ -35,7 +51,7 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
   for (int i = 0; i < w * h; i++) {
     pixels[i] = color; //设置像素点
   }
-  ioe_write(AM_GPU_FBDRAW, &event); //显示在屏幕上
+  ioe_write(AM_GPU_FBDRAW, &event);
 }
 
 void splash() {
@@ -68,6 +84,10 @@ int main(const char *args) {
   puts("\"\n");
 
   int len = strlen("oonp");
+  char s[len + 1];
+  strcpy(s, "oonp");
+  puts(s);
+  putch('\n');
   putint(len);
   putch('\n');
 

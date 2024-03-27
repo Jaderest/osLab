@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define MAX_PROC 512
-#define MAX_DEPTH 256
+#define MAX_PROC 2048
+#define MAX_DEPTH 1024
 
 typedef struct PROCESS {
   char name[128];
@@ -115,12 +115,14 @@ void PrintTree(Process *process[], int count) {
 }
 
 int main(int argc, char *argv[]) {
+  // dup2(fileno(stderr), fileno(stdout));
+
   assert(argv[0]);
   for (int i = 1; i < argc; i++) {
     assert(argv[i]); // C 标准保证
     if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--show-pids") == 0) {
       _p = 1;
-    } else if (strcmp(argv[i], "-n") == 0 || strcmp(argv[i], "-numeric-sort") == 0) {
+    } else if (strcmp(argv[i], "-n") == 0 || strcmp(argv[i], "--numeric-sort") == 0) {
       _n = 1;
     } else if (strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "--version") == 0) {
       _v = 1;
@@ -132,10 +134,11 @@ int main(int argc, char *argv[]) {
   assert(!argv[argc]); // C 标准保证
 
   if (_v == 1) {
-    printf("pstree 1.1\n");
-    printf("This is a minilab finished by Jaderest\n");
-    printf("He is really happy to do this as homework in OS class\n");
-    printf("He has finished beautifying the tree\n");
+    fprintf(stderr, "pstree 1.2\n");
+    fprintf(stderr, "This is a minilab finished by Jaderest\n");
+    fprintf(stderr, "He is really happy to do this as homework in OS class\n");
+    fprintf(stderr, "He has finished beautifying the tree\n");
+    fprintf(stderr, "fix some bugs\n");
     return 0;
   }
 
