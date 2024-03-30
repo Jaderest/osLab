@@ -15,6 +15,7 @@ static inline void puts(const char *s) {
   for (; *s; s++) putch(*s);
 }
 
+
 void print_key() {
   AM_INPUT_KEYBRD_T event = { .keycode = AM_KEY_NONE };
   ioe_read(AM_INPUT_KEYBRD, &event);
@@ -26,8 +27,8 @@ void print_key() {
   }
 }
 
-static void draw_tile(int x, int y, int w, int h, uint32_t color) {
-  uint32_t pixels[w * h]; // WARNING: large stack-allocated memory,用这个像素板来显示像素
+static void draw_tile(int x, int y, int w, int h, uint32_t color) { //画地砖
+  uint32_t pixels[w * h]; // WARNING: large stack-allocated memory, 45以上就会栈溢出
   AM_GPU_FBDRAW_T event = {
     .x = x, .y = y, .w = w, .h = h, .sync = 1,
     .pixels = pixels,
@@ -36,6 +37,44 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
     pixels[i] = color; //设置像素点
   }
   ioe_write(AM_GPU_FBDRAW, &event);
+}
+
+void drawBackground() { // 设置背景颜色
+  for (int x = 0; x <= w; x ++) {
+    for (int y = 0; y <= h; y++) {
+      draw_tile(x, y, 1, 1, 0xffffff); // white
+    }
+  }
+}
+
+void drawLine(int x1, int y1, int x2, int y2, int width, uint32_t color) { // 画线
+  int dx = abs(x2 - x1), dy = abs(y2 - y1);
+  int sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
+  int err = (dx > dy ? dx : -dy) / 2, e2;
+
+  int x = x1, y = y1;
+  int endX = x2, endY = y2;
+
+  for (int i = 0; i < width; i++) {
+    x = x1, y = y1;
+    endX = x2, endY = y2;
+
+    if (dy > dx) {
+      y += i;
+      endY += i;
+    } else {
+      x += i;
+      endX += i;
+    }
+
+    while(1) {
+      draw_tile(x, y, 1, 1, color);
+      if (x == endX && y == endY) break;
+      e2 = err;
+      if (e2 > -dx) { err -= dy; x += sx; }
+      if (e2 < dy) { err += dx; y += sy; }
+    }
+  }
 }
 
 void splash() {
@@ -55,6 +94,7 @@ void splash() {
       }
     }
   }
+  drawLine(0, 0, w, h, 1, 0x000000); // 画一条线
   // for (int x = 0; x <= w; x ++) {
   //   for (int y = 0; y <= h; y++) {
   //     draw_tile(x, y, 1, 1, pixels[w][h]); // white
