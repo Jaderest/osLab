@@ -108,6 +108,12 @@ void draw_cubic_bezier(Point p1, Point p2, Point p3, uint32_t color) { // 画三
   }
 }
 
+void draw_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 画三角形
+  draw_line(p1, p2, 1, color);
+  draw_line(p2, p3, 1, color);
+  draw_line(p3, p1, 1, color);
+}
+
 void fill_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 填充三角形
   if (p1.y > p2.y) swapInt(&p1.y, &p2.y), swapInt(&p1.x, &p2.x);
   if (p1.y > p3.y) swapInt(&p1.y, &p3.y), swapInt(&p1.x, &p3.x);
