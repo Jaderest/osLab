@@ -248,7 +248,9 @@ void splash43(int w, int h) {
   fill_circle(w / 2, h, 50, 0xff0000);                        // red
 }
 
-void splash85(int w, int h) { draw_background(0x000000); }
+void splash85(int w, int h) {
+  splash43(w, h);
+}
 
 void splash() {
   AM_GPU_CONFIG_T info = {0};
