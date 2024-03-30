@@ -67,13 +67,6 @@ void draw_horizontal_line(int x1, int x2, int y, uint32_t color) { // 画横线
   }
 }
 
-void draw_vertical_line(int x, int y1, int y2, uint32_t color) { // 画竖线
-  if (y1 > y2) swapInt(&y1, &y2);
-  for (int y = y1; y <= y2; y++) {
-    draw_tile(x, y, 1, 1, color);
-  }
-}
-
 void draw_line(int x1, int y1, int x2, int y2, int width, uint32_t color) { // 画线
   int dx = abs(x2 - x1), dy = abs(y2 - y1);
   int sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
@@ -148,7 +141,7 @@ void splash() {
   draw_background(0xffffff); // 设置背景颜色
   draw_line(0, 0, w, h, 5, 0xff0000); // 画一条线
   draw_line(w, 0, 0, h, 5, 0x00ff00);
-  Point p1 = {0, h}, p2 = {w, h}, p3 = {w/2, h};
+  Point p1 = {0, h/3}, p2 = {0, h/2}, p3 = {0, h};
   fill_triangle(p1, p2, p3, 0x0000ff);
 }
 
