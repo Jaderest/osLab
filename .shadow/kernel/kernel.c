@@ -108,10 +108,10 @@ void draw_cubic_bezier(Point p1, Point p2, Point p3, uint32_t color) { // 画三
   }
 }
 
-void draw_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 画三角形
-  draw_line(p1, p2, 1, color);
-  draw_line(p2, p3, 1, color);
-  draw_line(p3, p1, 1, color);
+void draw_triangle(Point p1, Point p2, Point p3, int width, uint32_t color) { // 画三角形
+  draw_line(p1, p2, width, color);
+  draw_line(p2, p3, width, color);
+  draw_line(p3, p1, width, color);
 }
 
 void fill_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 填充三角形
@@ -203,8 +203,8 @@ void splash43(int w, int h) {
   draw_line((Point){w, 0}, (Point){w / 2, 2 * h}, 1, 0x00ff00); // green
   fill_triangle((Point){w / 4, h/2}, (Point){w/2, 0}, (Point){3*w/4, h/2}, 0x008b8b); // darkcyan
   fill_triangle((Point){w / 4, 3*h/16}, (Point){w/2, 11*h/16}, (Point){3*w/4, 3*h/16}, 0x00ffff); // aqua
-  draw_triangle((Point){w / 4, h/2}, (Point){w/2, 0}, (Point){3*w/4, h/2}, 0xff7f50); // coral
-  draw_triangle((Point){w / 4, 3*h/16}, (Point){w/2, 11*h/16}, (Point){3*w/4, 3*h/16}, 0x8a2be2); // blueviolet
+  draw_triangle((Point){w / 4, h/2}, (Point){w/2, 0}, (Point){3*w/4, h/2}, 3, 0xff7f50); // coral
+  draw_triangle((Point){w / 4, 3*h/16}, (Point){w/2, 11*h/16}, (Point){3*w/4, 3*h/16}, 3, 0x8a2be2); // blueviolet
   fill_circle(w / 2, h, 50, 0xff0000); // red
 }
 
