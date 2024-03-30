@@ -3,7 +3,7 @@
 #include <klib.h>
 #include <klib-macros.h>
 
-#define SIDE 40
+#define SIDE 60
 
 static int w, h;  // Screen size
 
