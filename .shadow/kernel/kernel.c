@@ -148,7 +148,7 @@ void splash() {
   draw_background(0xffffff); // 设置背景颜色
   draw_line(0, 0, w, h, 5, 0xff0000); // 画一条线
   draw_line(w, 0, 0, h, 5, 0x00ff00);
-  Point p1 = {0, 0}, p2 = {w, h}, p3 = {0, h};
+  Point p1 = {0, h}, p2 = {w, h}, p3 = {w/2, h};
   fill_triangle(p1, p2, p3, 0x0000ff);
 }
 
