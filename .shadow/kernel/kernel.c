@@ -50,7 +50,7 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) { //画地砖
     pixels[i] = color; //设置像素点
   }
   ioe_write(AM_GPU_FBDRAW, &event);
-}
+} // 画出去暂时没看到什么问题
 
 void draw_background(uint32_t color) { // 设置背景颜色
   for (int x = 0; x <= w; x ++) {
@@ -194,7 +194,7 @@ void splash43(int w, int h) {
     draw_cubic_bezier((Point){0, i}, (Point){w / 2, h-5+i}, (Point){w, i}, 0x000000); // black
   }
   draw_line((Point){0, 0}, (Point){w / 2, 2 * h}, 1, 0x0000ff); // black
-  draw_circle(w / 2, h, 50, 0xff0000); // red
+  fill_circle(w / 2, h, 50, 0xff0000); // red
 }
 
 void splash85(int w, int h) {
