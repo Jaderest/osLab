@@ -67,17 +67,17 @@ void draw_horizontal_line(int x1, int x2, int y, uint32_t color) { // 画横线
   }
 }
 
-void draw_line(int x1, int y1, int x2, int y2, int width, uint32_t color) { // 画线
-  int dx = abs(x2 - x1), dy = abs(y2 - y1);
-  int sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
+void draw_line(Point p1, Point p2, int width, uint32_t color) { // 画线
+  int dx = abs(p2.x - p1.x), dy = abs(p2.y - p1.y);
+  int sx = p1.x < p2.x ? 1 : -1, sy = p1.y < p2.y ? 1 : -1;
   int err = (dx > dy ? dx : -dy) / 2, e2;
 
-  int x = x1, y = y1;
-  int endX = x2, endY = y2;
+  int x = p1.x, y = p1.y;
+  int endX = p2.x, endY = p2.y;
 
   for (int i = 0; i < width; i++) {
-    x = x1, y = y1;
-    endX = x2, endY = y2;
+    x = p1.x, y = p1.y;
+    endX = p2.x, endY = p2.y;
 
     if (dy > dx) {
       y += i;
@@ -184,19 +184,25 @@ void fill_circle(int x0, int y0, int r, uint32_t color) { // 填充圆
   }
 }
 
+void splash43(int w, int h) {
+  draw_background(0xffffff); // white
+}
+
+void splash85(int w, int h) {
+  draw_background(0x000000);
+}
+
 void splash() {
   AM_GPU_CONFIG_T info = {0};
   ioe_read(AM_GPU_CONFIG, &info);
   w = info.width;
   h = info.height;
 
-  draw_background(0xffffff); // 设置背景颜色
-  draw_line(0, 0, w, h, 5, 0xff0000); // 画一条线
-  draw_line(w, 0, 0, h, 5, 0x00ff00);
-  Point p1 = {0, h/3}, p2 = {0, h/2}, p3 = {0, h};
-  fill_triangle(p1, p2, p3, 0x0000ff);
-  draw_circle(w/2, h/2, 100, 0xff00ff);
-  fill_circle(w/2, h/2, 50, 0xffff00);
+  if (w == h / 3 * 4) {
+    splash43(w, h);
+  } else {
+    splash85(w, h);
+  }
 }
 
 // Operating system is a C program!
