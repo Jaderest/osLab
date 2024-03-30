@@ -39,7 +39,7 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) { //画地砖
   ioe_write(AM_GPU_FBDRAW, &event);
 }
 
-void drawBackground() { // 设置背景颜色
+void draw_background() { // 设置背景颜色
   for (int x = 0; x <= w; x ++) {
     for (int y = 0; y <= h; y++) {
       draw_tile(x, y, 1, 1, 0xffffff); // white
@@ -47,7 +47,7 @@ void drawBackground() { // 设置背景颜色
   }
 }
 
-void drawLine(int x1, int y1, int x2, int y2, int width, uint32_t color) { // 画线
+void draw_line(int x1, int y1, int x2, int y2, int width, uint32_t color) { // 画线
   int dx = abs(x2 - x1), dy = abs(y2 - y1);
   int sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
   int err = (dx > dy ? dx : -dy) / 2, e2;
@@ -87,14 +87,15 @@ void splash() {
   putint(h);
   putch('\n');
 
-  for (int x = 0; x * SIDE <= w; x ++) {
-    for (int y = 0; y * SIDE <= h; y++) {
-      if ((x & 1) ^ (y & 1)) { // 这里是画棋盘的
-        draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
-      }
-    }
-  }
-  drawLine(0, 0, w, h, 1, 0x000000); // 画一条线
+  // for (int x = 0; x * SIDE <= w; x ++) {
+  //   for (int y = 0; y * SIDE <= h; y++) {
+  //     if ((x & 1) ^ (y & 1)) { // 这里是画棋盘的
+  //       draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
+  //     }
+  //   }
+  // }
+  draw_background();
+  draw_line(0, 0, w, h, 5, 0x000000); // 画一条线
   // for (int x = 0; x <= w; x ++) {
   //   for (int y = 0; y <= h; y++) {
   //     draw_tile(x, y, 1, 1, pixels[w][h]); // white
