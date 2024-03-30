@@ -111,6 +111,7 @@ void fill_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 填充三�
 
     if (y == e1.end.y) {
       e1.start = e2.start;
+      e1.end = e3.start;
     }
     if (y == e2.end.y) {
       e2.start = e3.start;
