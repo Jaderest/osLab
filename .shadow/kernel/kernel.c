@@ -180,18 +180,11 @@ int sqrt(int x) {
   return ans;
 }
 
-int max(int a, int b) {
-  return a > b ? a : b;
-}
-int min(int a, int b) {
-  return a < b ? a : b;
-}
-
 void fill_circle(int x0, int y0, int r, uint32_t color) { // 填充圆
-  int y1 = max(0, y0 - r), y2 = min(h, y0 + r);
+  int y1 = y0 - r, y2 = y0 + r;
   for (int y = y1; y <= y2; y++) {
     int x = sqrt(r * r - (y - y0) * (y - y0));
-    draw_horizontal_line(max(0, x0 - x), min(w, x0 + x), y, color);
+    draw_horizontal_line(x0 - x, x0 + x, y, color);
   }
 }
 
@@ -201,6 +194,7 @@ void splash43(int w, int h) {
     draw_cubic_bezier((Point){0, i}, (Point){w / 2, h-5+i}, (Point){w, i}, 0x000000); // black
   }
   draw_line((Point){0, 0}, (Point){w / 2, 2 * h}, 1, 0x0000ff); // black
+  draw_circle(w / 2, h, 50, 0xff0000); // red
 }
 
 void splash85(int w, int h) {
