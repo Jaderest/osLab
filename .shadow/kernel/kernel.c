@@ -193,7 +193,8 @@ void splash43(int w, int h) {
   for (int i = 0; i <= 5; i++) {
     draw_cubic_bezier((Point){0, h-5+i}, (Point){w / 2, h/2+10-2*i}, (Point){w, h-5+i}, 0x222222); // brown
   }
-  draw_line((Point){0, 0}, (Point){w / 2, 2 * h}, 1, 0x0000ff); // black
+  draw_line((Point){0, 0}, (Point){w / 2, 2 * h}, 1, 0x0000ff); // blue
+  draw_line((Point){w, 0}, (Point){w / 2, 2 * h}, 1, 0x00ff00); // green
   fill_circle(w / 2, h, 50, 0xff0000); // red
 }
 
