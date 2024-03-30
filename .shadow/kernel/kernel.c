@@ -237,7 +237,10 @@ void splash43(int w, int h) {
                 (Point){3 * w / 4, h / 2}, 3, 0xff7f50); // coral
   draw_triangle((Point){w / 4, 3 * h / 16}, (Point){w / 2, 11 * h / 16},
                 (Point){3 * w / 4, 3 * h / 16}, 3, 0x8a2be2); // blueviolet
-                
+  fill_triangle((Point){0, 0}, (Point){w / 4, 0},
+                (Point){0, h}, 0x800080); // purple
+  fill_triangle((Point){w, 0}, (Point){3 * w / 4, 0},
+                (Point){w, h}, 0x006400); // darkgreen
   fill_circle(w / 2, h, 50, 0xff0000);                        // red
 }
 
