@@ -195,7 +195,8 @@ void splash43(int w, int h) {
   }
   draw_line((Point){0, 0}, (Point){w / 2, 2 * h}, 1, 0x0000ff); // blue
   draw_line((Point){w, 0}, (Point){w / 2, 2 * h}, 1, 0x00ff00); // green
-  fill_triangle((Point){w / 4, h/2}, (Point){w/2, 0}, (Point){3*w/4, h/2}, 0x00ffff); // cyan
+  fill_triangle((Point){w / 4, h/2}, (Point){w/2, h}, (Point){3*w/4, h/2}, 0xff00ff); // magenta
+  fill_triangle((Point){3*w / 8, h/4}, (Point){w/2, h/2}, (Point){5*w/8, h/4}, 0x00ffff); // cyan
   fill_circle(w / 2, h, 50, 0xff0000); // red
 }
 
