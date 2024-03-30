@@ -97,6 +97,17 @@ void draw_line(Point p1, Point p2, int width, uint32_t color) { // 画线
   }
 }
 
+void draw_cubic_bezier(Point p1, Point p2, Point p3, uint32_t color) { // 画三次贝塞尔曲线
+  for (int t = 0; t <= 1000; t++) {
+    int nt = 1000 - t;
+    int x = nt * nt * p1.x + 2 * nt * t * p2.x + t * t * p3.x;
+    x = x / 1000000;
+    int y = nt * nt * p1.y + 2 * nt * t * p2.y + t * t * p3.y;
+    y = y / 1000000;
+    draw_tile(x, y, 1, 1, color);
+  }
+}
+
 void fill_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 填充三角形
   if (p1.y > p2.y) swapInt(&p1.y, &p2.y), swapInt(&p1.x, &p2.x);
   if (p1.y > p3.y) swapInt(&p1.y, &p3.y), swapInt(&p1.x, &p3.x);
@@ -186,6 +197,7 @@ void fill_circle(int x0, int y0, int r, uint32_t color) { // 填充圆
 
 void splash43(int w, int h) {
   draw_background(0xffffff); // white
+  draw_cubic_bezier((Point){0, 0}, (Point){w / 2, h}, (Point){w, 0}, 0x000000); // black
 }
 
 void splash85(int w, int h) {
