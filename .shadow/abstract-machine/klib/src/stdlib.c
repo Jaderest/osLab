@@ -35,6 +35,7 @@ void *malloc(size_t size) {
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
+  // sbrk(4); //!链接器是找不到它的实现的
   panic("Not implemented");
 #endif
   return NULL;
