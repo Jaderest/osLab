@@ -57,7 +57,7 @@ void splash() {
   }
   // for (int x = 0; x <= w; x ++) {
   //   for (int y = 0; y <= h; y++) {
-  //     draw_tile(x, y, 1, 1, pixels[y][x]); // white
+  //     draw_tile(x, y, 1, 1, pixels[w][h]); // white
   //   }
   // }
 }
