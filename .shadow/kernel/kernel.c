@@ -60,13 +60,6 @@ void draw_background(uint32_t color) { // 设置背景颜色
   }
 }
 
-void draw_horizontal_line(int x1, int x2, int y, uint32_t color) { // 画横线
-  if (x1 > x2) swapInt(&x1, &x2);
-  for (int x = x1; x <= x2; x++) {
-    draw_tile(x, y, 1, 1, color);
-  }
-}
-
 void draw_line(int x1, int y1, int x2, int y2, int width, uint32_t color) { // 画线
   int dx = abs(x2 - x1), dy = abs(y2 - y1);
   int sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
@@ -104,16 +97,14 @@ void fill_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 填充三�
 
   Edge e1 = {p1, p2}, e2 = {p1, p3}, e3 = {p2, p3};
 
-  for (int y = p1.y; y <= p2.y; y++) {
+  for (int y = p1.y; y <= p3.y; y++) {
     int x1 = e1.start.x + (y - e1.start.y) * (e1.end.x - e1.start.x) / (e1.end.y - e1.start.y);
     int x2 = e2.start.x + (y - e2.start.y) * (e2.end.x - e2.start.x) / (e2.end.y - e2.start.y);
-    draw_horizontal_line(x1, x2, y, color);
-  }
-
-  for (int y = p2.y; y <= p3.y; y++) {
-    int x1 = e2.start.x + (y - e2.start.y) * (e2.end.x - e2.start.x) / (e2.end.y - e2.start.y);
-    int x2 = e3.start.x + (y - e3.start.y) * (e3.end.x - e3.start.x) / (e3.end.y - e3.start.y);
-    draw_horizontal_line(x1, x2, y, color);
+    draw_line(x1, x2, y, y, 1, color);
+    
+    if (y == p2.y) {
+      e1 = e3;
+    }
   }
 }
 
