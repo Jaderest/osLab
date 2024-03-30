@@ -197,7 +197,9 @@ void fill_circle(int x0, int y0, int r, uint32_t color) { // 填充圆
 
 void splash43(int w, int h) {
   draw_background(0xffffff); // white
-  draw_cubic_bezier((Point){0, 0}, (Point){w / 2, h}, (Point){w, 0}, 0x000000); // black
+  for (int i = 0; i <= 5; i++) {
+    draw_cubic_bezier((Point){0, i}, (Point){w / 2, h-5+i}, (Point){w, i}, 0x000000); // black
+  }
 }
 
 void splash85(int w, int h) {
