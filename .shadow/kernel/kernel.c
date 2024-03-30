@@ -136,12 +136,12 @@ void draw_circle(int x0, int y0, int r, uint32_t color) { // 画圆
   while (x >= y) {
     draw_tile(x0 + x, y0 + y, 1, 1, color);
     draw_tile(x0 + y, y0 + x, 1, 1, color);
-    // draw_tile(x0 - y, y0 + x, 1, 1, color);
-    // draw_tile(x0 - x, y0 + y, 1, 1, color);
-    // draw_tile(x0 - x, y0 - y, 1, 1, color);
-    // draw_tile(x0 - y, y0 - x, 1, 1, color);
-    // draw_tile(x0 + y, y0 - x, 1, 1, color);
-    // draw_tile(x0 + x, y0 - y, 1, 1, color);
+    draw_tile(x0 - y, y0 + x, 1, 1, color);
+    draw_tile(x0 - x, y0 + y, 1, 1, color);
+    draw_tile(x0 - x, y0 - y, 1, 1, color);
+    draw_tile(x0 - y, y0 - x, 1, 1, color);
+    draw_tile(x0 + y, y0 - x, 1, 1, color);
+    draw_tile(x0 + x, y0 - y, 1, 1, color);
 
     y++;
     err += 1 + 2 * y;
@@ -152,9 +152,37 @@ void draw_circle(int x0, int y0, int r, uint32_t color) { // 画圆
   }
 }
 
-// void fill_circle(int x, int y, int r, uint32_t color) { // 填充圆
-  
-// }
+int sqrt(int x) {
+  if (x == 0 || x == 1) {
+    return x;
+  }
+  int left = 1, right = x, ans = 0;
+  while (left <= right) {
+    int mid = left + (right - left) / 2;
+    if (mid <= x / mid) {
+      left = mid + 1;
+      ans = mid;
+    } else {
+      right = mid - 1;
+    }
+  }
+  return ans;
+}
+
+int max(int a, int b) {
+  return a > b ? a : b;
+}
+int min(int a, int b) {
+  return a < b ? a : b;
+}
+
+void fill_circle(int x0, int y0, int r, uint32_t color) { // 填充圆
+  int y1 = max(0, y0 - r), y2 = min(h, y0 + r);
+  for (int y = y1; y <= y2; y++) {
+    int x = sqrt(r * r - (y - y0) * (y - y0));
+    draw_horizontal_line(max(0, x0 - x), min(w, x0 + x), y, color);
+  }
+}
 
 void splash() {
   AM_GPU_CONFIG_T info = {0};
@@ -168,7 +196,7 @@ void splash() {
   Point p1 = {0, h/3}, p2 = {0, h/2}, p3 = {0, h};
   fill_triangle(p1, p2, p3, 0x0000ff);
   draw_circle(w/2, h/2, 100, 0xff00ff);
-  // fill_circle(w/2, h/2, 50, 0xffff00);
+  fill_circle(w/2, h/2, 50, 0xffff00);
 }
 
 // Operating system is a C program!
