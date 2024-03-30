@@ -97,14 +97,19 @@ void fill_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 填充三�
 
   Edge e1 = {p1, p2}, e2 = {p1, p3}, e3 = {p2, p3};
 
-  for (int y = p1.y; y <= p3.y; y++) {
+  for (int y = p1.y; y <= p2.y; y++) {
     int x1 = e1.start.x + (y - e1.start.y) * (e1.end.x - e1.start.x) / (e1.end.y - e1.start.y);
     int x2 = e2.start.x + (y - e2.start.y) * (e2.end.x - e2.start.x) / (e2.end.y - e2.start.y);
     draw_line(x1, x2, y, y, 1, color);
     
-    if (y == p2.y) {
-      e1 = e3;
-    }
+    // if (y == p2.y) {
+    //   e1 = e3;
+    // }
+  }
+  for (int y = p2.y; y <= p3.y; y++) {
+    int x1 = e3.start.x + (y - e3.start.y) * (e3.end.x - e3.start.x) / (e3.end.y - e3.start.y);
+    int x2 = e2.start.x + (y - e2.start.y) * (e2.end.x - e2.start.x) / (e2.end.y - e2.start.y);
+    draw_line(x1, x2, y, y, 1, color);
   }
 }
 
