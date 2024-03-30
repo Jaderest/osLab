@@ -130,7 +130,7 @@ void splash() {
   draw_background(0xffffff); // 设置背景颜色
   draw_line(0, 0, w, h, 5, 0xff0000); // 画一条线
   draw_line(w, 0, 0, h, 5, 0x00ff00);
-  fill_triangle((Point){0, h/3}, (Point){0, 0}, (Point){0, h/2}, 0x0000ff); // 填充三角形
+  fill_triangle((Point){0, 0}, (Point){w/2, 0}, (Point){w/3, 0}, 0x0000ff); // 填充三角形
 }
 
 // Operating system is a C program!
