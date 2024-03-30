@@ -39,10 +39,10 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) { //画地砖
   ioe_write(AM_GPU_FBDRAW, &event);
 }
 
-void draw_background() { // 设置背景颜色
+void draw_background(uint32_t color) { // 设置背景颜色
   for (int x = 0; x <= w; x ++) {
     for (int y = 0; y <= h; y++) {
-      draw_tile(x, y, 1, 1, 0xffffff); // white
+      draw_tile(x, y, 1, 1, color); // white
     }
   }
 }
@@ -94,13 +94,9 @@ void splash() {
   //     }
   //   }
   // }
-  draw_background();
-  draw_line(0, 0, w, h, 5, 0x000000); // 画一条线
-  // for (int x = 0; x <= w; x ++) {
-  //   for (int y = 0; y <= h; y++) {
-  //     draw_tile(x, y, 1, 1, pixels[w][h]); // white
-  //   }
-  // }
+  draw_background(0xffffff); // 设置背景颜色
+  draw_line(0, 0, w, h, 5, 0xff0000); // 画一条线
+  draw_line(w, 0, 0, h, 5, 0x00ff00);
 }
 
 // Operating system is a C program!
