@@ -200,6 +200,7 @@ void splash43(int w, int h) {
   for (int i = 0; i <= 5; i++) {
     draw_cubic_bezier((Point){0, i}, (Point){w / 2, h-5+i}, (Point){w, i}, 0x000000); // black
   }
+  draw_line((Point){0, 0}, (Point){w / 2, 2 * h}, 1, 0x0000ff); // black
 }
 
 void splash85(int w, int h) {
