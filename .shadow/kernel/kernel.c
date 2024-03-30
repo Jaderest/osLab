@@ -128,21 +128,46 @@ void fill_triangle(Point p1, Point p2, Point p3, uint32_t color) { // 填充三�
   }
 }
 
+void draw_circle(int x0, int y0, int r, uint32_t color) { // 画圆
+  int x = r;
+  int y = 0;
+  int err = 0;
+
+  while (x >= y) {
+    draw_tile(x0 + x, y0 + y, 1, 1, color);
+    draw_tile(x0 + y, y0 + x, 1, 1, color);
+    draw_tile(x0 - y, y0 + x, 1, 1, color);
+    draw_tile(x0 - x, y0 + y, 1, 1, color);
+    draw_tile(x0 - x, y0 - y, 1, 1, color);
+    draw_tile(x0 - y, y0 - x, 1, 1, color);
+    draw_tile(x0 + y, y0 - x, 1, 1, color);
+    draw_tile(x0 + x, y0 - y, 1, 1, color);
+
+    y++;
+    err += 1 + 2 * y;
+    if (2 * (err - x) + 1 > 0) {
+      x--;
+      err += 1 - 2 * x;
+    }
+  }
+}
+
+// void fill_circle(int x, int y, int r, uint32_t color) { // 填充圆
+//   // TODO: Implement fill_circle
+// }
+
 void splash() {
   AM_GPU_CONFIG_T info = {0};
   ioe_read(AM_GPU_CONFIG, &info);
   w = info.width;
   h = info.height;
-  putint(w);
-  putch('\n');
-  putint(h);
-  putch('\n');
 
   draw_background(0xffffff); // 设置背景颜色
   draw_line(0, 0, w, h, 5, 0xff0000); // 画一条线
   draw_line(w, 0, 0, h, 5, 0x00ff00);
   Point p1 = {0, h/3}, p2 = {0, h/2}, p3 = {0, h};
   fill_triangle(p1, p2, p3, 0x0000ff);
+  draw_circle(w/2, h/2, 100, 0xff00ff);
 }
 
 // Operating system is a C program!
