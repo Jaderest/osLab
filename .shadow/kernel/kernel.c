@@ -152,9 +152,11 @@ void draw_circle(int x0, int y0, int r, uint32_t color) { // 画圆
   }
 }
 
-// void fill_circle(int x, int y, int r, uint32_t color) { // 填充圆
-//   // TODO: Implement fill_circle
-// }
+void fill_circle(int x, int y, int r, uint32_t color) { // 填充圆
+  for (int i = 0; i < r; i++) {
+    draw_circle(x, y, i, color);
+  }
+}
 
 void splash() {
   AM_GPU_CONFIG_T info = {0};
@@ -168,6 +170,7 @@ void splash() {
   Point p1 = {0, h/3}, p2 = {0, h/2}, p3 = {0, h};
   fill_triangle(p1, p2, p3, 0x0000ff);
   draw_circle(w/2, h/2, 100, 0xff00ff);
+  fill_circle(w/2, h/2, 50, 0xffff00);
 }
 
 // Operating system is a C program!
