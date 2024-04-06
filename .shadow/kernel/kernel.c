@@ -19,11 +19,14 @@ void print_key() {
   AM_INPUT_KEYBRD_T event = {.keycode = AM_KEY_NONE};
   ioe_read(AM_INPUT_KEYBRD, &event);
   if (event.keycode != AM_KEY_NONE && event.keydown) {
-    if (event.keycode == AM_KEY_ESCAPE)
-      halt(0);
+    // if (event.keycode == AM_KEY_ESCAPE)
+    //   halt(0);
     puts("Key pressed: ");
     puts(key_names[event.keycode]);
     puts("\n");
+    if (strcmp(key_names[event.keycode], "ESCAPE") == 0) {
+      halt(0);
+    }
   }
 }
 
