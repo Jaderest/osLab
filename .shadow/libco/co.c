@@ -13,7 +13,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     Co *co = malloc(sizeof(Co));
     co->func = func;
     strcpy(co->name, name);
-    strcpy(co->arg, arg);
+    co->arg = arg;
     return NULL;
 }
 
