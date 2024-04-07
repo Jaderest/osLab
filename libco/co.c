@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <setjmp.h>
 
 enum co_status {
     CO_NEW = 1, // 新创建的协程
@@ -12,24 +13,22 @@ enum co_status {
 
 struct context {
     //TODO
-    // 寄存器
-    // %rip 指令指针寄存器
-    // %rsp 栈指针寄存器
-    // %rbp 基址指针寄存器
-    // %rax 寄存器
-    // %rbx 寄存器
-    // %rcx 寄存器
-    // %rdx 寄存器
-    // %rsi 寄存器
-    // %rdi 寄存器
-    // %r8 寄存器
-    // %r9 寄存器
-    // %r10 寄存器
-    // %r11 寄存器
-    // %r12 寄存器
-    // %r13 寄存器
-    // %r14 寄存器
-    // %r15 寄存器
+    uint64_t rax;
+    uint64_t rbx;
+    uint64_t rcx;
+    uint64_t rdx;
+    uint64_t rsi;
+    uint64_t rdi;
+    uint64_t rbp;
+    uint64_t rsp; // 栈顶指针
+    uint64_t r8;
+    uint64_t r9;
+    uint64_t r10;
+    uint64_t r11;
+    uint64_t r12;
+    uint64_t r13;
+    uint64_t r14;
+    uint64_t r15;
 };
 
 #define STACK_SIZE 1024 * 1024
@@ -47,12 +46,6 @@ struct co { // 需要分配内存，可以使用malloc，自己设计这个结�
 
 struct co *current = NULL; // 当前正在执行的协程
 
-/*
-    为每一个协程分配独立的堆栈，栈顶指针由 current->context 中的 %rsp 寄存器指定
-    co_yield 时，将寄存器保存到属于该协程的 current->context 中，包括 %rsp
-    切换到另一个协程执行，恢复另一个协程的寄存器，包括 %rsp
-*/
-
 // 创建一个新的协程，返回一个指向struct co的指针
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 新状态机 %rsp 寄存器指向它独立的堆栈，%rip 寄存器指向 func 函数的地址
@@ -66,6 +59,12 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     co->waiter = NULL;
     // TODO：初始化寄存器
     // TODO：初始化堆栈
+    if (current == NULL) {
+        current = co;
+        // TODO：切换到新的协程
+    } else {
+        // TODO：将新的协程加入到队列中
+    }
     return co;
 }
 
@@ -73,11 +72,28 @@ void co_wait(struct co *co) { // 当前协程需要等待，知道co协程执行
     // 被等待的协程结束后，co_wait() 返回前，co_start 分配的struct co需要被释放
     // 因此每个 协程只能被 co_wait 一次
     // 等待状态机结束，即等待 func 函数执行完成
+    co->waiter = current;
+    current->status = CO_WAITING;
+    // TODO：切换到另一个协程
+    // TODO：恢复寄存器
+    // TODO：释放 co 占用的内存
+    // TODO：切换到当前协程
+    // TODO：恢复寄存器
+    // TODO：释放当前占用的内存
+    co->status = CO_DEAD;
 }
 
 void co_yield() {
     // 实现协程的切换，当前协程放弃执行，若系统有多个可以运行的协程，选择一个继续执行（包括当前协程，但是不能回到当前函数）
     // main 函数的执行也是一个协程，因此在main中调用 co_yield() 或 co_wait() 时，程序结束
     // 不能把正在执行的函数返回，否则会导致栈被破坏
+    // ? 那么我需要通过什么数据结构来存储当前的协程呢？
+    current->status = CO_WAITING;
+    // TODO：保存寄存器
+    // TODO：切换到另一个协程
+    // TODO：恢复寄存器
+
+    // 把当前代码执行的状态机切换到另一段代码
     // 上下文切换，通过小心地用汇编代码保存ji和恢复寄存器的值，在最后执行pc的切换
+// 可以用setjmp和longjmp来实现状态的恢复
 }
