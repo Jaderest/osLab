@@ -59,6 +59,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     //! 寄存器再看看呢
     struct co *co = malloc(sizeof(struct co));
     co->func = func;
+    co->name = malloc(strlen(name) + 1);
     strcpy(co->name, name);
     co->arg = arg;
     co->status = CO_NEW;
