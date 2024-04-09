@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include <setjmp.h>
 
+#ifdef LOCAL_MACHINE
+    #define debug(...) printf(__VA_ARGS__)
+#else
+    #define debug(...)
+#endif
+
 enum co_status {
     CO_NEW = 1, // 新创建的协程
     CO_RUNNING, // 正在运行的协程
@@ -50,6 +56,9 @@ struct co *current = NULL; // 当前正在执行的协程
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 新状态机 %rsp 寄存器指向它独立的堆栈，%rip 寄存器指向 func 函数的地址
     //! 寄存器再看看呢
+
+    debug("create new co %s\n", name);
+
     struct co *co = malloc(sizeof(struct co));
     co->func = func;
     co->name = malloc(strlen(name) + 1);
