@@ -58,8 +58,6 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 新状态机 %rsp 寄存器指向它独立的堆栈，%rip 寄存器指向 func 函数的地址
     //! 寄存器再看看呢
 
-    debug("create new co %s\n", name);
-
     struct co *co = malloc(sizeof(struct co));
     co->func = func;
     co->name = malloc(strlen(name) + 1);
@@ -98,7 +96,6 @@ void co_yield() {
     // main 函数的执行也是一个协程，因此在main中调用 co_yield() 或 co_wait() 时，程序结束
     // 不能把正在执行的函数返回，否则会导致栈被破坏
     // ? 那么我需要通过什么数据结构来存储当前的协程呢？
-    current->status = CO_WAITING;
     // TODO：保存寄存器
     // TODO：切换到另一个协程
     // TODO：恢复寄存器
@@ -106,4 +103,14 @@ void co_yield() {
     // 把当前代码执行的状态机切换到另一段代码
     // 上下文切换，通过小心地用汇编代码保存ji和恢复寄存器的值，在最后执行pc的切换
 // 可以用setjmp和longjmp来实现状态的恢复
+    int val = setjmp(current->context);
+    if (val == 0) {
+        struct co *next = NULL; //TODO:找到下一个要跑的进程
+        next->status = CO_RUNNING;
+
+        // 将当前协程上下文保存到current->context
+        longjmp(next->context, 1);
+    } else {
+        // 这里是从其他协程切换回来的地方
+    }
 }
