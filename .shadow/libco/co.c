@@ -103,13 +103,13 @@ void co_yield() {
     // 把当前代码执行的状态机切换到另一段代码
     // 上下文切换，通过小心地用汇编代码保存ji和恢复寄存器的值，在最后执行pc的切换
 // 可以用setjmp和longjmp来实现状态的恢复
-    int val = setjmp(current->context);
+    int val = setjmp(*(jmp_buf*)&current->context); //TODO:仔细想想这里指针报错的原因呢
     if (val == 0) {
         struct co *next = NULL; //TODO:找到下一个要跑的进程
         next->status = CO_RUNNING;
 
         // 将当前协程上下文保存到current->context
-        longjmp(next->context, 1);
+        longjmp(*(jmp_buf*)&next->context, 1);
     } else {
         // 这里是从其他协程切换回来的地方
     }
