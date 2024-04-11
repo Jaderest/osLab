@@ -65,8 +65,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     co->arg = arg;
     co->status = CO_NEW;
     co->waiter = NULL;
-    memset(&co->context, 0, sizeof(co->context));
-    memset(co->stack, 0, sizeof(co->stack));
+    // memset(&co->context, 0, sizeof(co->context));
+    // memset(co->stack, 0, sizeof(co->stack));
     co->stack[sizeof(co->stack) - 1] = 0; // 栈底设置为0
 
     stack_switch_call(co->stack + sizeof(co->stack) - 1, co->func, (uintptr_t)co->arg);
