@@ -74,13 +74,13 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
-    if (co->status == CO_DEAD) {
-        free(co);
-    } else {
-        current->status = CO_WAITING;
-        current->waiter = co;
-        co_yield();
-    }
+    // if (co->status == CO_DEAD) {
+    //     free(co);
+    // } else {
+    //     current->status = CO_WAITING;
+    //     current->waiter = co;
+    //     co_yield();
+    // }
 }
 
 struct co* select_next_coroutine() { // 选择下一个协程
