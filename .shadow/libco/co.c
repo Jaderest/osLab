@@ -44,6 +44,6 @@ void co_wait(struct co *co) {
 }
 
 void co_yield() {
-    int val = setjmp((struct __jmp_buf_tag *)current->ctx);
+    int val = setjmp(current->ctx);
 
 }
