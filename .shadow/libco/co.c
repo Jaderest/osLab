@@ -32,6 +32,8 @@ struct co {
     uint8_t stack[4096]; // 协程的堆栈
 };
 
+struct co* current = NULL;
+
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     return NULL;
 }
