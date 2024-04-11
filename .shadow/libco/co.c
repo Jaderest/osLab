@@ -13,6 +13,7 @@
 
 struct context {
     // 上下文切换，把寄存器都保存下来
+    jmp_buf ctx;
 };
 
 enum co_status {
@@ -29,7 +30,7 @@ struct co {
 
     enum co_status status;
     struct co* waiter;
-    struct context ctx;
+    struct context context;
     uint8_t stack[4096]; // 协程的堆栈
 };
 
@@ -43,7 +44,11 @@ void co_wait(struct co *co) {
     
 }
 
-void co_yield() {
-    int val = setjmp(current->ctx);
+void co_yield() { // 是一个函数调用，编译器会自动
+    int val = setjmp(current->context.ctx);
+    if (val == 0) {
 
+    } else {
+
+    }
 }
