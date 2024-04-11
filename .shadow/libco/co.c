@@ -59,7 +59,8 @@ struct co* current = NULL;
 
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     struct co *co = malloc(sizeof(struct co));
-    co->name = strdup(name);
+    co->name = malloc(strlen(name) + 1);
+    strcpy(co->name, name);
     debug("co_start: %s\n", co->name);
     co->func = func;
     co->arg = arg;
