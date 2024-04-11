@@ -34,6 +34,7 @@ struct co {
     uint8_t stack[4096]; // 协程的堆栈
 };
 
+// 这个好像有蛮大问题的
 static inline void 
 stack_switch_call(void *sp, void *entry, uintptr_t arg) { // 堆栈指针，入口地址，参数
     __asm__ volatile (
@@ -66,33 +67,32 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     co->arg = arg;
     co->status = CO_NEW;
     co->waiter = NULL;
-    // memset(&co->context, 0, sizeof(co->context));
-    // memset(co->stack, 0, sizeof(co->stack));
+    memset(&co->context, 0, sizeof(co->context));
+    memset(co->stack, 0, sizeof(co->stack));
     co->stack[sizeof(co->stack) - 1] = 0; // 栈底设置为0
 
-    // stack_switch_call(co->stack + sizeof(co->stack) - 1, co->func, (uintptr_t)co->arg);
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
-    // if (co->status == CO_DEAD) {
-    //     free(co);
-    // } else {
-    //     current->status = CO_WAITING;
-    //     current->waiter = co;
-    //     co_yield();
-    // }
+    if (co->status == CO_DEAD) {
+        free(co);
+    } else {
+        current->status = CO_WAITING;
+        current->waiter = co;
+        co_yield();
+    }
 }
 
 struct co* select_next_coroutine() { // 选择下一个协程
-    // struct co *co = current;
-    // if (current->status == CO_DEAD) {
-    //     free(current);
-    //     current = NULL;
-    // } else {
-    //     current = current->waiter;
-    // }
-    return NULL;
+    struct co *co = current;
+    if (current->status == CO_DEAD) {
+        free(current);
+        current = NULL;
+    } else {
+        current = current->waiter;
+    }
+    return co;
 }
 
 
