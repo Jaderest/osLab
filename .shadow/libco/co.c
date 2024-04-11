@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <setjmp.h>
 
 #ifdef LOCAL_MACHINE
     #define debug(...) printf(__VA_ARGS__)
@@ -43,5 +44,6 @@ void co_wait(struct co *co) {
 }
 
 void co_yield() {
-    
+    int val = setjmp((struct __jmp_buf_tag *)current->ctx);
+
 }
