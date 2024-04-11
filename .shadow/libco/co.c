@@ -84,14 +84,14 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 }
 
 struct co* select_next_coroutine() { // 选择下一个协程
-    struct co *co = current;
-    if (current->status == CO_DEAD) {
-        free(current);
-        current = NULL;
-    } else {
-        current = current->waiter;
-    }
-    return co;
+    // struct co *co = current;
+    // if (current->status == CO_DEAD) {
+    //     free(current);
+    //     current = NULL;
+    // } else {
+    //     current = current->waiter;
+    // }
+    // return co;
 }
 
 
