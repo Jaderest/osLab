@@ -35,7 +35,7 @@ struct co {
 };
 
 static inline void 
-stack_switch_call(void *sp, void *entry, uintptr_t arg) {
+stack_switch_call(void *sp, void *entry, uintptr_t arg) { // 堆栈指针，入口地址，参数
     __asm__ volatile (
 #if __x86_64__
         "movq %0, %%rsp; movq %2, %%rdi; jmp *%1"
@@ -58,6 +58,9 @@ stack_switch_call(void *sp, void *entry, uintptr_t arg) {
 struct co* current = NULL;
 
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
+    struct co *co = malloc(sizeof(struct co));
+    co->name = strdup(name);
+    debug("co_start: %s\n", co->name);
     return NULL;
 }
 
