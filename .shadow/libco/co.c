@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <setjmp.h>
+#include "am.h"
 
 #ifdef LOCAL_MACHINE
     #define debug(...) printf(__VA_ARGS__)
@@ -47,7 +48,7 @@ void co_wait(struct co *co) {
 void co_yield() { // 是一个函数调用，编译器会自动
     int val = setjmp(current->context.ctx);
     if (val == 0) {
-
+        stack_switch_call(current->context.ctx, current->context.ctx, current->func, current->arg);
     } else {
 
     }
