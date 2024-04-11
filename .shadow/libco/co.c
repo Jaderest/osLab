@@ -96,17 +96,17 @@ struct co* select_next_coroutine() { // 选择下一个协程
 
 
 void co_yield() {
-    int val = setjmp(current->context.ctx);
-    if (val == 0) {
-        struct co *next = select_next_coroutine();
-        if (next != NULL) {
-            debug("co_yield: %s\n", next->name);
-            next->status = CO_RUNNING;
-            longjmp(next->context.ctx, 1);
-            stack_switch_call(next->stack + sizeof(next->stack) - 1, next->func, (uintptr_t)next->arg);
-        }
-    } else {
-        debug("co_yield: %s\n", current->name);
-        return;
-    }
+    // int val = setjmp(current->context.ctx);
+    // if (val == 0) {
+    //     struct co *next = select_next_coroutine();
+    //     if (next != NULL) {
+    //         debug("co_yield: %s\n", next->name);
+    //         next->status = CO_RUNNING;
+    //         longjmp(next->context.ctx, 1);
+    //         stack_switch_call(next->stack + sizeof(next->stack) - 1, next->func, (uintptr_t)next->arg);
+    //     }
+    // } else {
+    //     debug("co_yield: %s\n", current->name);
+    //     return;
+    // }
 }
