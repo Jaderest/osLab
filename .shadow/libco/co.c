@@ -35,6 +35,27 @@ struct co {
     uint8_t stack[4096]; // 协程的堆栈
 };
 
+static inline void 
+stack_switch_call(void *sp, void *entry, uintptr_t arg) {
+    __asm__ volatile (
+#if __x86_64__
+        "movq %0, %%rsp; movq %2, %%rdi; jmp *%1"
+          :
+          : "b"((uintptr_t)sp),
+            "d"(entry),
+            "a"(arg)
+          : "memory"
+#else
+        "movl %0, %%esp; movl %2, 4(%0); jmp *%1"
+          :
+          : "b"((uintptr_t)sp - 8),
+            "d"(entry),
+            "a"(arg)
+          : "memory"
+#endif
+    );
+}
+
 struct co* current = NULL;
 
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
@@ -48,7 +69,7 @@ void co_wait(struct co *co) {
 void co_yield() { // 是一个函数调用，编译器会自动
     int val = setjmp(current->context.ctx);
     if (val == 0) {
-        stack_switch_call(current->context.ctx, current->context.ctx, current->func, current->arg);
+        
     } else {
 
     }
