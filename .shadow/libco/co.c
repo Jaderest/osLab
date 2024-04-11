@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <setjmp.h>
-#include "am.h"
 
 #ifdef LOCAL_MACHINE
     #define debug(...) printf(__VA_ARGS__)
