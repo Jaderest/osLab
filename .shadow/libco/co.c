@@ -15,8 +15,8 @@
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 128
 
-#define panic(cond, words) assert(cond); \
-printf("Panic: %s\n", words);
+#define panic(cond, words) printf("Panic: %s\n", words); \
+assert(cond);
 
 struct context {
     uint64_t rax, rbx, rcx, esi, edi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15, rip;
