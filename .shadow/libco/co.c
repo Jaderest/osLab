@@ -181,6 +181,7 @@ void co_yield() {
         } else {
             debug("before longjmp\n");
             longjmp(current->context, 1); //! segmantation fault
+            debug("after longjmp\n");
         }
     } else {
         return;
