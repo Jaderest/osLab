@@ -54,14 +54,20 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     co->waiter = NULL;
     memset(&co->context, 0, sizeof(co->context));
     memset(co->stack, 0, sizeof(co->stack));
+    debug("co_start: %s\n", co->name);
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
+    if (co->status == CO_DEAD) {
+        free(co->name);
+        free(co);
+        return;
+    }
     
-
-
-
+    //! 以下一段为乱写先跑一下的
+    co->func(co->arg);
+    co->status = CO_DEAD;
 
     free(co->name);
     free(co);
