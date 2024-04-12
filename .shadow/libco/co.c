@@ -126,6 +126,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
         current->arg = NULL;
     }
 
+    append(current);
+    append(co);
     return co;
 }
 
@@ -169,6 +171,7 @@ void co_yield() {
         current = node_next->ptr;
         if (node_next->ptr->status == CO_NEW) {
             node_next->ptr->status = CO_RUNNING;
+
             debug("before stack_switch_call\n");
             stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
             if (current->waiter != NULL) {
