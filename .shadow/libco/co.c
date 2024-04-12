@@ -134,7 +134,10 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     co->waiter = current;
     debug("co_wait: %s\n", co->name);
 
+    int count = 0;
     while(co->status != CO_DEAD) {
+        count++;
+        debug("co_wait: %s, count: %d\n", co->name, count);
         co_yield();
     }
     current->status = CO_RUNNING;
