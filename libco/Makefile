@@ -8,5 +8,5 @@ include ../Makefile
 
 commit:
 	git add .
-	git commit -m "update"
+	git commit
 	git push
