@@ -147,7 +147,7 @@ void co_yield() {
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程、
         struct co *node = current->next;
-        while (node != current || (node->status == CO_DEAD || node->status == CO_WAITING)) {
+        while (node->status == CO_DEAD || node->status == CO_WAITING || node == current) {
             node = node->next;
         }
         current = node;
