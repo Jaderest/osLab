@@ -196,10 +196,14 @@ void co_yield() {
     }
 }
 
-void traverse() {
-    co_node *node = head;
-    while (node != NULL) {
-        debug("traverse: %s\n", node->ptr->name);
-        node = node->next;
-    }
-}
+// 遍历当前的链表
+// void traverse() {
+//     co_node *node = head;
+//     while (node != NULL) {
+//         debug("traverse: %s\n", node->ptr->name);
+//         node = node->next;
+//         if (node == tail) {
+//             break;
+//         }
+//     }
+// }
