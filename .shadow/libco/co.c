@@ -70,6 +70,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
         return;
     }
     if (current == NULL) {
+        current = co;
         co->func(co->arg);
         co->status = CO_DEAD;
         free(co->name);
