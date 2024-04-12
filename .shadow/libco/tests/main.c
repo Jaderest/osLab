@@ -103,9 +103,12 @@ static void test_2() {
     struct co *thd4 = co_start("consumer-2", consumer, queue);
 
     // printf("start producer\n");
+    traverse();
     co_wait(thd1);
+    traverse();
     co_wait(thd2);
     // printf("finish producer\n");
+
 
     g_running = 0;
 
@@ -139,7 +142,7 @@ int main() {
     printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
     test_1();
 
-    // traverse();
+    traverse();
 
     printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
     test_2();
