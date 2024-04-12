@@ -195,3 +195,11 @@ void co_yield() {
         return;
     }
 }
+
+void traverse() {
+    co_node *node = head;
+    while (node != NULL) {
+        debug("traverse: %s\n", node->ptr->name);
+        node = node->next;
+    }
+}
