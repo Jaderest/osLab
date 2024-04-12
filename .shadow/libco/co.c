@@ -72,8 +72,18 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     if (current == NULL) {
         co->func(co->arg);
         co->status = CO_DEAD;
+        free(co->name);
+        free(co);
+        return;
     } else {
-        
+        if (setjmp(current->context.ctx) == 0) {
+            // 在调度器中，暂停当前协程执行，切换到其他协程
+            debug("co_wait: %s\n", co->name);
+            longjmp(co->context.ctx, 1);
+        } else {
+            // 从调度器中返回后，继续执行当前协程后续逻辑
+            return;
+        }
     }
 
     // current->status = CO_WAITING;
@@ -87,15 +97,6 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     //     // 从调度器中返回后，继续执行当前协程后续逻辑
     //     return;
     // }
-
-
-    // //! 以下一段为乱写先跑一下的
-    // co->func(co->arg);
-    // co->status = CO_DEAD;
-    // //! -------to here--------
-
-    free(co->name);
-    free(co);
 }
 
 
