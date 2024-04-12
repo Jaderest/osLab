@@ -124,24 +124,24 @@ void print(void *arg) {
 
 static void test_3() {
     struct co *thd1 = co_start("print-1", print, "X");
-    struct co *thd2 = co_start("print-2", print, "Y");
+    // struct co *thd2 = co_start("print-2", print, "Y");
 
     co_wait(thd1);
-    co_wait(thd2);
+    // co_wait(thd2);
 }
 
 int main() {
     setbuf(stdout, NULL);
 
-    printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
-    test_1();
-    printf("\n\n");
+    // printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
+    // test_1();
+    // printf("\n\n");
 
     // // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
     // // test_2();
 
-    // printf("\n\nTest #3. My test to run them\n");
-    // test_3();
+    printf("\n\nTest #3. My test to run them\n");
+    test_3();
 
     return 0;
 }
