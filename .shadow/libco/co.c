@@ -177,12 +177,14 @@ void co_yield() {
             debug("before stack_switch_call\n");
             stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
             debug("after stack_switch_call\n");
+            //! 最重要的一步，你代码甚至没有结束
+            node_next->ptr->status = CO_DEAD;
             if (current->waiter != NULL) {
                 current = current->waiter;
             }
         } else {
             debug("before longjmp\n");
-            longjmp(current->context, 1); //! segmantation fault
+            longjmp(current->context, 1);
             debug("after longjmp\n");
         }
     } else {
