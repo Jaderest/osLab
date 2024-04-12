@@ -66,17 +66,8 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     }
     
     // //! 以下一段为乱写先跑一下的
-    if (current == NULL && co->status == CO_NEW) {
-        current = co;
-        co->status = CO_RUNNING;
-        co->func(co->arg);
-        co->status = CO_DEAD;
-        free(co->name);
-        free(co);
-        return;
-    }
-    // co->func(co->arg);
-    // co->status = CO_DEAD;
+    co->func(co->arg);
+    co->status = CO_DEAD;
     // //! -------to here--------
 
     free(co->name);
