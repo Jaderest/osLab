@@ -174,6 +174,7 @@ void co_yield() {
                 current = current->waiter;
             }
         } else {
+            debug("before longjmp\n");
             longjmp(current->context, 1);
         }
     } else {
