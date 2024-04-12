@@ -15,7 +15,7 @@
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 128
 
-#define panic(cond, words) printf("Panic: %s\n", words); \
+#define panic(cond, words) printf("Panic: %s\t", words); \
 assert(cond);
 
 struct context {
