@@ -6,12 +6,12 @@
 #include <setjmp.h>
 #include <assert.h>
 
-// #ifdef LOCAL_MACHINE
-//     #define debug(...) printf(__VA_ARGS__)
-// #else
-//     #define debug(...)
-// #endif
-#define debug(...)
+#ifdef LOCAL_MACHINE
+    #define debug(...) printf(__VA_ARGS__)
+#else
+    #define debug(...)
+#endif
+// #define debug(...)
 
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 150
@@ -75,6 +75,7 @@ void append(struct co *co) {
     } else {
         tail->next = node;
         node->prev = tail;
+        node->next = head;
         tail = node;
     }
 }
@@ -169,7 +170,6 @@ void co_yield() {
         current->waiter = NULL;
     }
     assert(current != NULL);
-    debug("init main()\n");
 
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
@@ -182,18 +182,14 @@ void co_yield() {
         if (node_next->ptr->status == CO_NEW) {
             ((struct co volatile*)current)->status = CO_RUNNING; // 真的是优化的问题...
 
-            debug("before stack_switch_call\n");
             stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
-            debug("after stack_switch_call\n");
             //! 最重要的一步，你代码甚至没有结束
             ((struct co volatile*)current)->status = CO_DEAD;
             if (current->waiter != NULL) {
                 current = current->waiter;
             }
         } else {
-            debug("before longjmp\n");
             longjmp(current->context, 1);
-            debug("after longjmp\n");
         }
     } else {
         return;
