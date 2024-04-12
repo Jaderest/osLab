@@ -5,3 +5,8 @@ CFLAGS += -U_FORTIFY_SOURCE
 CFLAGS += -DLOCAL_MACHINE
 
 include ../Makefile
+
+commit:
+	git add .
+	git commit -m "update"
+	git push
