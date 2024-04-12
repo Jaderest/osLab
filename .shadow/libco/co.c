@@ -34,49 +34,25 @@ struct co {
     uint8_t stack[4096]; // 协程的堆栈
 };
 
-// 这个好像有蛮大问题的
-static inline void 
-stack_switch_call(void *sp, void *entry, uintptr_t arg) { // 堆栈指针，入口地址，参数
-    __asm__ volatile (
-#if __x86_64__
-        "movq %0, %%rsp; movq %2, %%rdi; jmp *%1"
-          :
-          : "b"((uintptr_t)sp),
-            "d"(entry),
-            "a"(arg)
-          : "memory"
-#else
-        "movl %0, %%esp; movl %2, 4(%0); jmp *%1"
-          :
-          : "b"((uintptr_t)sp - 8),
-            "d"(entry),
-            "a"(arg)
-          : "memory"
-#endif
-    );
-}
-
 struct co* current = NULL;
 
+// 从头到尾，同时只有一个函数在被使用
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
+    // 初始化
     struct co *co = malloc(sizeof(struct co));
+    co->name = malloc(strlen(name) + 1);
+    strcpy(co->name, name);
+    co->func = func;
+    co->arg = arg;
+    co->status = CO_NEW;
+    co->waiter = NULL;
+
     
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     
-}
-
-struct co* select_next_coroutine() { // 选择下一个协程
-    struct co *co = current;
-    if (current->status == CO_DEAD) {
-        free(current);
-        current = NULL;
-    } else {
-        current = current->waiter;
-    }
-    return co;
 }
 
 
