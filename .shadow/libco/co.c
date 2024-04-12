@@ -134,6 +134,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     co->waiter = current;
     while(co->status != CO_DEAD) {
         co_yield();
+        debug("co_wait: %s\n", co->name);
     }
     current->status = CO_RUNNING;
 
@@ -156,7 +157,7 @@ void co_yield() {
 
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
-        
+
     } else {
         return;
     }
