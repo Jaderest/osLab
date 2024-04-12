@@ -102,13 +102,16 @@ static void test_2() {
     struct co *thd3 = co_start("consumer-1", consumer, queue);
     struct co *thd4 = co_start("consumer-2", consumer, queue);
 
+    printf("start producer\n");
     co_wait(thd1);
     co_wait(thd2);
+    printf("finish producer\n");
 
     g_running = 0;
 
     co_wait(thd3);
     co_wait(thd4);
+    printf("finish consumer\n");
 
     while (!q_is_empty(queue)) {
         do_consume(queue);

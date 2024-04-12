@@ -180,7 +180,7 @@ void co_yield() {
         current = node_next->ptr;
 
         if (node_next->ptr->status == CO_NEW) {
-            ((struct co volatile*)current)->status = CO_RUNNING;
+            ((struct co volatile*)current)->status = CO_RUNNING; // 真的是优化的问题...
 
             debug("before stack_switch_call\n");
             stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
