@@ -132,9 +132,10 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     current->status = CO_WAITING;
     co->waiter = current;
+    debug("co_wait: %s\n", co->name);
+
     while(co->status != CO_DEAD) {
         co_yield();
-        debug("co_wait: %s\n", co->name);
     }
     current->status = CO_RUNNING;
 
@@ -157,7 +158,20 @@ void co_yield() {
 
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
-
+        co_node *node_next = head;
+        while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
+            node_next = node_next->next;
+        }
+        current = node_next->ptr;
+        if (node_next->ptr->status == CO_NEW) {
+            node_next->ptr->status = CO_RUNNING;
+            stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
+            if (current->waiter != NULL) {
+                current = current->waiter;
+            }
+        } else {
+            longjmp(current->context, 1);
+        }
     } else {
         return;
     }
