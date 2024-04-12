@@ -11,6 +11,9 @@
     #define debug(...)
 #endif
 
+#define STACK_SIZE 64 * 1024
+#define MAX_CO 128
+
 struct context {
     // 上下文切换，把寄存器都保存下来
     jmp_buf ctx;
@@ -38,7 +41,7 @@ struct co* current = NULL;
 
 // 从头到尾，同时只有一个函数在被使用
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
-    // 初始化
+    // 创建一个新的状态机，仅此而已（堆栈和状态机保存在共享内存？）
     struct co *co = malloc(sizeof(struct co));
     co->name = malloc(strlen(name) + 1);
     strcpy(co->name, name);
@@ -46,13 +49,19 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     co->arg = arg;
     co->status = CO_NEW;
     co->waiter = NULL;
-
-    
+    memset(&co->context, 0, sizeof(co->context));
+    memset(co->stack, 0, sizeof(co->stack));
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     
+
+
+    
+
+    free(co->name);
+    free(co);
 }
 
 
