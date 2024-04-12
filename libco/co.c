@@ -6,12 +6,12 @@
 #include <setjmp.h>
 #include <assert.h>
 
-// #ifdef LOCAL_MACHINE
-//     #define debug(...) printf(__VA_ARGS__)
-// #else
-//     #define debug(...)
-// #endif
-#define debug(...)
+#ifdef LOCAL_MACHINE
+    #define debug(...) printf(__VA_ARGS__)
+#else
+    #define debug(...)
+#endif
+// #define debug(...)
 
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 150
@@ -48,7 +48,7 @@ struct co {
     enum co_status status;
     struct co* waiter; // 是否有其他协程在等待当前协程，所以co->waiter = current
     jmp_buf context; // 寄存器现场
-    uint8_t stack[STACK_SIZE + 1]; // 协程的堆栈
+    uint8_t stack[STACK_SIZE]; // 协程的堆栈
 };
 
 // 全局指针，指向当前运行的协程
@@ -75,6 +75,7 @@ void append(struct co *co) {
     } else {
         tail->next = node;
         node->prev = tail;
+        node->next = head;
         tail = node;
     }
 }
@@ -133,6 +134,14 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
+    if (co == NULL) {
+        return;
+    }
+    if (co->status == CO_DEAD) {
+        free(co->name);
+        free(co);
+        return;
+    }
     current->status = CO_WAITING;
     co->waiter = current;
     debug("co_wait: %s\n", co->name);
@@ -161,7 +170,6 @@ void co_yield() {
         current->waiter = NULL;
     }
     assert(current != NULL);
-    debug("init main()\n");
 
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
@@ -172,20 +180,30 @@ void co_yield() {
         current = node_next->ptr;
 
         if (node_next->ptr->status == CO_NEW) {
-            node_next->ptr->status = CO_RUNNING;
+            ((struct co volatile*)current)->status = CO_RUNNING; // 真的是优化的问题...
 
-            debug("before stack_switch_call\n");
             stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
-            debug("after stack_switch_call\n");
+            //! 最重要的一步，你代码甚至没有结束
+            ((struct co volatile*)current)->status = CO_DEAD;
             if (current->waiter != NULL) {
                 current = current->waiter;
             }
         } else {
-            debug("before longjmp\n");
-            longjmp(current->context, 1); //! segmantation fault
-            debug("after longjmp\n");
+            longjmp(current->context, 1);
         }
     } else {
         return;
     }
 }
+
+// 遍历当前的链表
+// void traverse() {
+//     co_node *node = head;
+//     while (node != NULL) {
+//         debug("traverse: %s\n", node->ptr->name);
+//         node = node->next;
+//         if (node == tail) {
+//             break;
+//         }
+//     }
+// }
