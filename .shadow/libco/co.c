@@ -41,8 +41,6 @@ static inline void stack_switch_call(void *sp, void *entry, uintptr_t arg)
 }
 
 struct co {
-    struct co* next;
-
     char *name;
     void (*func)(void *); // co_start 指定的入口地址和函数
     void *arg;
@@ -55,6 +53,53 @@ struct co {
 
 // 全局指针，指向当前运行的协程
 struct co* current = NULL;
+
+// 需要用一个数据结构存储所有的协程
+typedef struct co_node {
+    struct co *ptr;
+    struct co_node *next;
+    struct co_node *prev;
+} co_node; 
+
+co_node *head = NULL;
+co_node *tail = NULL;
+
+void append(struct co *co) {
+    co_node *node = (co_node *)malloc(sizeof(co_node));
+    node->ptr = co;
+    node->next = NULL;
+    node->prev = NULL;
+    if (head == NULL) {
+        head = node;
+        tail = node;
+    } else {
+        tail->next = node;
+        node->prev = tail;
+        node->next = head;
+        tail = node;
+    }
+}
+
+void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
+    co_node *node = head;
+    while (node != NULL) {
+        if (node->ptr == co) {
+            if (node->prev == NULL) { // head
+                head = node->next;
+            } else {
+                node->prev->next = node->next;
+            }
+            if (node->next == NULL) { // tail
+                tail = node->prev;
+            } else {
+                node->next->prev = node->prev;
+            }
+            free(node);
+            break;
+        }
+        node = node->next;
+    }
+}
 
 // 从头到尾，同时只有一个函数在被使用
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
@@ -77,26 +122,14 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     if (current == NULL) { // 第一个协程，其实这个就该是main函数
         current = (struct co *)malloc(sizeof(struct co));
         current->status = CO_RUNNING;
-        current->name = "main";
         current->waiter = NULL;
+        current->name = "main";
         current->func = NULL;
         current->arg = NULL;
-        current->next = current;
     }
 
-    // 换一种数据结构试一下
-    struct co *node = current;
-    while (node != NULL) {
-        if (node->next == current) {
-            break;
-        }
-        node = node->next;
-    }
-    
-    // 其实同样是环状链表，刚刚那个双向链表有问题可能
-    node->next = co;
-    co->next = current;
-    
+    append(current);
+    append(co);
     return co;
 }
 
@@ -113,20 +146,15 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     co->waiter = current;
     debug("co_wait: %s\n", co->name);
 
-    while(co->status != CO_DEAD) { // 此时协程尚未结束，因此co_wait不能继续执行
+    int count = 0;
+    while(co->status != CO_DEAD) {
+        count++;
+        debug("co_wait: %s, count: %d\n", co->name, count);
         co_yield();
     }
     current->status = CO_RUNNING;
 
-    struct co *node = current;
-    while (node != NULL) {
-        if (node->next == co) {
-            break;
-        }
-        node = node->next;
-    }
-    node->next = co->next;
-
+    delete(co);
     free(co->name);
     free(co);
 }
@@ -140,26 +168,23 @@ void co_yield() {
         current->func = NULL;
         current->arg = NULL;
         current->waiter = NULL;
-        current->next = current;
     }
     assert(current != NULL);
 
     int val = setjmp(current->context);
-    if (val == 0) { // 选择下一个待运行的协程、
-        struct co *node = current->next;
-        while (node != NULL && (node->status == CO_DEAD || node->status == CO_WAITING)) {
-            node = node->next;
+    if (val == 0) { // 选择下一个待运行的协程
+        co_node *node_next = head->next; // head 是 main
+        while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING || node_next->ptr == current) {
+            node_next = node_next->next;
         }
-        current = node;
-        debug("co_yield: %s\n", current->name);
-        if (node->status == CO_NEW) {
-            debug("before stack_switch_call\n");
-            ((struct co volatile *)current)->status = CO_RUNNING;
+        current = node_next->ptr;
 
-            stack_switch_call(&current->stack[STACK_SIZE],  node->func, (uintptr_t)node->arg);
+        if (node_next->ptr->status == CO_NEW) {
+            ((struct co volatile*)current)->status = CO_RUNNING; // 真的是优化的问题...
 
-            ((struct co volatile *)current)->status = CO_DEAD;
-            debug("after stack_switch_call\n");
+            stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
+            //! 最重要的一步，你代码甚至没有结束
+            ((struct co volatile*)current)->status = CO_DEAD;
             if (current->waiter != NULL) {
                 current = current->waiter;
             }
