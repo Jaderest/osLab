@@ -60,28 +60,12 @@ struct co* current = NULL;
 
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     struct co *co = malloc(sizeof(struct co));
-    co->name = malloc(strlen(name) + 1);
-    strcpy(co->name, name);
-    debug("co_start: %s\n", co->name);
-    co->func = func;
-    co->arg = arg;
-    co->status = CO_NEW;
-    co->waiter = NULL;
-    memset(&co->context, 0, sizeof(co->context));
-    memset(co->stack, 0, sizeof(co->stack));
-    co->stack[sizeof(co->stack) - 1] = 0; // 栈底设置为0
-
+    
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
-    if (co->status == CO_DEAD) {
-        free(co);
-    } else {
-        current->status = CO_WAITING;
-        current->waiter = co;
-        co_yield();
-    }
+    
 }
 
 struct co* select_next_coroutine() { // 选择下一个协程
@@ -97,17 +81,5 @@ struct co* select_next_coroutine() { // 选择下一个协程
 
 
 void co_yield() {
-    // int val = setjmp(current->context.ctx);
-    // if (val == 0) {
-    //     struct co *next = select_next_coroutine();
-    //     if (next != NULL) {
-    //         debug("co_yield: %s\n", next->name);
-    //         next->status = CO_RUNNING;
-    //         longjmp(next->context.ctx, 1);
-    //         stack_switch_call(next->stack + sizeof(next->stack) - 1, next->func, (uintptr_t)next->arg);
-    //     }
-    // } else {
-    //     debug("co_yield: %s\n", current->name);
-    //     return;
-    // }
+    
 }
