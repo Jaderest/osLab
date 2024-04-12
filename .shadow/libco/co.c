@@ -158,6 +158,7 @@ void co_yield() {
         current->waiter = NULL;
     }
     assert(current != NULL);
+    debug("init main()\n");
 
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
