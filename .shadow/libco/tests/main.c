@@ -142,6 +142,6 @@ int main() {
 
     printf("\n\nTest #3. My test to run them\n");
     test_3();
-
+    printf("\n\n");
     return 0;
 }
