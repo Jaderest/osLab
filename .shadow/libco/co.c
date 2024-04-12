@@ -48,7 +48,7 @@ struct co {
     enum co_status status;
     struct co* waiter; // 是否有其他协程在等待当前协程，所以co->waiter = current
     jmp_buf context; // 寄存器现场
-    uint8_t stack[STACK_SIZE + 1]; // 协程的堆栈
+    uint8_t stack[STACK_SIZE]; // 协程的堆栈
 };
 
 // 全局指针，指向当前运行的协程
