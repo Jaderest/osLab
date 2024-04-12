@@ -103,9 +103,9 @@ static void test_2() {
     struct co *thd4 = co_start("consumer-2", consumer, queue);
 
     // printf("start producer\n");
-    traverse();
+    // traverse();
     co_wait(thd1);
-    traverse();
+    // traverse();
     co_wait(thd2);
     // printf("finish producer\n");
 
