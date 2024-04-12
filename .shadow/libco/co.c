@@ -125,11 +125,4 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 
 
 void co_yield() {
-    int val = setjmp(current->context); // 保存好了寄存器现场，将栈帧保存在jmp_buf中，然后通过longjmp在指定位置恢复出来，有点类似于goto
-    if (val == 0) {
-        // 此时需要选择下一个待运行的协程，相当于修改current，并切换到它
-    } else {
-        // setjmp 由另一个 longjmp 返回的，此时一定是某个协程调用 co_yield()，此时代表了寄存器
-        return;
-    }
 }
