@@ -6,11 +6,12 @@
 #include <setjmp.h>
 #include <assert.h>
 
-#ifdef LOCAL_MACHINE
-    #define debug(...) printf(__VA_ARGS__)
-#else
-    #define debug(...)
-#endif
+// #ifdef LOCAL_MACHINE
+//     #define debug(...) printf(__VA_ARGS__)
+// #else
+//     #define debug(...)
+// #endif
+#define debug(...)
 
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 150
@@ -47,7 +48,7 @@ struct co {
     enum co_status status;
     struct co* waiter; // 是否有其他协程在等待当前协程，所以co->waiter = current
     jmp_buf context; // 寄存器现场
-    uint8_t stack[STACK_SIZE]; // 协程的堆栈
+    uint8_t stack[STACK_SIZE + 1]; // 协程的堆栈
 };
 
 // 全局指针，指向当前运行的协程
@@ -57,40 +58,45 @@ struct co* current = NULL;
 typedef struct co_node {
     struct co *ptr;
     struct co_node *next;
+    struct co_node *prev;
 } co_node; 
 
 co_node *head = NULL;
+co_node *tail = NULL;
 
 void append(struct co *co) {
-    co_node *node = malloc(sizeof(co_node));
+    co_node *node = (co_node *)malloc(sizeof(co_node));
     node->ptr = co;
     node->next = NULL;
+    node->prev = NULL;
     if (head == NULL) {
         head = node;
+        tail = node;
     } else {
-        co_node *p = head;
-        while(p->next != NULL) {
-            p = p->next;
-        }
-        p->next = node;
+        tail->next = node;
+        node->prev = tail;
+        tail = node;
     }
 }
 
-void delete(struct co *co) {
-    co_node *p = head;
-    co_node *q = NULL;
-    while(p != NULL) {
-        if (p->ptr == co) {
-            if (q == NULL) {
-                head = p->next;
+void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
+    co_node *node = head;
+    while (node != NULL) {
+        if (node->ptr == co) {
+            if (node->prev == NULL) { // head
+                head = node->next;
             } else {
-                q->next = p->next;
+                node->prev->next = node->next;
             }
-            free(p);
+            if (node->next == NULL) { // tail
+                tail = node->prev;
+            } else {
+                node->next->prev = node->prev;
+            }
+            free(node);
             break;
         }
-        q = p;
-        p = p->next;
+        node = node->next;
     }
 }
 
@@ -120,20 +126,66 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
         current->func = NULL;
         current->arg = NULL;
     }
-    
+
+    append(current);
+    append(co);
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     current->status = CO_WAITING;
     co->waiter = current;
+    debug("co_wait: %s\n", co->name);
+
+    int count = 0;
     while(co->status != CO_DEAD) {
+        count++;
+        debug("co_wait: %s, count: %d\n", co->name, count);
         co_yield();
     }
     current->status = CO_RUNNING;
+
+    delete(co);
+    free(co->name);
+    free(co);
 }
 
 
 void co_yield() {
+    if (current == NULL) {
+        current = (struct co *)malloc(sizeof(struct co));
+        current->status = CO_RUNNING;
+        current->name = "main";
+        current->func = NULL;
+        current->arg = NULL;
+        current->waiter = NULL;
+    }
+    assert(current != NULL);
+    debug("init main()\n");
 
+    int val = setjmp(current->context);
+    if (val == 0) { // 选择下一个待运行的协程
+        co_node *node_next = head->next; // head 是 main
+        while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING || node_next->ptr == current) {
+            node_next = node_next->next;
+        }
+        current = node_next->ptr;
+
+        if (node_next->ptr->status == CO_NEW) {
+            node_next->ptr->status = CO_RUNNING;
+
+            debug("before stack_switch_call\n");
+            stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
+            debug("after stack_switch_call\n");
+            if (current->waiter != NULL) {
+                current = current->waiter;
+            }
+        } else {
+            debug("before longjmp\n");
+            longjmp(current->context, 1); //! segmantation fault
+            debug("after longjmp\n");
+        }
+    } else {
+        return;
+    }
 }
