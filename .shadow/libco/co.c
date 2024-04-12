@@ -174,6 +174,7 @@ void co_yield() {
 
             debug("before stack_switch_call\n");
             stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
+            debug("after stack_switch_call\n");
             if (current->waiter != NULL) {
                 current = current->waiter;
             }
