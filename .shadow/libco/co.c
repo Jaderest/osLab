@@ -153,7 +153,7 @@ void co_yield() {
         debug("co_yield: %s\n", current->name);
         if (node->status == CO_NEW) {
             ((struct co volatile *)current)->status = CO_RUNNING;
-            stack_switch_call(current->stack[STACK_SIZE], current->func, (uintptr_t)current->arg);
+            stack_switch_call(&current->stack[STACK_SIZE], current->func, (uintptr_t)current->arg);
             ((struct co volatile *)current)->status = CO_DEAD;
             if (current->waiter != NULL) {
                 current = current->waiter;
