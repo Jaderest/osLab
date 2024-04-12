@@ -15,8 +15,11 @@
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 128
 
+#define panic(cond, words) assert(cond); \
+printf("Panic: %s\n", words);
+
 struct context {
-    uint64_t rdi, rsi, rdx, rcx, r8, r9, rax, rbx, rbp, rsp, rip;
+    uint64_t rax, rbx, rcx, esi, edi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15, rip;
     // %rsp 寄存器指向它独立的堆栈，%rip 指向co_start的函数地址
     // 上下文切换，把寄存器都保存下来
     jmp_buf ctx;
@@ -48,6 +51,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 创建一个新的状态机，仅此而已（堆栈和状态机保存在共享内存？）
     struct co *co = malloc(sizeof(struct co));
     assert(co != NULL);
+    panic(0, "faq!");
 
     co->name = malloc(strlen(name) + 1);
     assert(co->name != NULL);
@@ -69,38 +73,17 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
         free(co);
         return;
     }
-    if (current == NULL) {
-        current = co;
-        co->func(co->arg);
-        co->status = CO_DEAD;
-        free(co->name);
-        free(co);
-        return;
-    } else {
-        if (setjmp(current->context.ctx) == 0) {
-            // 在调度器中，暂停当前协程执行，切换到其他协程
-            debug("co_wait: %s\n", co->name);
-            longjmp(co->context.ctx, 1);
-        } else {
-            // 从调度器中返回后，继续执行当前协程后续逻辑
-            return;
-        }
-    }
+    //? 怎么写啊wdnmd
 
-    // current->status = CO_WAITING;
-    // co->waiter = current;
-
-    // if (setjmp(current->context.ctx) == 0) {
-    //     // 在调度器中，暂停当前协程执行，切换到其他协程
-    //     debug("co_wait: %s\n", co->name);
-    //     longjmp(co->context.ctx, 1);
-    // } else {
-    //     // 从调度器中返回后，继续执行当前协程后续逻辑
-    //     return;
-    // }
 }
 
 
 void co_yield() {
-    
+    int val = setjmp(current->context.ctx); // 保存好了寄存器现场，将栈帧保存在jmp_buf中，然后通过longjmp在指定位置恢复出来，有点类似于goto
+    if (val == 0) {
+        // 此时需要选择下一个待运行的协程，相当于修改current，并切换到它
+    } else {
+        // setjmp 由另一个 longjmp 返回的，此时一定是某个协程调用 co_yield()，此时代表了寄存器
+        return;
+    }
 }
