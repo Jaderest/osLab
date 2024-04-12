@@ -18,13 +18,6 @@
 #define panic(cond, words) printf("Panic: %s\t", words); \
 assert(cond);
 
-struct context {
-    uint64_t rax, rbx, rcx, esi, edi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15, rip;
-    // %rsp 寄存器指向它独立的堆栈，%rip 指向co_start的函数地址
-    // 上下文切换，把寄存器都保存下来
-    jmp_buf ctx;
-};
-
 enum co_status {
     CO_NEW = 1, // 新创建，还未执行过
     CO_RUNNING, // 已经执行过
@@ -39,7 +32,7 @@ struct co {
 
     enum co_status status;
     struct co* waiter; // 是否有其他协程在等待当前协程，所以co->waiter = current
-    struct context context; // 寄存器现场
+    jmp_buf context; // 寄存器现场
     uint8_t stack[STACK_SIZE]; // 协程的堆栈
 };
 
@@ -50,11 +43,10 @@ struct co* current = NULL;
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 创建一个新的状态机，仅此而已（堆栈和状态机保存在共享内存？）
     struct co *co = malloc(sizeof(struct co));
-    assert(co != NULL);
-    panic(0, "faq!");
+    panic(co != NULL, "co malloc failed");
 
     co->name = malloc(strlen(name) + 1);
-    assert(co->name != NULL);
+    panic(co->name != NULL, "co->name malloc failed");
 
     strcpy(co->name, name);
     co->func = func;
@@ -79,7 +71,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 
 
 void co_yield() {
-    int val = setjmp(current->context.ctx); // 保存好了寄存器现场，将栈帧保存在jmp_buf中，然后通过longjmp在指定位置恢复出来，有点类似于goto
+    int val = setjmp(current->context); // 保存好了寄存器现场，将栈帧保存在jmp_buf中，然后通过longjmp在指定位置恢复出来，有点类似于goto
     if (val == 0) {
         // 此时需要选择下一个待运行的协程，相当于修改current，并切换到它
     } else {
