@@ -72,12 +72,8 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     if (current == NULL) {
         co->func(co->arg);
         co->status = CO_DEAD;
-
-        assert(co->name != NULL);
-        assert(co != NULL);
-
-        free(co->name);
-        free(co);
+    } else {
+        
     }
 
     // current->status = CO_WAITING;
