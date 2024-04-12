@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <setjmp.h>
+#include <assert.h>
 
 #ifdef LOCAL_MACHINE
     #define debug(...) printf(__VA_ARGS__)
@@ -46,7 +47,11 @@ struct co* current = NULL;
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 创建一个新的状态机，仅此而已（堆栈和状态机保存在共享内存？）
     struct co *co = malloc(sizeof(struct co));
+    assert(co != NULL);
+
     co->name = malloc(strlen(name) + 1);
+    assert(co->name != NULL);
+
     strcpy(co->name, name);
     co->func = func;
     co->arg = arg;
@@ -67,7 +72,6 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     if (current == NULL) {
         co->func(co->arg);
         co->status = CO_DEAD;
-        debug("1\n");
         free(co->name);
         free(co);
     }
