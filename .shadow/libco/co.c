@@ -111,6 +111,16 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     memset(&co->context, 0, sizeof(co->context));
     memset(co->stack, 0, sizeof(co->stack));
     debug("co_start: %s\n", co->name);
+
+    if (current == NULL) { // 第一个协程，其实这个就该是main函数
+        current = (struct co *)malloc(sizeof(struct co));
+        current->status = CO_RUNNING;
+        current->waiter = NULL;
+        current->name = "main";
+        current->func = NULL;
+        current->arg = NULL;
+    }
+    
     return co;
 }
 
@@ -125,4 +135,5 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 
 
 void co_yield() {
+
 }
