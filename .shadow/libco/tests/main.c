@@ -31,6 +31,7 @@ static void test_1() {
 
     struct co *thd1 = co_start("thread-1", work, "X");
     detect();
+    detect2();
     struct co *thd2 = co_start("thread-2", work, "Y");
     detect();
     // traverse(); //说明这里也有问题，只能说果不其然

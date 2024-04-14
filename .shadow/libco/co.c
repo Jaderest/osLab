@@ -211,3 +211,9 @@ void detect() {
     printf("tail: %s\n", tail->ptr->name);
     printf("------detect------\n");
 }
+
+void detect2() {
+    printf("------detect2------\n");
+    printf("is head->next == thd1: %d\n", head->next == tail);
+    printf("------detect2------\n");
+}
