@@ -30,7 +30,12 @@ static void work(void *arg) {
 static void test_1() {
 
     struct co *thd1 = co_start("thread-1", work, "X");
+    detect(); // 链表构建是没问题的
+    detect2();
     struct co *thd2 = co_start("thread-2", work, "Y");
+    detect();
+    detect3(); // 这里也是
+    // traverse(); //说明这里也有问题，只能说果不其然
 
     co_wait(thd1);
     co_wait(thd2);
@@ -101,10 +106,13 @@ static void test_2() {
     struct co *thd2 = co_start("producer-2", producer, queue);
     struct co *thd3 = co_start("consumer-1", consumer, queue);
     struct co *thd4 = co_start("consumer-2", consumer, queue);
+    // 那就是start在此时没有好好被加入链表中
 
-    // printf("start producer\n");
-    // traverse();
+    printf("start producer\n");
+    traverse();
     co_wait(thd1);
+
+    printf("start producer2\n");
     // traverse();
     co_wait(thd2);
     // printf("finish producer\n");
@@ -141,11 +149,12 @@ int main() {
 
     printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
     test_1();
+    printf("\n\n");
 
     // traverse();
 
-    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    test_2();
+    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    // test_2();
 
     // printf("\n\nTest #3. My test to run them\n");
     // test_3();

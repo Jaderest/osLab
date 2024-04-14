@@ -58,23 +58,24 @@ struct co* current = NULL;
 typedef struct co_node {
     struct co *ptr;
     struct co_node *next;
-    struct co_node *prev;
 } co_node; 
 
-co_node *head = NULL;
+co_node *head = NULL; // 双向链表
 co_node *tail = NULL;
 
 void append(struct co *co) {
     co_node *node = (co_node *)malloc(sizeof(co_node));
+    assert(node != NULL);
+    debug("append: %s\n", co->name);
     node->ptr = co;
     node->next = NULL;
-    node->prev = NULL;
+
     if (head == NULL) {
         head = node;
         tail = node;
+        node->next = NULL;
     } else {
         tail->next = node;
-        node->prev = tail;
         node->next = head;
         tail = node;
     }
@@ -84,15 +85,15 @@ void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
     co_node *node = head;
     while (node != NULL) {
         if (node->ptr == co) {
-            if (node->prev == NULL) { // head
-                head = node->next;
+            if (node == head) {
+                head = head->next;
+                tail->next = head;
             } else {
-                node->prev->next = node->next;
-            }
-            if (node->next == NULL) { // tail
-                tail = node->prev;
-            } else {
-                node->next->prev = node->prev;
+                co_node *prev = head;
+                while (prev->next != node) {
+                    prev = prev->next;
+                }
+                prev->next = node->next;
             }
             free(node);
             break;
@@ -107,10 +108,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     struct co *co = malloc(sizeof(struct co));
     assert(co != NULL);
 
-    co->name = malloc(strlen(name) + 1);
-    assert(co->name != NULL);
-
-    strcpy(co->name, name);
+    co->name = strdup(name);
     co->func = func;
     co->arg = arg;
     co->status = CO_NEW;
@@ -126,22 +124,15 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
         current->name = "main";
         current->func = NULL;
         current->arg = NULL;
+        append(current);
     }
 
-    append(current);
     append(co);
+    traverse();
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
-    if (co == NULL) {
-        return;
-    }
-    if (co->status == CO_DEAD) {
-        free(co->name);
-        free(co);
-        return;
-    }
     current->status = CO_WAITING;
     co->waiter = current;
     debug("co_wait: %s\n", co->name);
@@ -168,14 +159,22 @@ void co_yield() {
         current->func = NULL;
         current->arg = NULL;
         current->waiter = NULL;
+        append(current);
     }
     assert(current != NULL);
 
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = head->next; // head 是 main
-        while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING || node_next->ptr == current) {
+        int count = 0;
+        while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {// || node_next->ptr == current
             node_next = node_next->next;
+            // 这里逻辑写得有问题，卡死在main了
+            // debug("co_yield: %s\n", node_next->ptr->name);
+            if (count < 3) {
+                debug("co_yield: %s\n", node_next->ptr->name);
+                count++;
+            }
         }
         current = node_next->ptr;
 
@@ -196,14 +195,32 @@ void co_yield() {
     }
 }
 
-// 遍历当前的链表
-// void traverse() {
-//     co_node *node = head;
-//     while (node != NULL) {
-//         debug("traverse: %s\n", node->ptr->name);
-//         node = node->next;
-//         if (node == tail) {
-//             break;
-//         }
-//     }
-// }
+// 遍历当前的链表s，这下链表终于好了
+void traverse() {
+    co_node *node = head;
+    do {
+        printf("%s -> ", node->ptr->name);
+        node = node->next;
+    } while (node != tail);
+    printf("%s\n", node->ptr->name);
+}
+
+void detect() {
+    printf("------detect------\n");
+    printf("current: %s\n", current->name);
+    printf("head: %s\n", head->ptr->name);
+    printf("tail: %s\n", tail->ptr->name);
+    printf("------detect------\n");
+}
+
+void detect2() {
+    printf("------detect2------\n");
+    printf("is head->next == thd1: %d\n", head->next == tail);
+    printf("------detect2------\n");
+}
+
+void detect3() {
+    printf("------detect3------\n");
+    printf("is head->next == thd2: %d\n", head->next->next == tail);
+    printf("------detect3------\n");
+}
