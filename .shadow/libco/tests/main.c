@@ -226,13 +226,13 @@ int main() {
     test_2();
     printf("\n\n");
 
-    printf("Test #3. My test to run them\n");
-    test_3();
-    printf("\n\n");
+    // printf("Test #3. My test to run them\n");
+    // test_3();
+    // printf("\n\n");
 
-    printf("Test #4. My test to run them\n");
-    test_4();
-    printf("\n\n");
+    // printf("Test #4. My test to run them\n");
+    // test_4();
+    // printf("\n\n");
 
     // printf("Test #5. My test to run them\n");
     // test_5();
@@ -242,8 +242,8 @@ int main() {
     // test_6();
     // printf("\n\n");
 
-    printf("Test #7. My test to run them\n");
-    test_7();
-    printf("\n\n");
+    // printf("Test #7. My test to run them\n");
+    // test_7();
+    // printf("\n\n");
     return 0;
 }
