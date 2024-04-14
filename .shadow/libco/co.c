@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <setjmp.h>
 #include <assert.h>
+#include <time.h>
 
 #ifdef LOCAL_MACHINE
     #define debug(...) printf(__VA_ARGS__)
@@ -177,6 +178,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 co_node *choose_next() {
     co_node *node_next = head->next; // head 是 main
 
+    srand(time(NULL));
     int random = rand() % 127;
     for (int i = 0; i < random; i++) { // 随机化初始点
         node_next = node_next->next;
