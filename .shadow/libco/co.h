@@ -3,3 +3,5 @@ void co_yield();
 void co_wait(struct co *co);
 void traverse();
 void detect();
+void detect2();
+void detect3();
