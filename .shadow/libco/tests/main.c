@@ -166,11 +166,18 @@ static void test_5() {
     struct co *thd[128];
     for (int i = 0; i < 128; i++) {
         thd[i] = co_start("co", entry, "a");
+        co_yield();
     }
 
     for (int i = 0; i < 128; i++) {
         co_wait(thd[i]);
     }
+}
+
+
+
+static void test_6() {
+
 }
 
 int main() {
