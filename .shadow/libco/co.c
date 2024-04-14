@@ -167,7 +167,7 @@ co_node *choose_next() {
     co_node *node_next = head; // head 是 main
 
     srand(time(NULL));
-    int random = rand() % 127;
+    int random = rand() % 5;
     for (int i = 0; i < random; i++) { // 随机化初始点
         node_next = node_next->next;
     }
@@ -194,12 +194,9 @@ void co_yield() {
     // printf("current: %d\n", current->status);
     if (current->status == CO_DEAD) {
         delete(current);
-        struct co *tmp = current;
-        if (current->waiter != NULL) {
-            current = current->waiter;
-        }
-        free(tmp->name);
-        free(tmp);
+        free(current->name);
+        free(current);
+        current = NULL;
         return;
     }
     // assert(current->status == CO_WAITING || current->status == CO_RUNNING);
