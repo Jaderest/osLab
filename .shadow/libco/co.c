@@ -119,6 +119,9 @@ void __attribute__((constructor)) co_init() {
 void co_wrapper(struct co* co) {
     co->func(co->arg);
     co->status = CO_DEAD;
+    if (current->waiter != NULL) {
+        current = current->waiter;
+    }
 }
 
 // 从头到尾，同时只有一个函数在被使用
@@ -213,11 +216,10 @@ void co_yield() {
         if (current->status == CO_NEW) {
             ((struct co volatile*)current)->status = CO_RUNNING;
 
+            // stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
+            // current->status = CO_DEAD;
+
             stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
-            
-            if (current->waiter != NULL) {
-                current = current->waiter;
-            }
         } else {
             longjmp(current->context, 1);
         }
