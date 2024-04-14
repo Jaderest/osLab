@@ -118,6 +118,7 @@ static void test_2() {
 
 
     g_running = 0;
+    traverse();
 
     co_wait(thd3);
     co_wait(thd4);
