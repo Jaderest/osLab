@@ -118,6 +118,7 @@ static void test_2() {
 
 
     g_running = 0;
+    printf("start consumer\n");
     traverse();
 
     co_wait(thd3);
