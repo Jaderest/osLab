@@ -105,7 +105,7 @@ static void test_2() {
     printf("start producer\n");
     // traverse();
     co_wait(thd1);
-    // traverse();
+    traverse();
     co_wait(thd2);
     // printf("finish producer\n");
 
