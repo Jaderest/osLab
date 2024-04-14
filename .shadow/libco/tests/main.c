@@ -180,12 +180,12 @@ static void test_5() {
 static void test_6() {
     Queue *queue = q_new();
 
-    struct co *thd[64];
+    struct co *thd[127];
     for (int i = 0; i < 50; i++) {
         thd[i] = co_start("producer", producer, queue);
     }
 
-    for (int i = 50; i < 64; i++) {
+    for (int i = 50; i < 127; i++) {
         thd[i] = co_start("consumer", consumer, queue);
     }
 
@@ -195,7 +195,7 @@ static void test_6() {
 
     g_running = 0;
 
-    for (int i = 50; i < 64; i++) {
+    for (int i = 50; i < 127; i++) {
         co_wait(thd[i]);
     }
 
