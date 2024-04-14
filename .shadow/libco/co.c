@@ -203,6 +203,7 @@ void traverse() {
         node = node->next;
     } while (node != tail);
     printf("%s\n", node->ptr->name);
+    printf("---------------------\n");
 }
 
 void detect() {
