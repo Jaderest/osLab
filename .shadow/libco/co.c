@@ -146,7 +146,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 
     while(co->status != CO_DEAD) { // 不断切换可执行的线程执行，直到 co 执行完成
         debug("co_wait1: %s\n", co->name);
-        printf("111\n");
+        // printf("111\n");
         co_yield();
         // debug("1\n");
     }
@@ -175,7 +175,7 @@ co_node *choose_next() {
 }
 
 void co_yield() {
-    debug("into co_yield\n");
+    // debug("into co_yield\n");
     if (current == NULL) {
         current = (struct co *)malloc(sizeof(struct co));
         current->status = CO_RUNNING;
@@ -186,6 +186,7 @@ void co_yield() {
         append(current);
     }
     assert(current != NULL);
+    debug("into yield\n");
 
     int val = setjmp(current->context);
     // debug("val: %d\n", val);
@@ -209,6 +210,7 @@ void co_yield() {
                 current = current->waiter;
             }
         } else {
+
             longjmp(current->context, 1);
         }
     } else {
