@@ -83,24 +83,6 @@ void append(struct co *co) {
 }
 
 void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
-    // co_node *node = head;
-    // while (node != NULL) {
-    //     if (node->ptr == co) {
-    //         if (node == head) {
-    //             head = head->next;
-    //             tail->next = head;
-    //         } else {
-    //             co_node *prev = head;
-    //             while (prev->next != node) {
-    //                 prev = prev->next;
-    //             }
-    //             prev->next = node->next;
-    //         }
-    //         free(node);
-    //         break;
-    //     }
-    //     node = node->next;
-    // }
     co_node *node = head;
     co_node *prev = NULL;
     while (node != NULL) {
@@ -178,7 +160,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 co_node *choose_next() {
     co_node *node_next = head->next; // head 是 main
 
-    srand(time(NULL));
+    // srand(time(NULL));
     int random = rand() % 127;
     for (int i = 0; i < random; i++) { // 随机化初始点
         node_next = node_next->next;
