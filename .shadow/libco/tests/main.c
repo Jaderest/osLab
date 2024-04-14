@@ -103,6 +103,7 @@ static void test_2() {
     struct co *thd3 = co_start("consumer-1", consumer, queue);
     struct co *thd4 = co_start("consumer-2", consumer, queue);
     // 那就是start在此时没有好好被加入链表中
+    traverse();
 
     printf("start producer\n");
     traverse();
@@ -152,6 +153,7 @@ int main() {
 
     printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
     test_2();
+    traverse();
 
     // printf("\n\nTest #3. My test to run them\n");
     // test_3();
