@@ -5,3 +5,4 @@ void traverse();
 void detect();
 void detect2();
 void detect3();
+void show_status();
