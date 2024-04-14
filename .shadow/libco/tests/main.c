@@ -112,14 +112,14 @@ static void test_2() {
     co_wait(thd1); //其实这里两个 producer 都运行完了
 
     // printf("start producer2\n");
-    traverse();
+    // traverse();
     co_wait(thd2); // 这里不小心提前删掉了thd1？
     // printf("finish producer\n");
 
 
     g_running = 0;
-    printf("start consumer\n");
-    traverse();
+    // printf("start consumer\n");
+    // traverse();
 
     co_wait(thd3);
     co_wait(thd4);
