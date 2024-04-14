@@ -167,8 +167,10 @@ static void test_5() {
     for (int i = 0; i < 127; i++) {
         thd[i] = co_start("co", entry, "a");
     }
+    co_wait(thd[0]);
+    printf("--------------------\n");
 
-    for (int i = 0; i < 127; i++) {
+    for (int i = 1; i < 127; i++) {
         co_wait(thd[i]);
     }
 }
