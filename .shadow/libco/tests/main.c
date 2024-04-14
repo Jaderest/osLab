@@ -31,7 +31,7 @@ static void test_1() {
 
     struct co *thd1 = co_start("thread-1", work, "X");
     struct co *thd2 = co_start("thread-2", work, "Y");
-    traverse();
+    // traverse();
 
     co_wait(thd1);
     co_wait(thd2);
@@ -105,14 +105,14 @@ static void test_2() {
     struct co *thd3 = co_start("consumer-1", consumer, queue);
     struct co *thd4 = co_start("consumer-2", consumer, queue);
     // 那就是start在此时没有好好被加入链表中
-    traverse();
+    // traverse();
 
     // printf("start producer\n");
-    traverse();
+    // traverse();
     co_wait(thd3); //其实这里两个 producer 都运行完了
 
     // printf("start producer2\n");
-    traverse();
+    // traverse();
     co_wait(thd1);
     // printf("finish producer\n");
 
@@ -151,11 +151,11 @@ int main() {
     // printf("\n\n");
 
     // detect(); // 那就是删除有bug
-    traverse();
+    // traverse();
 
     printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
     test_2();
-    traverse();
+    // traverse();
 
     // printf("\n\nTest #3. My test to run them\n");
     // test_3();
