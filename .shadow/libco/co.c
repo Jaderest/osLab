@@ -150,9 +150,10 @@ co_node *choose_next() {
     co_node *node_next = head->next; // head 是 main
 
     //TODO
-    int random = rand() % 100;
-    printf("random: %d\n", random);
-    int cond = random % 2;
+    int random = rand() % 127;
+    for (int i = 0; i < random; i++) { // 随机化初始点
+        node_next = node_next->next;
+    }
     // 事实上第一个它都没进这个循环
     while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
         printf("node name%s\n", node_next->ptr->name);
