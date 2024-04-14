@@ -217,8 +217,9 @@ void test_7() {
 }
 
 void test_8() {
-    co_yield();
-    sp();
+    struct co *thd1 = co_start("print-1", print, "X");
+    
+    co_wait(thd1);
 }
 
 int main() {

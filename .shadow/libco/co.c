@@ -136,6 +136,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
+    if (strcmp(co->name, "main") == 0) return; // main 函数不需要等待
     assert(co != NULL);
     current->status = CO_WAITING;
     co->waiter = current;
@@ -262,8 +263,3 @@ void traverse() {
 //     } while (node != tail);
 //     debug("%s: %d\n", node->ptr->name, node->ptr->status);
 // }
-
-void sp() {
-    printf("sp\n");
-    co_wait(current);
-}
