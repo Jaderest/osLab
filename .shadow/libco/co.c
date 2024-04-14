@@ -220,14 +220,14 @@ void co_yield() {
 
 // 遍历当前的链表s，这下链表终于好了
 void traverse() {
-    debug("\n------traverse------\n");
+    printf("\n------traverse------\n");
     co_node *node = head;
     do {
-        debug("%s -> ", node->ptr->name);
+        printf("%s -> ", node->ptr->name);
         node = node->next;
     } while (node != tail);
-    debug("%s\n", node->ptr->name);
-    debug("--------------------\n");
+    printf("%s\n", node->ptr->name);
+    printf("--------------------\n");
 }
 
 void detect() {
