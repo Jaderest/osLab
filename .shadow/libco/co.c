@@ -61,24 +61,26 @@ typedef struct co_node {
     struct co_node *prev;
 } co_node; 
 
-co_node *head = NULL;
+co_node *head = NULL; // 双向循环链表
 co_node *tail = NULL;
 
 void append(struct co *co) {
     co_node *node = (co_node *)malloc(sizeof(co_node));
     assert(node != NULL);
     debug("append: %s\n", co->name);
-    node->ptr = co;
-    node->next = NULL;
-    node->prev = NULL;
+    node->ptr = co; //prev和next都还没指
+
     if (head == NULL) {
         head = node;
         tail = node;
+        node->prev = head;
+        node->next = tail;
     } else {
         tail->next = node;
         node->prev = tail;
-        node->next = head;
         tail = node;
+        tail->next = head;
+        head->prev = tail;
     }
 }
 
