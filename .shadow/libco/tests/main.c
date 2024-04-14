@@ -30,8 +30,9 @@ static void work(void *arg) {
 static void test_1() {
 
     struct co *thd1 = co_start("thread-1", work, "X");
+    detect();
     struct co *thd2 = co_start("thread-2", work, "Y");
-
+    detect();
     // traverse(); //说明这里也有问题，只能说果不其然
 
     co_wait(thd1);

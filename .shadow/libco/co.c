@@ -203,3 +203,11 @@ void traverse() {
     // }
     // printf("\n");
 }
+
+void detect() {
+    printf("------detect------\n");
+    printf("current: %s\n", current->name);
+    printf("head: %s\n", head->ptr->name);
+    printf("tail: %s\n", tail->ptr->name);
+    printf("------detect------\n");
+}
