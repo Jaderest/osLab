@@ -6,12 +6,12 @@
 #include <setjmp.h>
 #include <assert.h>
 
-#ifdef LOCAL_MACHINE
-    #define debug(...) printf(__VA_ARGS__)
-#else
-    #define debug(...)
-#endif
-// #define debug(...)
+// #ifdef LOCAL_MACHINE
+//     #define debug(...) printf(__VA_ARGS__)
+// #else
+//     #define debug(...)
+// #endif
+#define debug(...)
 
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 150
@@ -205,7 +205,7 @@ void co_yield() {
 
     int val = setjmp(current->context);
     // debug("val: %d\n", val);
-    traverse();
+    // traverse();
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = choose_next();
         // debug("choose finished: %s\n", node_next->ptr->name);
