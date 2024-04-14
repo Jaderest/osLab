@@ -197,13 +197,8 @@ void co_yield() {
 // 遍历当前的链表s
 void traverse() {
     co_node *node = head; //是不是因为head的next只有它自己...然后就没跑动，那其实之前选线程的逻辑也是有问题的（链表构建问题可能是）
-    int count = 0;
-    while (node != NULL && count < 5) {
-        debug("traverse: %s\n", node->ptr->name);
-        node = node->next;
-        count++;
-        if (node == tail) {
-            break;
-        }
+    while (node->next != NULL){
+        printf("%s -> ", node->ptr->name);
     }
+    printf("\n");
 }
