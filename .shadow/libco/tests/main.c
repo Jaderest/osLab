@@ -253,6 +253,6 @@ int main() {
 
     printf("Test #8. My test to run them\n");
     test_8();
-    printf("\n\n");
+    // printf("\n\n");
     return 0;
 }
