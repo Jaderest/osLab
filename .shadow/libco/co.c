@@ -199,32 +199,32 @@ void co_yield() {
 
 // 遍历当前的链表s，这下链表终于好了
 void traverse() {
-    printf("------traverse------\n");
+    debug("------traverse------\n");
     co_node *node = head;
     do {
-        printf("%s -> ", node->ptr->name);
+        debug("%s -> ", node->ptr->name);
         node = node->next;
     } while (node != tail);
-    printf("%s\n", node->ptr->name);
-    printf("--------------------\n");
+    debug("%s\n", node->ptr->name);
+    debug("--------------------\n");
 }
 
 void detect() {
-    printf("------detect------\n");
-    printf("current: %s\n", current->name);
-    printf("head: %s\n", head->ptr->name);
-    printf("tail: %s\n", tail->ptr->name);
-    printf("------detect------\n");
+    debug("------detect------\n");
+    debug("current: %s\n", current->name);
+    debug("head: %s\n", head->ptr->name);
+    debug("tail: %s\n", tail->ptr->name);
+    debug("------detect------\n");
 }
 
 void detect2() {
-    printf("------detect2------\n");
-    printf("is head->next == thd1: %d\n", head->next == tail);
-    printf("------detect2------\n");
+    debug("------detect2------\n");
+    debug("is head->next == thd1: %d\n", head->next == tail);
+    debug("------detect2------\n");
 }
 
 void detect3() {
-    printf("------detect3------\n");
-    printf("is head->next == thd2: %d\n", head->next->next == tail);
-    printf("------detect3------\n");
+    debug("------detect3------\n");
+    debug("is head->next == thd2: %d\n", head->next->next == tail);
+    debug("------detect3------\n");
 }
