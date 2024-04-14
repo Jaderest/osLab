@@ -166,24 +166,22 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 co_node *choose_next() {
     co_node *node_next = head; // head 是 main
 
-    // // srand(time(NULL));
+    // srand(time(NULL));
     // int random = rand() % 5;
     // for (int i = 0; i < random; i++) { // 随机化初始点
     //     node_next = node_next->next;
     // }
-    // // 事实上第一个它都没进这个循环
     // while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
     //     node_next = node_next->next;
     // }
 
-    while (node_next->ptr != current) {
+    while (node_next->ptr != current) { //绝对是这里有问题
         node_next = node_next->next;
     }
     assert(node_next->ptr == current);
     do {
         node_next = node_next->next;
     } while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING);
-    
 
     return node_next;
 }
