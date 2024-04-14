@@ -222,6 +222,18 @@ void test_8() {
     co_wait(thd1);
 }
 
+void test_9() {
+    struct co *thd[127];
+    for (int i = 0; i < 127; ++i) {
+        char *name = (char *)malloc(64);
+        sprintf(name, "thread-%d", i);
+        thd[i] = co_start("co", work, "a");
+    }
+
+    for (int i = 0; i < 127; ++i)
+        co_wait(thd[i]);
+}
+
 int main() {
     setbuf(stdout, NULL);
 
@@ -254,6 +266,10 @@ int main() {
 
     printf("Test #8. My test to run them\n");
     test_8();
+    printf("\n\n");
+
+    printf("Test #9. My test to run them\n");
+    test_9();
     printf("\n\n");
     return 0;
 }
