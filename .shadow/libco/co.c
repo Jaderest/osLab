@@ -189,7 +189,7 @@ void co_yield() {
     debug("into yield\n");
 
     int val = setjmp(current->context);
-    // debug("val: %d\n", val);
+    debug("val: %d\n", val);
     // traverse();
     // show_status();
     if (val == 0) { // 选择下一个待运行的协程
