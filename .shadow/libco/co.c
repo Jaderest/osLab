@@ -186,9 +186,8 @@ void co_yield() {
         append(current);
     }
     assert(current != NULL);
-    debug("current->status: %d\n", current->status);
-    // assert(current->status == CO_RUNNING); // 这里assert错误了，那其实也是co_wait的错误
-    debug("into yield\n"); // 很明显的一个地方是，test2里面有调用co_yield
+    assert(current->status == CO_RUNNING);
+    debug("into yield\n"); // 很明显的一个地方是，test2 consumer里面有调用co_yield，那就是哪里实现错误了
 
     int val = setjmp(current->context);
     debug("val: %d\n", val);
