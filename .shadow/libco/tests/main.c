@@ -104,7 +104,7 @@ static void test_2() {
     // 那就是start在此时没有好好被加入链表中
 
     printf("start producer\n");
-    // traverse();
+    traverse();
     co_wait(thd1);
 
     printf("start producer2\n");
