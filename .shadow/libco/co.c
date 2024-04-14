@@ -151,12 +151,12 @@ co_node *choose_next() {
 
     //TODO
     int random = rand() % 100;
+    printf("random: %d\n", random);
     int cond = random % 2;
+    // 事实上第一个它都没进这个循环
     while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
-    printf("--------choose--------\n");
         printf("node name%s\n", node_next->ptr->name);
         node_next = node_next->next;
-    printf("--------choose--------\n");
     }
 
     return node_next;
