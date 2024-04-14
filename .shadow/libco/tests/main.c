@@ -145,6 +145,8 @@ static void test_3() {
     co_wait(thd2);
 }
 
+int count = 1;
+
 void entry(void *arg) {
     for (int i = 0; i < 5; i++) {
         printf("%s[%d] ", (const char *)arg, count++);
