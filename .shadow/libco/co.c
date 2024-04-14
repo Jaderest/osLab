@@ -202,6 +202,7 @@ void co_yield() {
         co_node *node_next = choose_next();
         // debug("choose finished: %s\n", node_next->ptr->name);
         // 但是为什么会卡在这里
+        assert(val == 0);
 
         current = node_next->ptr;
 
