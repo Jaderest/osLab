@@ -186,6 +186,7 @@ void co_yield() {
         append(current);
     }
     assert(current != NULL);
+    debug("current: %s\n", current->name);
     assert(current->status == CO_RUNNING);
     debug("into yield\n"); // 很明显的一个地方是，test2 consumer里面有调用co_yield，那就是哪里实现错误了
 
