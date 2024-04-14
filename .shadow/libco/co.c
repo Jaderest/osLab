@@ -168,7 +168,8 @@ void co_yield() {
         co_node *node_next = head->next; // head 是 main
         while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {// || node_next->ptr == current
             node_next = node_next->next;
-            debug("co_yield: %s\n", node_next->ptr->name);
+            // 这里逻辑写得有问题，卡死在main了
+            // debug("co_yield: %s\n", node_next->ptr->name);
         }
         current = node_next->ptr;
 
