@@ -197,11 +197,11 @@ void co_yield() {
 
 // 遍历当前的链表s
 void traverse() {
-    // co_node *node = head;
-    // while (node->next != NULL){
-    //     printf("%s -> ", node->ptr->name);
-    // }
-    // printf("\n");
+    co_node *node = head;
+    while (node->next != NULL){
+        printf("%s -> ", node->ptr->name);
+    }
+    printf("\n");
 }
 
 void detect() {
