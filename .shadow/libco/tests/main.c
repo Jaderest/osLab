@@ -237,12 +237,12 @@ void test_9() {
 int main() {
     setbuf(stdout, NULL);
 
-    // printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
-    // test_1();
+    printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
+    test_1();
 
-    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    // test_2();
-    // printf("\n\n");
+    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    test_2();
+    printf("\n\n");
 
     // printf("Test #3. My test to run them\n");
     // test_3();
@@ -264,12 +264,12 @@ int main() {
     // test_7();
     // printf("\n\n");
 
-    printf("Test #8. My test to run them\n");
-    test_8();
-    printf("\n\n");
+    // printf("Test #8. My test to run them\n");
+    // test_8();
+    // printf("\n\n");
 
-    printf("Test #9. My test to run them\n");
-    test_9();
-    printf("\n\n");
+    // printf("Test #9. My test to run them\n");
+    // test_9();
+    // printf("\n\n");
     return 0;
 }
