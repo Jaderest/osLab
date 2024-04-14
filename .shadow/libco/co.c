@@ -186,8 +186,8 @@ void co_yield() {
         append(current);
     }
     assert(current != NULL);
-    debug("current: %s\n", current->name);
-    printf("current: %d\n", current->status);
+    // debug("current: %s\n", current->name);
+    // printf("current: %d\n", current->status);
     if (current->status == CO_DEAD) {
         delete(current);
         free(current->name);
