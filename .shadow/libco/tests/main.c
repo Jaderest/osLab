@@ -147,7 +147,7 @@ int main() {
     test_1();
     printf("\n\n");
 
-    detect();
+    detect(); // 那就是删除有bug
     // traverse();
 
     // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");

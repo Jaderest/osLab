@@ -82,24 +82,43 @@ void append(struct co *co) {
 }
 
 void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
+    // co_node *node = head;
+    // while (node != NULL) {
+    //     if (node->ptr == co) {
+    //         if (node == head) {
+    //             head = head->next;
+    //             tail->next = head;
+    //         } else {
+    //             co_node *prev = head;
+    //             while (prev->next != node) {
+    //                 prev = prev->next;
+    //             }
+    //             prev->next = node->next;
+    //         }
+    //         free(node);
+    //         break;
+    //     }
+    //     node = node->next;
+    // }
     co_node *node = head;
+    co_node *prev = NULL;
     while (node != NULL) {
         if (node->ptr == co) {
             if (node == head) {
                 head = head->next;
-                tail->next = head;
+                if (head == NULL) tail = NULL;
+                else tail->next = head;
             } else {
-                co_node *prev = head;
-                while (prev->next != node) {
-                    prev = prev->next;
-                }
                 prev->next = node->next;
+                if (node == tail) tail = prev;
             }
             free(node);
             break;
         }
+        prev = node;
         node = node->next;
     }
+    
 }
 
 // 从头到尾，同时只有一个函数在被使用
