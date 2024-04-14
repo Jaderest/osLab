@@ -222,7 +222,6 @@ void co_yield() {
                 current = current->waiter;
             }
         } else {
-            // 不理解为什么疯狂鬼畜
             longjmp(current->context, 1);
         }
     } else {
