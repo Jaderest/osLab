@@ -153,11 +153,11 @@ co_node *choose_next() {
     int random = rand() % 100;
     int cond = random % 2;
     while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
-        // if (cond == 0) { //随机一下保证一定概率不选到自己
-        //     if (node_next->ptr == current) {
-        //         node_next = node_next->next;
-        //     }
-        // }
+        if (cond == 0) {
+            node_next = node_next->next;
+        } else {
+            node_next = node_next->next->next;
+        }
         node_next = node_next->next;
     }
     
