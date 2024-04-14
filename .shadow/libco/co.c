@@ -60,7 +60,7 @@ typedef struct co_node {
     struct co_node *next;
 } co_node; 
 
-co_node *head = NULL; // 双向链表
+co_node *head = NULL; // 单向循环链表
 co_node *tail = NULL;
 
 void append(struct co *co) {
@@ -73,7 +73,7 @@ void append(struct co *co) {
     if (head == NULL) {
         head = node;
         tail = node;
-        node->next = NULL;
+        node->next = head;
     } else {
         tail->next = node;
         node->next = head;
