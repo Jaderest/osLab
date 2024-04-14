@@ -173,8 +173,8 @@ void co_yield() {
             // debug("co_yield: %s\n", node_next->ptr->name);
             if (count < 2) {
                 debug("co_yield: %s\n", node_next->ptr->name);
+                count++;
             }
-            count++;
         }
         current = node_next->ptr;
 
