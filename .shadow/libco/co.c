@@ -152,12 +152,12 @@ co_node *choose_next() {
     //TODO
     int random = rand() % 100;
     int cond = random % 2;
-    printf("--------choose--------\n");
     while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
+    printf("--------choose--------\n");
         printf("node name%s\n", node_next->ptr->name);
         node_next = node_next->next;
-    }
     printf("--------choose--------\n");
+    }
 
     return node_next;
 }
