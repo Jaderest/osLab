@@ -145,22 +145,41 @@ static void test_3() {
     co_wait(thd2);
 }
 
+void entry(void *arg) {
+    while (1) {
+        printf("%s", (const char *)arg);
+        co_yield();
+    }
+}
+
+static void test_4() {
+    struct co *thd1 = co_start("co-1", entry, "a");
+    struct co *thd2 = co_start("co-2", entry, "b");
+
+    co_wait(thd1);
+    co_wait(thd2);
+}
+
 int main() {
     setbuf(stdout, NULL);
 
-    printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
-    test_1();
-    // printf("\n\n");
+    // printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
+    // test_1();
+    // // printf("\n\n");
 
-    // detect(); // 那就是删除有bug
-    // traverse();
+    // // detect(); // 那就是删除有bug
+    // // traverse();
 
-    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    test_2();
+    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    // test_2();
     // traverse();
 
     // printf("\n\nTest #3. My test to run them\n");
     // test_3();
     // printf("\n\n");
+
+    printf("\n\nTest #4. My test to run them\n");
+    test_4();
+    printf("\n\n");
     return 0;
 }
