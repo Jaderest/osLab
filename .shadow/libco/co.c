@@ -214,6 +214,7 @@ void co_yield() {
             }
         } else {
             debug("before jmp: %s\n", current->name);
+            // 这里在 consumer 疯狂鬼畜
             longjmp(current->context, 1);
         }
     } else {
