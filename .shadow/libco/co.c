@@ -104,7 +104,7 @@ void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
     
 }
 
-void __attribute__((destructor)) co_init() {
+void __attribute__((constructor)) co_init() {
     if (current == NULL) { // 第一个协程，其实这个就该是main函数
         current = (struct co *)malloc(sizeof(struct co));
         current->status = CO_RUNNING;
