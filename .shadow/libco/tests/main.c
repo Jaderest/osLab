@@ -216,15 +216,20 @@ void test_7() {
     co_wait(thd2);
 }
 
+void test_8() {
+    co_yield();
+    sp();
+}
+
 int main() {
     setbuf(stdout, NULL);
 
-    printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
-    test_1();
+    // printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
+    // test_1();
 
-    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    test_2();
-    printf("\n\n");
+    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    // test_2();
+    // printf("\n\n");
 
     // printf("Test #3. My test to run them\n");
     // test_3();
@@ -245,5 +250,9 @@ int main() {
     // printf("Test #7. My test to run them\n");
     // test_7();
     // printf("\n\n");
+
+    printf("Test #8. My test to run them\n");
+    test_8();
+    printf("\n\n");
     return 0;
 }

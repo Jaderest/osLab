@@ -107,7 +107,7 @@ void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
 // 从头到尾，同时只有一个函数在被使用
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 创建一个新的状态机，仅此而已（堆栈和状态机保存在共享内存？）
-    struct co *co = malloc(sizeof(struct co));
+    struct co *co = (struct co *)malloc(sizeof(struct co));
     assert(co != NULL);
 
     co->name = strdup(name);
@@ -271,3 +271,8 @@ void traverse() {
 //     } while (node != tail);
 //     debug("%s: %d\n", node->ptr->name, node->ptr->status);
 // }
+
+void sp() {
+    printf("sp\n");
+    co_wait(current);
+}
