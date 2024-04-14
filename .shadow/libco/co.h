@@ -6,3 +6,4 @@ void traverse();
 // void detect2();
 // void detect3();
 // void show_status();
+void sp();
