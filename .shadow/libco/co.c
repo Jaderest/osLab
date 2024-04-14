@@ -181,7 +181,7 @@ void co_yield() {
     // debug("into co_yield\n");
     if (current == NULL) {
         current = (struct co *)malloc(sizeof(struct co));
-        current->status = CO_WAITING;
+        current->status = CO_RUNNING;
         current->name = "main";
         current->func = NULL;
         current->arg = NULL;
