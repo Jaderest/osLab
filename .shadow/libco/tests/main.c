@@ -178,7 +178,32 @@ static void test_5() {
 
 
 static void test_6() {
+    Queue *queue = q_new();
 
+    struct co *thd[64];
+    for (int i = 0; i < 50; i++) {
+        thd[i] = co_start("producer", producer, queue);
+    }
+
+    for (int i = 50; i < 64; i++) {
+        thd[i] = co_start("consumer", consumer, queue);
+    }
+
+    for (int i = 0; i < 50; i++) {
+        co_wait(thd[i]);
+    }
+
+    g_running = 0;
+
+    for (int i = 50; i < 64; i++) {
+        co_wait(thd[i]);
+    }
+
+    while (!q_is_empty(queue)) {
+        do_consume(queue);
+    }
+
+    q_free(queue);
 }
 
 int main() {
@@ -199,8 +224,12 @@ int main() {
     // test_4();
     // printf("\n\n");
 
-    printf("Test #5. My test to run them\n");
-    test_5();
+    // printf("Test #5. My test to run them\n");
+    // test_5();
+    // printf("\n\n");
+
+    printf("Test #6. My test to run them\n");
+    test_6();
     printf("\n\n");
     return 0;
 }
