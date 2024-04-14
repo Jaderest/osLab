@@ -161,7 +161,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 co_node *choose_next() {
     co_node *node_next = head->next; // head 是 main
 
-    // srand(time(NULL));
+    srand(time(NULL));
     int random = rand() % 127;
     for (int i = 0; i < random; i++) { // 随机化初始点
         node_next = node_next->next;
@@ -186,10 +186,10 @@ void co_yield() {
         append(current);
     }
     assert(current != NULL);
-    debug("into yield\n");
+    // debug("into yield\n");
 
     int val = setjmp(current->context);
-    debug("val: %d\n", val);
+    // debug("val: %d\n", val);
     // traverse();
     // show_status();
     if (val == 0) { // 选择下一个待运行的协程
