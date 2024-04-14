@@ -178,7 +178,7 @@ void co_yield() {
     // debug("into co_yield\n");
     if (current == NULL) {
         current = (struct co *)malloc(sizeof(struct co));
-        current->status = CO_RUNNING;
+        current->status = CO_WAITING;
         current->name = "main";
         current->func = NULL;
         current->arg = NULL;
@@ -188,7 +188,7 @@ void co_yield() {
     assert(current != NULL);
     debug("current: %s\n", current->name);
     printf("current: %d\n", current->status);
-    assert(current->status == CO_RUNNING);
+    assert(current->status == CO_WAITING);
     debug("into yield\n"); // 很明显的一个地方是，test2 consumer里面有调用co_yield，那就是哪里实现错误了
 
     int val = setjmp(current->context);
