@@ -66,7 +66,7 @@ co_node *tail = NULL;
 void append(struct co *co) {
     co_node *node = (co_node *)malloc(sizeof(co_node));
     assert(node != NULL);
-    debug("append: %s\n", co->name);
+    // debug("append: %s\n", co->name);
     node->ptr = co;
     node->next = NULL;
 
@@ -136,10 +136,8 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     co->waiter = current;
     debug("co_wait: %s\n", co->name);
 
-    int count = 0;
     while(co->status != CO_DEAD) {
-        count++;
-        debug("co_wait: %s, count: %d\n", co->name, count);
+        debug("co_wait: %s\n", co->name);
         co_yield();
     }
     current->status = CO_RUNNING;
@@ -203,7 +201,7 @@ void traverse() {
         node = node->next;
     } while (node != tail);
     printf("%s\n", node->ptr->name);
-    printf("---------------------\n");
+    printf("--------------------\n");
 }
 
 void detect() {
