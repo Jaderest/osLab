@@ -163,12 +163,12 @@ static void test_4() {
 }
 
 static void test_5() {
-    struct co *thd[50];
-    for (int i = 0; i < 50; i++) {
+    struct co *thd[128];
+    for (int i = 0; i < 128; i++) {
         thd[i] = co_start("co", entry, "a");
     }
 
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 128; i++) {
         co_wait(thd[i]);
     }
 }
