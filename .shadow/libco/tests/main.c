@@ -181,21 +181,21 @@ static void test_6() {
     Queue *queue = q_new();
 
     struct co *thd[127];
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 64; i++) {
         thd[i] = co_start("producer", producer, queue);
     }
 
-    for (int i = 50; i < 127; i++) {
+    for (int i = 64; i < 127; i++) {
         thd[i] = co_start("consumer", consumer, queue);
     }
 
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 64; i++) {
         co_wait(thd[i]);
     }
 
     g_running = 0;
 
-    for (int i = 50; i < 127; i++) {
+    for (int i = 64; i < 127; i++) {
         co_wait(thd[i]);
     }
 
