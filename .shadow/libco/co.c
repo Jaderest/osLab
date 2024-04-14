@@ -164,7 +164,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     while(co->status != CO_DEAD) { // 不断切换可执行的线程执行，直到 co 执行完成
         debug("co_wait1: %s\n", co->name);
         co_yield();
-        debug("1\n");
+        // debug("1\n");
     }
     current->status = CO_RUNNING;
 
@@ -202,7 +202,7 @@ void co_yield() {
     assert(current != NULL);
 
     int val = setjmp(current->context);
-    debug("val: %d\n", val);
+    // debug("val: %d\n", val);
     // traverse();
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = choose_next();
