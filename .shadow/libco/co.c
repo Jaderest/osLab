@@ -198,7 +198,8 @@ void co_yield() {
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = choose_next();
-        debug("choose finished: %s\n", node_next->ptr->name);
+        // debug("choose finished: %s\n", node_next->ptr->name);
+        // 但是为什么会卡在这里
 
         current = node_next->ptr;
 
@@ -212,6 +213,7 @@ void co_yield() {
                 current = current->waiter;
             }
         } else {
+            debug("before jmp: %s\n", current->name);
             longjmp(current->context, 1);
         }
     } else {

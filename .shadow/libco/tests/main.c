@@ -107,7 +107,7 @@ static void test_2() {
 
     printf("start producer\n");
     traverse();
-    co_wait(thd1);
+    co_wait(thd1); //其实这里两个 producer 都运行完了
 
     printf("start producer2\n");
     // traverse();
