@@ -7,12 +7,12 @@
 #include <assert.h>
 #include <time.h>
 
-// #ifdef LOCAL_MACHINE
-//     #define debug(...) printf(__VA_ARGS__)
-// #else
-//     #define debug(...)
-// #endif
-#define debug(...)
+#ifdef LOCAL_MACHINE
+    #define debug(...) printf(__VA_ARGS__)
+#else
+    #define debug(...)
+#endif
+// #define debug(...)
 
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 150
@@ -186,10 +186,10 @@ void co_yield() {
         append(current);
     }
     assert(current != NULL);
-    // debug("into yield\n");
+    debug("into yield\n");
 
     int val = setjmp(current->context);
-    // debug("val: %d\n", val);
+    debug("val: %d\n", val);
     // traverse();
     // show_status();
     if (val == 0) { // 选择下一个待运行的协程
