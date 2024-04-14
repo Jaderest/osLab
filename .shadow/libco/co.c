@@ -167,10 +167,10 @@ co_node *choose_next() {
 
     while (node_next->ptr != current) {
         node_next = node_next->next;
-        printf("111\n");
     }
     do {
         node_next = node_next->next;
+        printf("111\n");
     } while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING);
     
 
