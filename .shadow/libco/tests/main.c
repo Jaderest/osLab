@@ -34,6 +34,7 @@ static void test_1() {
     detect2();
     struct co *thd2 = co_start("thread-2", work, "Y");
     detect();
+    detect2();
     // traverse(); //说明这里也有问题，只能说果不其然
 
     co_wait(thd1);
