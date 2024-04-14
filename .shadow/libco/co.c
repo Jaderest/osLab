@@ -196,6 +196,7 @@ void co_yield() {
     assert(current != NULL);
 
     int val = setjmp(current->context);
+    debug("val: %d\n", val);
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = choose_next();
         // debug("choose finished: %s\n", node_next->ptr->name);
@@ -213,9 +214,8 @@ void co_yield() {
                 current = current->waiter;
             }
         } else {
-            debug("before jmp: %s\n", current->name);
-            // 这里在 consumer 疯狂鬼畜
-            longjmp(current->context, 10);
+            // 不理解为什么疯狂鬼畜
+            longjmp(current->context, 1);
         }
     } else {
         return;
