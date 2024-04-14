@@ -227,7 +227,7 @@ void test_9() {
     for (int i = 0; i < 127; ++i) {
         char *name = (char *)malloc(64);
         sprintf(name, "thread-%d", i);
-        thd[i] = co_start("co", work, "a");
+        thd[i] = co_start("co", work, "X");
     }
 
     for (int i = 0; i < 127; ++i)
