@@ -196,10 +196,10 @@ void co_yield() {
         return;
     }
     // assert(current->status == CO_WAITING || current->status == CO_RUNNING);
-    debug("into yield\n"); // 很明显的一个地方是，test2 consumer里面有调用co_yield，那就是哪里实现错误了
+    // debug("into yield\n"); // 很明显的一个地方是，test2 consumer里面有调用co_yield，那就是哪里实现错误了
 
     int val = setjmp(current->context);
-    debug("val: %d\n", val);
+    // debug("val: %d\n", val);
     // traverse();
     // show_status();
     if (val == 0) { // 选择下一个待运行的协程
