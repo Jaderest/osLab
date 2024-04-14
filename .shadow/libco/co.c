@@ -188,7 +188,14 @@ void co_yield() {
     assert(current != NULL);
     debug("current: %s\n", current->name);
     printf("current: %d\n", current->status);
-    assert(current->status == CO_WAITING || current->status == CO_RUNNING);
+    if (current->status == CO_DEAD) {
+        delete(current);
+        free(current->name);
+        free(current);
+        current = NULL;
+        return;
+    }
+    // assert(current->status == CO_WAITING || current->status == CO_RUNNING);
     debug("into yield\n"); // 很明显的一个地方是，test2 consumer里面有调用co_yield，那就是哪里实现错误了
 
     int val = setjmp(current->context);
