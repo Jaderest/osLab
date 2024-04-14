@@ -68,6 +68,7 @@ void append(struct co *co) {
     assert(node != NULL);
     debug("append: %s\n", co->name);
     node->ptr = co;
+    node->next = NULL;
 
     if (head == NULL) {
         head = node;
