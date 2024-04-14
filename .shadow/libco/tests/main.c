@@ -146,8 +146,8 @@ static void test_3() {
 }
 
 void entry(void *arg) {
-    while (1) {
-        printf("%s", (const char *)arg);
+    for (int i = 0; i < 5; i++) {
+        printf("%s[%d] ", (const char *)arg, count++);
         co_yield();
     }
 }
