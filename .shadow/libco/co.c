@@ -167,7 +167,7 @@ co_node *choose_next() {
     co_node *node_next = head; // head 是 main
 
     // srand(time(NULL));
-    int random = rand() % 5;
+    int random = rand() % 127;
     for (int i = 0; i < random; i++) { // 随机化初始点
         node_next = node_next->next;
     }
