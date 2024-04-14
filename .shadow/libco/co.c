@@ -179,6 +179,7 @@ co_node *choose_next() {
     while (node_next->ptr != current) {
         node_next = node_next->next;
     }
+    assert(node_next->ptr == current);
     do {
         node_next = node_next->next;
     } while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING);
