@@ -66,6 +66,8 @@ co_node *tail = NULL;
 
 void append(struct co *co) {
     co_node *node = (co_node *)malloc(sizeof(co_node));
+    assert(node != NULL);
+    debug("append: %s\n", co->name);
     node->ptr = co;
     node->next = NULL;
     node->prev = NULL;
