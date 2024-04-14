@@ -186,7 +186,7 @@ void co_yield() {
         current->arg = NULL;
         current->waiter = NULL;
         append(current);
-        traverse();
+        // traverse();
     }
     assert(current != NULL);
     // debug("current: %s\n", current->name);
