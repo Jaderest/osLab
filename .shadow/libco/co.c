@@ -146,6 +146,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 
     while(co->status != CO_DEAD) { // 不断切换可执行的线程执行，直到 co 执行完成
         debug("co_wait1: %s\n", co->name);
+        printf("111\n");
         co_yield();
         // debug("1\n");
     }
