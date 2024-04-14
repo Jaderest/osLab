@@ -150,8 +150,8 @@ int main() {
     // detect(); // 那就是删除有bug
     traverse();
 
-    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    // test_2();
+    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    test_2();
 
     // printf("\n\nTest #3. My test to run them\n");
     // test_3();
