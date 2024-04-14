@@ -186,6 +186,7 @@ void co_yield() {
         append(current);
     }
     assert(current != NULL);
+    assert(current->status == CO_RUNNING);
     debug("into yield\n"); // 很明显的一个地方是，test2里面有调用co_yield
 
     int val = setjmp(current->context);
