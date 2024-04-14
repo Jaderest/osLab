@@ -58,29 +58,25 @@ struct co* current = NULL;
 typedef struct co_node {
     struct co *ptr;
     struct co_node *next;
-    struct co_node *prev;
 } co_node; 
 
-co_node *head = NULL; // 双向循环链表
+co_node *head = NULL; // 双向链表
 co_node *tail = NULL;
 
 void append(struct co *co) {
     co_node *node = (co_node *)malloc(sizeof(co_node));
     assert(node != NULL);
     debug("append: %s\n", co->name);
-    node->ptr = co; //prev和next都还没指
+    node->ptr = co;
 
     if (head == NULL) {
         head = node;
         tail = node;
-        node->prev = head;
-        node->next = tail;
+        node->next = NULL;
     } else {
         tail->next = node;
-        node->prev = tail;
+        node->next = head;
         tail = node;
-        tail->next = head;
-        head->prev = tail;
     }
 }
 
@@ -88,8 +84,16 @@ void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
     co_node *node = head;
     while (node != NULL) {
         if (node->ptr == co) {
-            node->prev->next = node->next;
-            node->next->prev = node->prev;
+            if (node == head) {
+                head = head->next;
+                tail->next = head;
+            } else {
+                co_node *prev = head;
+                while (prev->next != node) {
+                    prev = prev->next;
+                }
+                prev->next = node->next;
+            }
             free(node);
             break;
         }
