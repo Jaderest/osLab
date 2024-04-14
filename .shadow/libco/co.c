@@ -198,6 +198,7 @@ void co_yield() {
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = choose_next();
+        debug("choose finished: %s\n", node_next->ptr->name);
 
         current = node_next->ptr;
 
