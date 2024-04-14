@@ -122,10 +122,6 @@ void co_wrapper(struct co* co) {
     if (current->waiter != NULL) {
         current = current->waiter;
     }
-    co->status = CO_DEAD;
-    delete(co);
-    free(co->name);
-    free(co);
 }
 
 // 从头到尾，同时只有一个函数在被使用
@@ -150,7 +146,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     if (strcmp(co->name, "main") == 0) return; // main 函数不需要等待
     assert(co != NULL);
-    // current->status = CO_WAITING;
+    current->status = CO_WAITING;
     co->waiter = current;
 
     while(co->status != CO_DEAD) { // 不断切换可执行的线程执行，直到 co 执行完成
@@ -160,6 +156,11 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
         // debug("1\n");
     }
     current->status = CO_RUNNING;
+
+    debug("co_wait: %s finished\n", co->name);
+    delete(co);
+    free(co->name);
+    free(co);
 }
 
 co_node *choose_next() {
@@ -189,6 +190,13 @@ void co_yield() {
     assert(current != NULL);
     // debug("current: %s\n", current->name);
     // printf("current: %d\n", current->status);
+    if (current->status == CO_DEAD) {
+        delete(current);
+        free(current->name);
+        free(current);
+        current = NULL;
+        return;
+    }
     // assert(current->status == CO_WAITING || current->status == CO_RUNNING);
     // debug("into yield\n"); // 很明显的一个地方是，test2 consumer里面有调用co_yield，那就是哪里实现错误了
 
@@ -220,16 +228,16 @@ void co_yield() {
 }
 
 // // 遍历当前的链表s，这下链表终于好了
-void traverse() {
-    printf("\n------traverse------\n");
-    co_node *node = head;
-    do {
-        printf("%s -> ", node->ptr->name);
-        node = node->next;
-    } while (node != tail);
-    printf("%s\n", node->ptr->name);
-    printf("--------------------\n");
-}
+// void traverse() {
+//     printf("\n------traverse------\n");
+//     co_node *node = head;
+//     do {
+//         printf("%s -> ", node->ptr->name);
+//         node = node->next;
+//     } while (node != tail);
+//     printf("%s\n", node->ptr->name);
+//     printf("--------------------\n");
+// }
 
 // void detect() {
 //     debug("------detect------\n");
