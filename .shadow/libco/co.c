@@ -125,9 +125,9 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
         current->name = "main";
         current->func = NULL;
         current->arg = NULL;
+        append(current);
     }
 
-    append(current);
     append(co);
     return co;
 }
@@ -159,6 +159,7 @@ void co_yield() {
         current->func = NULL;
         current->arg = NULL;
         current->waiter = NULL;
+        append(current);
     }
     assert(current != NULL);
 
