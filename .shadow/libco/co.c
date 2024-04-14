@@ -116,6 +116,11 @@ void __attribute__((constructor)) co_init() {
     }
 }
 
+void co_wrapper(struct co* co) {
+    co->func(co->arg);
+    co->status = CO_DEAD;
+}
+
 // 从头到尾，同时只有一个函数在被使用
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 创建一个新的状态机，仅此而已（堆栈和状态机保存在共享内存？）
@@ -206,16 +211,14 @@ void co_yield() {
         current = node_next->ptr;
 
         if (current->status == CO_NEW) {
-            ((struct co volatile*)current)->status = CO_RUNNING; // 真的是优化的问题...
+            ((struct co volatile*)current)->status = CO_RUNNING;
 
-            stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
-            //! 最重要的一步，你代码甚至没有结束
-            ((struct co volatile*)current)->status = CO_DEAD;
+            stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
+            
             if (current->waiter != NULL) {
                 current = current->waiter;
             }
         } else {
-
             longjmp(current->context, 1);
         }
     } else {
