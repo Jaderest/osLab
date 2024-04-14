@@ -105,11 +105,11 @@ static void test_2() {
     // 那就是start在此时没有好好被加入链表中
     traverse();
 
-    printf("start producer\n");
+    // printf("start producer\n");
     traverse();
     co_wait(thd2); //其实这里两个 producer 都运行完了
 
-    printf("start producer2\n");
+    // printf("start producer2\n");
     // traverse();
     co_wait(thd1);
     // printf("finish producer\n");
