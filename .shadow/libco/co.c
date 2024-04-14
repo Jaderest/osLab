@@ -219,7 +219,7 @@ void detect2() {
 }
 
 void detect3() {
-    printf("------detect2------\n");
+    printf("------detect3------\n");
     printf("is head->next == thd2: %d\n", head->next->next == tail);
-    printf("------detect2------\n");
+    printf("------detect3------\n");
 }
