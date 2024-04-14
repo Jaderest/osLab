@@ -34,6 +34,8 @@ static void test_1() {
     traverse();
 
     co_wait(thd1);
+
+    traverse();
     co_wait(thd2);
 
 //    printf("\n");
