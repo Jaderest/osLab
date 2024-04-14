@@ -113,12 +113,12 @@ static void test_2() {
 
     // printf("start producer2\n");
     traverse();
-    co_wait(thd1);
+    co_wait(thd1); // 这里不小心提前删掉了thd1？
     // printf("finish producer\n");
 
 
     g_running = 0;
-    traverse();
+    // traverse();
 
     co_wait(thd3);
     co_wait(thd4);
