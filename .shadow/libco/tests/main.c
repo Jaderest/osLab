@@ -166,7 +166,6 @@ static void test_5() {
     struct co *thd[127];
     for (int i = 0; i < 127; i++) {
         thd[i] = co_start("co", entry, "a");
-        co_yield();
     }
 
     for (int i = 0; i < 127; i++) {
