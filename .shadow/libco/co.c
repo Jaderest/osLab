@@ -156,7 +156,6 @@ co_node *choose_next() {
     }
     // 事实上第一个它都没进这个循环
     while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
-        printf("node name%s\n", node_next->ptr->name);
         node_next = node_next->next;
     }
 
