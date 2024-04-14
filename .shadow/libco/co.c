@@ -160,6 +160,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     }
     current->status = CO_RUNNING;
 
+    debug("co_wait: %s finished\n", co->name);
     delete(co);
     free(co->name);
     free(co);
