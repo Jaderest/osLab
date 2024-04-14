@@ -104,6 +104,18 @@ void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
     
 }
 
+void __attribute__((destructor)) co_init() {
+    if (current == NULL) { // 第一个协程，其实这个就该是main函数
+        current = (struct co *)malloc(sizeof(struct co));
+        current->status = CO_RUNNING;
+        current->waiter = NULL;
+        current->name = "main";
+        current->func = NULL;
+        current->arg = NULL;
+        append(current);
+    }
+}
+
 // 从头到尾，同时只有一个函数在被使用
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     // 创建一个新的状态机，仅此而已（堆栈和状态机保存在共享内存？）
@@ -118,16 +130,6 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     memset(&co->context, 0, sizeof(co->context));
     memset(co->stack, 0, sizeof(co->stack));
     debug("co_start: %s\n", co->name);
-
-    if (current == NULL) { // 第一个协程，其实这个就该是main函数
-        current = (struct co *)malloc(sizeof(struct co));
-        current->status = CO_RUNNING;
-        current->waiter = NULL;
-        current->name = "main";
-        current->func = NULL;
-        current->arg = NULL;
-        append(current);
-    }
 
     append(co);
     return co;
@@ -177,17 +179,6 @@ co_node *choose_next() {
 }
 
 void co_yield() {
-    // debug("into co_yield\n");
-    if (current == NULL) {
-        current = (struct co *)malloc(sizeof(struct co));
-        current->status = CO_RUNNING;
-        current->name = "main";
-        current->func = NULL;
-        current->arg = NULL;
-        current->waiter = NULL;
-        append(current);
-        // traverse();
-    }
     assert(current != NULL);
     // debug("current: %s\n", current->name);
     // printf("current: %d\n", current->status);
