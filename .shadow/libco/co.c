@@ -166,10 +166,15 @@ void co_yield() {
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = head->next; // head 是 main
+        int count = 0;
         while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {// || node_next->ptr == current
             node_next = node_next->next;
             // 这里逻辑写得有问题，卡死在main了
             // debug("co_yield: %s\n", node_next->ptr->name);
+            if (count < 2) {
+                debug("co_yield: %s\n", node_next->ptr->name);
+            }
+            count++;
         }
         current = node_next->ptr;
 
