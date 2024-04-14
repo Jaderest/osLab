@@ -208,6 +208,12 @@ static void test_6() {
 
 void test_7() {
     co_yield();
+
+    struct co *thd1 = co_start("print-1", print, "X");
+    struct co *thd2 = co_start("print-2", print, "Y");
+
+    co_wait(thd1);
+    co_wait(thd2);
 }
 
 int main() {
