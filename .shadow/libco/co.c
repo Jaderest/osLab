@@ -188,6 +188,7 @@ void co_yield() {
     int val = setjmp(current->context);
     // debug("val: %d\n", val);
     // traverse();
+    show_status();
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = choose_next();
         // debug("choose finished: %s\n", node_next->ptr->name);
@@ -243,4 +244,13 @@ void detect3() {
     debug("------detect3------\n");
     debug("is head->next == thd2: %d\n", head->next->next == tail);
     debug("------detect3------\n");
+}
+
+void show_status() {
+    co_node *node = head;
+    do {
+        debug("%s: %d\n", node->ptr->name, node->ptr->status);
+        node = node->next;
+    } while (node != tail);
+    debug("%s: %d\n", node->ptr->name, node->ptr->status);
 }
