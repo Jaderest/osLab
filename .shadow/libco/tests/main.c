@@ -30,12 +30,8 @@ static void work(void *arg) {
 static void test_1() {
 
     struct co *thd1 = co_start("thread-1", work, "X");
-    detect(); // 链表构建是没问题的
-    detect2();
     struct co *thd2 = co_start("thread-2", work, "Y");
-    detect();
-    detect3(); // 这里也是
-    // traverse(); //说明这里也有问题，只能说果不其然
+    traverse();
 
     co_wait(thd1);
     co_wait(thd2);

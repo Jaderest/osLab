@@ -195,7 +195,7 @@ void co_yield() {
     }
 }
 
-// 遍历当前的链表s
+// 遍历当前的链表s，这下链表终于好了
 void traverse() {
     co_node *node = head;
     do {
