@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <setjmp.h>
 #include <assert.h>
+#include <random>
 
 #ifdef LOCAL_MACHINE
     #define debug(...) printf(__VA_ARGS__)
@@ -134,9 +135,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     current->status = CO_WAITING;
     co->waiter = current;
-    debug("co_wait: %s\n", co->name);
 
-    while(co->status != CO_DEAD) {
+    while(co->status != CO_DEAD) { // 不断切换可执行的线程执行，直到 co 执行完成
         debug("co_wait: %s\n", co->name);
         co_yield();
     }
@@ -147,6 +147,24 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     free(co);
 }
 
+co_node *choose_next() {
+    co_node *node_next = head->next; // head 是 main
+
+    //TODO
+    int random = rand() % 100;
+    int cond = random % 2;
+    while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {
+        if (cond == 0) { //随机一下保证一定概率不选到自己
+            if (node_next->ptr == current) {
+                node_next = node_next->next;
+            }
+        }
+        node_next = node_next->next;
+    }
+    
+
+    return node_next;
+}
 
 void co_yield() {
     if (current == NULL) {
@@ -162,17 +180,8 @@ void co_yield() {
 
     int val = setjmp(current->context);
     if (val == 0) { // 选择下一个待运行的协程
-        co_node *node_next = head->next; // head 是 main
-        int count = 0;
-        while (node_next->ptr->status == CO_DEAD || node_next->ptr->status == CO_WAITING) {// || node_next->ptr == current
-            node_next = node_next->next;
-            // 这里逻辑写得有问题，卡死在main了
-            // debug("co_yield: %s\n", node_next->ptr->name);
-            if (count < 3) {
-                debug("co_yield: %s\n", node_next->ptr->name);
-                count++;
-            }
-        }
+        co_node *node_next = choose_next();
+
         current = node_next->ptr;
 
         if (node_next->ptr->status == CO_NEW) {
