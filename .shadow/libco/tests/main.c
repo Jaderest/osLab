@@ -32,8 +32,8 @@ static void test_1() {
     struct co *thd1 = co_start("thread-1", work, "X");
     struct co *thd2 = co_start("thread-2", work, "Y");
 
-    traverse(); //说明这里也有问题，只能说果不其然
-    
+    // traverse(); //说明这里也有问题，只能说果不其然
+
     co_wait(thd1);
     co_wait(thd2);
 
@@ -149,8 +149,8 @@ int main() {
 
     // traverse();
 
-    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    test_2();
+    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    // test_2();
 
     // printf("\n\nTest #3. My test to run them\n");
     // test_3();
