@@ -88,16 +88,8 @@ void delete(struct co *co) { // 仅从链表删除，空间释放不在这里
     co_node *node = head;
     while (node != NULL) {
         if (node->ptr == co) {
-            if (node->prev == NULL) { // head
-                head = node->next;
-            } else {
-                node->prev->next = node->next;
-            }
-            if (node->next == NULL) { // tail
-                tail = node->prev;
-            } else {
-                node->next->prev = node->prev;
-            }
+            node->prev->next = node->next;
+            node->next->prev = node->prev;
             free(node);
             break;
         }
@@ -131,6 +123,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     }
 
     append(co);
+    traverse();
     return co;
 }
 
@@ -200,9 +193,11 @@ void co_yield() {
 // 遍历当前的链表s
 void traverse() {
     co_node *node = head; //是不是因为head的next只有它自己...然后就没跑动，那其实之前选线程的逻辑也是有问题的（链表构建问题可能是）
-    while (node != NULL) {
+    int count = 0;
+    while (node != NULL && count < 5) {
         debug("traverse: %s\n", node->ptr->name);
         node = node->next;
+        count++;
         if (node == tail) {
             break;
         }
