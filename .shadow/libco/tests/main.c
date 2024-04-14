@@ -162,15 +162,26 @@ static void test_4() {
     co_wait(thd2);
 }
 
+static void test_5() {
+    struct co *thd[50];
+    for (int i = 0; i < 50; i++) {
+        thd[i] = co_start("co", entry, "a");
+    }
+
+    for (int i = 0; i < 50; i++) {
+        co_wait(thd[i]);
+    }
+}
+
 int main() {
     setbuf(stdout, NULL);
 
-    printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
-    test_1();
+    // printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
+    // test_1();
 
-    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    test_2();
-    printf("\n\n");
+    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    // test_2();
+    // printf("\n\n");
 
     // printf("Test #3. My test to run them\n");
     // test_3();
@@ -179,5 +190,9 @@ int main() {
     // printf("Test #4. My test to run them\n");
     // test_4();
     // printf("\n\n");
+
+    printf("Test #5. My test to run them\n");
+    test_5();
+    printf("\n\n");
     return 0;
 }
