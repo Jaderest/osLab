@@ -177,7 +177,7 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
 co_node *choose_next() {
     co_node *node_next = head->next; // head 是 main
 
-    int random = rand() % 8;
+    int random = rand() % 7;
     for (int i = 0; i < random; i++) { // 随机化初始点
         node_next = node_next->next;
     }
