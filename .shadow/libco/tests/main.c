@@ -170,12 +170,13 @@ int main() {
 
     // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
     // test_2();
+    // printf("\n\n");
 
-    printf("\n\nTest #3. My test to run them\n");
+    printf("Test #3. My test to run them\n");
     test_3();
     printf("\n\n");
 
-    printf("\n\nTest #4. My test to run them\n");
+    printf("Test #4. My test to run them\n");
     test_4();
     printf("\n\n");
     return 0;
