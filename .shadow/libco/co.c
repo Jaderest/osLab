@@ -214,7 +214,7 @@ void co_yield() {
 
         current = node_next->ptr;
 
-        if (current->status == CO_NEW) {
+        if (node_next->ptr->status == CO_NEW) {
             ((struct co volatile*)current)->status = CO_RUNNING;
 
             // stack_switch_call(&current->stack[STACK_SIZE], node_next->ptr->func, (uintptr_t)node_next->ptr->arg);
@@ -230,16 +230,16 @@ void co_yield() {
 }
 
 // // 遍历当前的链表s，这下链表终于好了
-void traverse() {
-    printf("\n------traverse------\n");
-    co_node *node = head;
-    do {
-        printf("%s -> ", node->ptr->name);
-        node = node->next;
-    } while (node != tail);
-    printf("%s\n", node->ptr->name);
-    printf("--------------------\n");
-}
+// void traverse() {
+//     printf("\n------traverse------\n");
+//     co_node *node = head;
+//     do {
+//         printf("%s -> ", node->ptr->name);
+//         node = node->next;
+//     } while (node != tail);
+//     printf("%s\n", node->ptr->name);
+//     printf("--------------------\n");
+// }
 
 // void detect() {
 //     debug("------detect------\n");
