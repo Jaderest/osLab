@@ -30,12 +30,8 @@ static void work(void *arg) {
 static void test_1() {
 
     struct co *thd1 = co_start("thread-1", work, "X");
-    detect(); // 链表构建是没问题的
-    detect2();
     struct co *thd2 = co_start("thread-2", work, "Y");
-    detect();
-    detect3(); // 这里也是
-    // traverse(); //说明这里也有问题，只能说果不其然
+    // traverse();
 
     co_wait(thd1);
     co_wait(thd2);
@@ -73,6 +69,7 @@ static void producer(void *arg) {
             do_produce(queue);
             i += 1;
         }
+        // printf("i: %d\n", i);
         co_yield();
     }
 }
@@ -94,6 +91,7 @@ static void consumer(void *arg) {
         if (!q_is_empty(queue)) {
             do_consume(queue);
         }
+        // printf("consumer\n"); // 定位到你了
         co_yield();
     }
 }
@@ -107,18 +105,21 @@ static void test_2() {
     struct co *thd3 = co_start("consumer-1", consumer, queue);
     struct co *thd4 = co_start("consumer-2", consumer, queue);
     // 那就是start在此时没有好好被加入链表中
-
-    printf("start producer\n");
-    traverse();
-    co_wait(thd1);
-
-    printf("start producer2\n");
     // traverse();
-    co_wait(thd2);
+
+    // printf("start producer\n");
+    // traverse();
+    co_wait(thd1); //其实这里两个 producer 都运行完了
+
+    // printf("start producer2\n");
+    // traverse();
+    co_wait(thd2); // 这里不小心提前删掉了thd1？
     // printf("finish producer\n");
 
 
     g_running = 0;
+    // printf("start consumer\n");
+    // traverse();
 
     co_wait(thd3);
     co_wait(thd4);
@@ -144,20 +145,131 @@ static void test_3() {
     co_wait(thd2);
 }
 
+int count = 1;
+
+void entry(void *arg) {
+    for (int i = 0; i < 5; i++) {
+        printf("%s[%d] ", (const char *)arg, count++);
+        co_yield();
+    }
+}
+
+static void test_4() {
+    struct co *thd1 = co_start("co-1", entry, "a");
+    struct co *thd2 = co_start("co-2", entry, "b");
+
+    co_wait(thd1);
+    co_wait(thd2);
+}
+
+static void test_5() {
+    struct co *thd[127];
+    for (int i = 0; i < 127; i++) {
+        thd[i] = co_start("co", entry, "a");
+    }
+    co_wait(thd[0]);
+    printf("--------------------\n");
+
+    for (int i = 1; i < 127; i++) {
+        co_wait(thd[i]);
+    }
+}
+
+
+
+static void test_6() {
+    Queue *queue = q_new();
+
+    struct co *thd[127];
+    for (int i = 0; i < 64; i++) {
+        thd[i] = co_start("producer", producer, queue);
+    }
+
+    for (int i = 64; i < 127; i++) {
+        thd[i] = co_start("consumer", consumer, queue);
+    }
+
+    for (int i = 0; i < 64; i++) {
+        co_wait(thd[i]);
+    }
+
+    g_running = 0;
+
+    for (int i = 64; i < 127; i++) {
+        co_wait(thd[i]);
+    }
+
+    while (!q_is_empty(queue)) {
+        do_consume(queue);
+    }
+
+    q_free(queue);
+}
+
+void test_7() {
+    co_yield();
+
+    struct co *thd1 = co_start("print-1", print, "X");
+    struct co *thd2 = co_start("print-2", print, "Y");
+
+    co_wait(thd1);
+    co_wait(thd2);
+}
+
+void test_8() {
+    struct co *thd1 = co_start("print-1", print, "X");
+    
+    co_wait(thd1);
+}
+
+void test_9() {
+    struct co *thd[127];
+    for (int i = 0; i < 127; ++i) {
+        char *name = (char *)malloc(64);
+        sprintf(name, "thread-%d", i);
+        thd[i] = co_start("co", work, "X");
+    }
+
+    for (int i = 0; i < 127; ++i)
+        co_wait(thd[i]);
+}
+
 int main() {
     setbuf(stdout, NULL);
 
     printf("Test #1. Expect: (X|Y){0, 1, 2, ..., 199}\n");
     test_1();
+
+    printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
+    test_2();
     printf("\n\n");
 
-    // traverse();
-
-    // printf("\n\nTest #2. Expect: (libco-){200, 201, 202, ..., 399}\n");
-    // test_2();
-
-    // printf("\n\nTest #3. My test to run them\n");
+    // printf("Test #3. My test to run them\n");
     // test_3();
+    // printf("\n\n");
+
+    // printf("Test #4. My test to run them\n");
+    // test_4();
+    // printf("\n\n");
+
+    // printf("Test #5. My test to run them\n");
+    // test_5();
+    // printf("\n\n");
+
+    // printf("Test #6. My test to run them\n");
+    // test_6();
+    // printf("\n\n");
+
+    // printf("Test #7. My test to run them\n");
+    // test_7();
+    // printf("\n\n");
+
+    // printf("Test #8. My test to run them\n");
+    // test_8();
+    // printf("\n\n");
+
+    // printf("Test #9. My test to run them\n");
+    // test_9();
     // printf("\n\n");
     return 0;
 }
