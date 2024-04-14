@@ -171,7 +171,7 @@ void co_yield() {
             node_next = node_next->next;
             // 这里逻辑写得有问题，卡死在main了
             // debug("co_yield: %s\n", node_next->ptr->name);
-            if (count < 2) {
+            if (count < 3) {
                 debug("co_yield: %s\n", node_next->ptr->name);
                 count++;
             }
