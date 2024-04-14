@@ -194,9 +194,12 @@ void co_yield() {
     // printf("current: %d\n", current->status);
     if (current->status == CO_DEAD) {
         delete(current);
-        free(current->name);
-        free(current);
-        current = NULL;
+        struct co *tmp = current;
+        if (current->waiter != NULL) {
+            current = current->waiter;
+        }
+        free(tmp->name);
+        free(tmp);
         return;
     }
     // assert(current->status == CO_WAITING || current->status == CO_RUNNING);
