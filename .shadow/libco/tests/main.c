@@ -247,12 +247,12 @@ int main() {
     // test_6();
     // printf("\n\n");
 
-    printf("Test #7. My test to run them\n");
-    test_7();
-    printf("\n\n");
-
-    // printf("Test #8. My test to run them\n");
-    // test_8();
+    // printf("Test #7. My test to run them\n");
+    // test_7();
     // printf("\n\n");
+
+    printf("Test #8. My test to run them\n");
+    test_8();
+    printf("\n\n");
     return 0;
 }
