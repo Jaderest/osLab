@@ -206,6 +206,10 @@ static void test_6() {
     q_free(queue);
 }
 
+void test_7() {
+    co_yield();
+}
+
 int main() {
     setbuf(stdout, NULL);
 
@@ -228,8 +232,12 @@ int main() {
     // test_5();
     // printf("\n\n");
 
-    printf("Test #6. My test to run them\n");
-    test_6();
+    // printf("Test #6. My test to run them\n");
+    // test_6();
+    // printf("\n\n");
+
+    printf("Test #7. My test to run them\n");
+    test_7();
     printf("\n\n");
     return 0;
 }
