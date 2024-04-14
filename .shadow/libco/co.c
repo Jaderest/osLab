@@ -174,6 +174,7 @@ co_node *choose_next() {
 }
 
 void co_yield() {
+    debug("into co_yield\n");
     if (current == NULL) {
         current = (struct co *)malloc(sizeof(struct co));
         current->status = CO_RUNNING;
@@ -188,7 +189,7 @@ void co_yield() {
     int val = setjmp(current->context);
     // debug("val: %d\n", val);
     // traverse();
-    show_status();
+    // show_status();
     if (val == 0) { // 选择下一个待运行的协程
         co_node *node_next = choose_next();
         // debug("choose finished: %s\n", node_next->ptr->name);
