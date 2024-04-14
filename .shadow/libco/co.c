@@ -151,6 +151,13 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
+    assert(co != NULL);
+    if (co->status == CO_DEAD) {
+        delete(co);
+        free(co->name);
+        free(co);
+        return;
+    }
     current->status = CO_WAITING;
     co->waiter = current;
 
