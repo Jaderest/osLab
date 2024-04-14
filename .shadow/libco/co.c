@@ -7,12 +7,12 @@
 #include <assert.h>
 #include <time.h>
 
-#ifdef LOCAL_MACHINE
-    #define debug(...) printf(__VA_ARGS__)
-#else
-    #define debug(...)
-#endif
-// #define debug(...)
+// #ifdef LOCAL_MACHINE
+//     #define debug(...) printf(__VA_ARGS__)
+// #else
+//     #define debug(...)
+// #endif
+#define debug(...)
 
 #define STACK_SIZE 64 * 1024
 #define MAX_CO 150
