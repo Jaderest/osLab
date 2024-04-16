@@ -19,7 +19,37 @@ void putint(int n) {
 
 // klib-macro.h提供putstr
 int printf(const char *fmt, ...) {
-  panic("Not implemented");
+  va_list args; // 声明一个指向可变参数列表的对象
+  va_start(args, fmt); // 宏，用于初始化va_list变量args，
+
+  while (*fmt) {
+    if (*fmt == '%') {
+      fmt++;
+      switch (*fmt) {
+        case 'd': {
+          putint(va_arg(args, int));
+          break;
+        }
+        case 's': {
+          putstr(va_arg(args, const char *));
+          break;
+        }
+        case 'c': {
+          putch(va_arg(args, int));
+          break;
+        }
+        default:
+          putch(*fmt);
+          break;
+      }
+    } else {
+      putch(*fmt);
+    }
+
+    fmt++;
+  }
+  va_end(args); // 宏，用于清理va_list变量args
+  return 0;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
