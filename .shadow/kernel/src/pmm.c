@@ -3,6 +3,10 @@
 static void *kalloc(size_t size) {
     // TODO
     // You can add more .c files to the repo.
+    if (size >= 16 * 1024 * 1024) {
+        printf("kalloc: 16MiB too large\n");
+        return NULL;
+    }
 
     return NULL;
 }
