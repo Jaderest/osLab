@@ -175,7 +175,7 @@ co_node *choose_next() {
     //     node_next = node_next->next;
     // }
 
-    while (node_next->ptr != current) { //绝对是这里有问题
+    while (node_next->ptr != current) {
         node_next = node_next->next;
     }
     assert(node_next->ptr == current);
@@ -190,7 +190,7 @@ void co_yield() {
     assert(current != NULL);
     // debug("current: %s\n", current->name);
     // printf("current: %d\n", current->status);
-    if (current->status == CO_DEAD) {
+    if (current->status == CO_DEAD) { //! 这里注释掉也会卡在test1
         delete(current);
         free(current->name);
         free(current);
