@@ -19,8 +19,8 @@ void putint(int n) {
 
 // klib-macro.h提供putstr
 int printf(const char *fmt, ...) {
-  va_list args; // 声明一个指向可变参数列表的对象
-  va_start(args, fmt); // 宏，用于初始化va_list变量args，
+  va_list args; // 声明一个指向可变参数列表的对象，即参数中的...
+  va_start(args, fmt); // 宏，用于初始化va_list变量args，源是fmt
 
   while (*fmt) {
     if (*fmt == '%') {
@@ -36,6 +36,15 @@ int printf(const char *fmt, ...) {
         }
         case 'c': {
           putch(va_arg(args, int));
+          break;
+        }
+        case 'x': {
+          putch('0');
+          putch('x');
+          int num = va_arg(args, int);
+          for (int i = 28; i >= 0; i -= 4) {
+            putch("0123456789abcdef"[(num >> i) & 0xf]);
+          }
           break;
         }
         default:
