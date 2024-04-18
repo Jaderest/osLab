@@ -42,7 +42,7 @@ int printf(const char *fmt, ...) {
           putch('0');
           putch('x');
           int num = va_arg(args, int);
-          for (int i = 28; i >= 0; i -= 4) {
+          for (int i = 32; i >= 0; i -= 4) {
             putch("0123456789abcdef"[(num >> i) & 0xf]); // 0xf = 0b1111，也即取出num的每4位
           }
           break;
@@ -51,7 +51,7 @@ int printf(const char *fmt, ...) {
           putch('0');
           putch('x');
           uintptr_t num = va_arg(args, uintptr_t);
-          for (int i = 60; i >= 0; i -= 4) {
+          for (int i = 32; i >= 0; i -= 4) {
             putch("0123456789abcdef"[(num >> i) & 0xf]);
           }
           break;
