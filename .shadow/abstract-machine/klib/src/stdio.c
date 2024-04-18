@@ -43,7 +43,7 @@ int printf(const char *fmt, ...) {
           putch('x');
           int num = va_arg(args, int);
           for (int i = 28; i >= 0; i -= 4) {
-            putch("0123456789abcdef"[(num >> i) & 0xf]);
+            putch("0123456789abcdef"[(num >> i) & 0xf]); // 0xf = 0b1111，也即取出num的每4位
           }
           break;
         }
