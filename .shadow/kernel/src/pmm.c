@@ -20,7 +20,6 @@ static void kfree(void *ptr) {
 static void pmm_init() {
     // printf("%x\n", (uintptr_t)heap.start);
     // printf("%x\n", (uintptr_t)heap.end);
-    printf("%x\n", (uintptr_t)123);
     uintptr_t pmsize = (
         (uintptr_t)heap.end
         - (uintptr_t)heap.start

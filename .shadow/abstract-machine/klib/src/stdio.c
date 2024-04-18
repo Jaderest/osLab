@@ -47,6 +47,15 @@ int printf(const char *fmt, ...) {
           }
           break;
         }
+        case 'p': {
+          putch('0');
+          putch('x');
+          uintptr_t num = va_arg(args, uintptr_t);
+          for (int i = 60; i >= 0; i -= 4) {
+            putch("0123456789abcdef"[(num >> i) & 0xf]);
+          }
+          break;
+        }
         default:
           putch(*fmt);
           break;
