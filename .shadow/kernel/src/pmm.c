@@ -1,5 +1,4 @@
 #include <common.h>
-#include <stdalign.h> //控制数据结构和变量对齐方式的宏定义
 
 static void *kalloc(size_t size) {
     // TODO
@@ -18,13 +17,12 @@ static void kfree(void *ptr) {
 }
 
 static void pmm_init() {
-    printf("%x\n", (uintptr_t)heap.start);
+    // printf("%x\n", (uintptr_t)heap.start);
     // printf("%x\n", (uintptr_t)heap.end);
     uintptr_t pmsize = (
         (uintptr_t)heap.end
         - (uintptr_t)heap.start
     ); // Area heap = {}; 然后Area里面有两个指针
-
     printf(
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
