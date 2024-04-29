@@ -16,4 +16,4 @@ proc = subprocess.Popen(
 
 while (line := proc.stdout.readline()):
     token = int(line)
-    print(enc.decode([token]), end='', flush=True)
+    print(enc.decode([token]), end='', flush=True) # Print the token，这里实际上是每个单词对应一个编码，然后通过token转变为单词
