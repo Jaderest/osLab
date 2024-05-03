@@ -16,6 +16,7 @@
 // all the individual layers' forward passes
 // B = batch_size, T = sequence_length, C = channels, V = vocab_size
 
+//embedding编码器层前向传播
 void encoder_forward(float* out,
                    int* inp, float* wte, float* wpe,
                    int B, int T, int C) {
@@ -41,6 +42,7 @@ void encoder_forward(float* out,
     }
 }
 
+//layer nomalization
 void layernorm_forward(float* out, float* mean, float* rstd,
                        float* inp, float* weight, float* bias,
                        int B, int T, int C) {
@@ -83,6 +85,7 @@ void layernorm_forward(float* out, float* mean, float* rstd,
     }
 }
 
+//matrix multiply
 void matmul_forward(float* out,
                     float* inp, float* weight, float* bias,
                     int B, int T, int C, int OC) {
@@ -106,6 +109,7 @@ void matmul_forward(float* out,
     }
 }
 
+//注意力机制的前向传播
 void attention_forward(float* out, float* preatt, float* att,
                        float* inp,
                        int B, int T, int C, int NH) {
@@ -181,6 +185,7 @@ void attention_forward(float* out, float* preatt, float* att,
     }
 }
 
+// GELU（高斯误差线性单元）激活函数的前向传播
 #define GELU_SCALING_FACTOR sqrtf(2.0f / M_PI)
 void gelu_forward(float* out, float* inp, int N) {
     // (approximate) GeLU elementwise non-linearity in the MLP block of Transformer
@@ -191,12 +196,14 @@ void gelu_forward(float* out, float* inp, int N) {
     }
 }
 
+// 计算模型的残差连接的前向传播
 void residual_forward(float* out, float* inp1, float* inp2, int N) {
     for (int i = 0; i < N; i++) {
         out[i] = inp1[i] + inp2[i];
     }
 }
 
+// 计算通过softmax函数的前向传播
 void softmax_forward(float* probs, float* logits, int B, int T, int V) {
     // output: probs are (B,T,V) of the probabilities (sums to 1.0 in each b,t position)
     // input: logits is (B,T,V) of the unnormalized log probabilities
@@ -215,7 +222,7 @@ void softmax_forward(float* probs, float* logits, int B, int T, int V) {
             }
             float sum = 0.0f;
             for (int i = 0; i < V; i++) {
-                probs_bt[i] = expf(logits_bt[i] - maxval);
+                probs_bt[i] = expf(logits_bt[i] - maxval); // 计算e^x
                 sum += probs_bt[i];
             }
             for (int i = 0; i < V; i++) {
@@ -320,20 +327,20 @@ float* malloc_and_point_activations(ActivationTensors* acts, size_t* act_sizes) 
 
 typedef struct {
     int max_seq_len; // max sequence length, e.g. 1024
-    int vocab_size; // vocab size, e.g. 50257
-    int num_layers; // number of layers, e.g. 12
-    int num_heads; // number of heads in attention, e.g. 12
-    int channels; // number of channels, e.g. 768
+    int vocab_size; // vocab size, e.g. 50257 只认识这么多单词
+    int num_layers; // number of layers, e.g. 12 //?
+    int num_heads; // number of heads in attention, e.g. 12 //?attention是什么
+    int channels; // number of channels, e.g. 768 //?channels是什么
 } GPT2Config;
 
 typedef struct {
     GPT2Config config;
     // the weights (parameters) of the model, and their sizes
     ParameterTensors params;
-    size_t param_sizes[NUM_PARAMETER_TENSORS];
+    size_t param_sizes[NUM_PARAMETER_TENSORS]; //参数的size
     float* params_memory;
     int num_parameters;
-    // gradients of the weights
+    // gradients of the weights（梯度）
     ParameterTensors grads;
     float* grads_memory;
     // buffers for the AdamW optimizer
@@ -363,7 +370,7 @@ void gpt2_build_from_checkpoint(GPT2 *model, char* checkpoint_path) {
     int model_header[256];
     fread(model_header, sizeof(int), 256, model_file);
     if (model_header[0] != 20240326) { printf("Bad magic model file"); exit(1); }
-    if (model_header[1] != 1) { printf("Bad version in model file"); exit(1); }
+    if (model_header[1] != 1) { printf("Bad version in model file"); exit(1); } // 对于训练模型的检查
 
     // read in hyperparameters
     int maxT, V, L, NH, C;
@@ -419,7 +426,7 @@ void gpt2_build_from_checkpoint(GPT2 *model, char* checkpoint_path) {
 void gpt2_forward(GPT2 *model, int* inputs, int B, int T) {
     // convenience parameters
     int V = model->config.vocab_size;
-    int L = model->config.num_layers;
+    int L = model->config.num_layers; // number of layers
     int NH = model->config.num_heads;
     int C = model->config.channels;
 
@@ -476,7 +483,7 @@ void gpt2_forward(GPT2 *model, int* inputs, int B, int T) {
     ActivationTensors acts = model->acts;
     float* residual;
     encoder_forward(acts.encoded, inputs, params.wte, params.wpe, B, T, C); // encoding goes into residual[0]
-    for (int l = 0; l < L; l++) {
+    for (int l = 0; l < L; l++) { // for each layer，每层传上去
 
         residual = l == 0 ? acts.encoded : acts.residual3 + (l-1) * B * T * C;
 
@@ -564,7 +571,7 @@ int sample_mult(float* probabilities, int n) {
 
 int main(int argc, char** argv) {
     GPT2 model;
-    gpt2_build_from_checkpoint(&model, "gpt2_124M.bin");
+    gpt2_build_from_checkpoint(&model, "gpt2_124M.bin"); //build model from checkpoint
     const int n = 10;  // Token limit.
 
     if (argc == 1) {
@@ -579,15 +586,15 @@ int main(int argc, char** argv) {
     int tokens[n];
 
     for (int i = 0; i < n; i++) {
-        if (i + 1 < argc) {
-            tokens[i] = strtol(argv[i + 1], NULL, 10);
+        if (i + 1 < argc) { // 先准备好输入的token
+            tokens[i] = strtol(argv[i + 1], NULL, 10); // Convert string to integer.
         } else {
-            tokens[i] = GPT2_EOT;
+            tokens[i] = GPT2_EOT; // End of text token.
         }
     }
 
-    for (int t = argc - 1; t < n; t++) {
-        gpt2_forward(&model, tokens, 1, t);
+    for (int t = argc - 1; t < n; t++) { //补全至n个token
+        gpt2_forward(&model, tokens, 1, t); // 每次将tokens数组传递给gpt2_forward函数，以便生成下一个token
         float* probs = model.acts.probs + (t-1) * model.config.vocab_size;
         int next_token = sample_mult(probs, model.config.vocab_size);
         tokens[t] = next_token;
@@ -600,3 +607,8 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
+/*
+产生每个token之后，将这个token添加到tokens数组中，然后再次调用gpt2_forward函数，以便生成下一个token。
+这是一种自回归的思想。
+*/
