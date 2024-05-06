@@ -29,6 +29,7 @@ static void pmm_init() {
 }
 #else
 // 测试代码的pmm_init
+#define HEAP_SIZE (125 * 1024 * 1024)
 static void pmm_init() {
     char *ptr = malloc(HEAP_SIZE);
     heap.start = ptr;

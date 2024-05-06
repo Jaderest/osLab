@@ -9,7 +9,7 @@ static void goodbye()       { printf("End.\n"); }
 int main() {
   pmm->init();
   for (int i = 0; i < 4; i++) {
-    thread_create(entry0, i);
+    create(entry0);
   }
   join(goodbye);
 }
