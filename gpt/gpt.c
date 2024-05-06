@@ -20,8 +20,8 @@
 void encoder_forward(float* out,
                    int* inp, float* wte, float* wpe,
                    int B, int T, int C) {
-    // out is (B,T,C). At each position (b,t), a C-dimensional vector summarizing token & position
-    // inp is (B,T) of integers, holding the token ids at each (b,t) position
+    // out is (B,T,C). At each position (b,t), a C-dimensional（channels即通过value表示每个token含义的部分） vector summarizing token & position
+    // inp is (B,T) of integers, holding the token ids at each (b,t) position //!这里括号代表的是batch和token的位置
     // wte is (V,C) of token embeddings, short for "weight token embeddings"
     // wpe is (maxT,C) of position embeddings, short for "weight positional embedding"
     for (int b = 0; b < B; b++) {
@@ -109,23 +109,27 @@ void matmul_forward(float* out,
     }
 }
 
+void attension_work(int)
+
+
 //注意力机制的前向传播
 void attention_forward(float* out, float* preatt, float* att,
                        float* inp,
                        int B, int T, int C, int NH) {
     // input is (B, T, 3C) holding the query, key, value (Q, K, V) vectors
     // preatt, att are (B, NH, T, T). NH = number of heads, T = sequence length
-    // that holds the pre-attention and post-attention scores (used in backward)
+    // that holds the pre-attention and **post-attention** scores (used in backward)
     // output is (B, T, C)
     // attention is the only layer that mixes information across time
     // every other operation is applied at every (b,t) position independently
     // (and of course, no layer mixes information across batch)
+    //! batch间没有layer的数据串起来，所以这里可以并行计算
     int C3 = C*3;
     int hs = C / NH; // head size
     float scale = 1.0 / sqrtf(hs);
 
-    for (int b = 0; b < B; b++) {
-        for (int t = 0; t < T; t++) {
+    for (int b = 0; b < B; b++) { // for each batch
+        for (int t = 0; t < T; t++) { // 句长，自注意力机制，masking，t是注意到的长度
             for (int h = 0; h < NH; h++) {
                 float* query_t = inp + b * T * C3 + t * C3 + h * hs;
                 float* preatt_bth = preatt + b*NH*T*T + h*T*T + t*T;
@@ -205,7 +209,7 @@ void residual_forward(float* out, float* inp1, float* inp2, int N) {
 
 // 计算通过softmax函数的前向传播
 void softmax_forward(float* probs, float* logits, int B, int T, int V) {
-    // output: probs are (B,T,V) of the probabilities (sums to 1.0 in each b,t position)
+    // output: probs are (B,T,V) of the probabilities (sums to 1.0 in each b,t position)最终归一化了
     // input: logits is (B,T,V) of the unnormalized log probabilities
     for (int b = 0; b < B; b++) {
         for (int t = 0; t < T; t++) {
@@ -595,7 +599,7 @@ int main(int argc, char** argv) {
 
     for (int t = argc - 1; t < n; t++) { //补全至n个token
         gpt2_forward(&model, tokens, 1, t); // 每次将tokens数组传递给gpt2_forward函数，以便生成下一个token
-        float* probs = model.acts.probs + (t-1) * model.config.vocab_size; //TODO：关注一下结构体的定义
+        float* probs = model.acts.probs + (t-1) * model.config.vocab_size;
         int next_token = sample_mult(probs, model.config.vocab_size);
         tokens[t] = next_token;
 
@@ -607,8 +611,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-/*
-产生每个token之后，将这个token添加到tokens数组中，然后再次调用gpt2_forward函数，以便生成下一个token。
-这是一种自回归的思想。
-*/
