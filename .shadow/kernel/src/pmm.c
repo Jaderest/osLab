@@ -16,6 +16,7 @@ static void kfree(void *ptr) {
     // You can add more .c files to the repo.
 }
 
+#ifndef TEST
 static void pmm_init() {
     uintptr_t pmsize = (
         (uintptr_t)heap.end
@@ -26,6 +27,15 @@ static void pmm_init() {
         pmsize >> 20, heap.start, heap.end
     );
 }
+#else
+// 测试代码的pmm_init
+static void pmm_init() {
+    char *ptr = malloc(HEAP_SIZE);
+    heap.start = ptr;
+    heap.end = ptr + HEAP_SIZE;
+    printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
+}
+#endif
 
 MODULE_DEF(pmm) = {
     .init  = pmm_init,
