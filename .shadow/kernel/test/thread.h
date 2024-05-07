@@ -3,8 +3,9 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
-#include <semaphore.h>
 #include <pthread.h>
+
+#define LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 
 enum {
     T_FREE = 0, // This slot is not used yet.
@@ -19,8 +20,7 @@ struct thread {
     void (*entry)(int);  // Entry point
 };
 
-// You only allow to create a small number of threads.
-static struct thread threads_[16];
+static struct thread threads_[4096];
 static int n_ = 0;
 
 // This is the entry for a created POSIX thread. It "wraps"
@@ -67,49 +67,8 @@ void join() {
     }
 }
 
-__attribute__((constructor)) 
-static void startup() {
-    atexit(join);
+// Join all threads when main() returns.
+__attribute__((destructor)) 
+static void cleanup() {
+    join();
 }
-
-// Spinlock
-typedef int spinlock_t;
-#define SPIN_INIT() 0
-
-static inline int atomic_xchg(volatile int *addr, int newval) {
-    int result;
-    asm volatile ("lock xchg %0, %1":
-        "+m"(*addr), "=a"(result) : "1"(newval) : "memory");
-    return result;
-}
-
-void spin_lock(spinlock_t *lk) {
-    while (1) {
-        int value = atomic_xchg(lk, 1);
-        if (value == 0) {
-            break;
-        }
-    }
-}
-void spin_unlock(spinlock_t *lk) {
-    atomic_xchg(lk, 0);
-}
-
-// Mutex
-typedef pthread_mutex_t mutex_t;
-#define MUTEX_INIT() PTHREAD_MUTEX_INITIALIZER
-#define mutex_init(mutex) pthread_mutex_init(mutex, NULL)
-#define mutex_lock pthread_mutex_lock
-#define mutex_unlock pthread_mutex_unlock
-
-// Conditional Variable
-typedef pthread_cond_t cond_t;
-#define COND_INIT() PTHREAD_COND_INITIALIZER
-#define cond_wait pthread_cond_wait
-#define cond_broadcast pthread_cond_broadcast
-#define cond_signal pthread_cond_signal
-
-// Semaphore
-#define P sem_wait
-#define V sem_post
-#define SEM_INIT(sem, val) sem_init(sem, 0, val)
