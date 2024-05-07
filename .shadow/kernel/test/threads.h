@@ -6,8 +6,6 @@
 #include <semaphore.h>
 #include <pthread.h>
 
-#define LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
-
 enum {
     T_FREE = 0, // This slot is not used yet.
     T_LIVE,     // This thread is running.
