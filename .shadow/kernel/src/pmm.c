@@ -1,5 +1,40 @@
 #include <common.h>
 
+#define MAX_CPU 8
+
+#define AVAILABLE 1
+#define UNAVAILABLE 0
+typedef int lock_t;
+
+void lock(lock_t *lock) {
+    while (atomic_xchg(lock, UNAVAILABLE) != UNAVAILABLE) ;
+    assert(*lock == UNAVAILABLE);
+}
+void unlock(lock_t *lock) {
+    atomic_xchg(lock, AVAILABLE);
+}
+void init_lock(lock_t *lock) {
+    *lock = AVAILABLE;
+}
+
+// 每个CPU设计一个page
+typedef struct pageheader_t { // 页头
+    struct pageheader_t *next;
+    int size;
+    unsigned page_start; // 页中空闲链表起点
+} pageheader_t;
+
+typedef struct pagefreenode_t {
+    struct pagefreenode_t *next;
+    int size;
+    int magic;
+} pagefreenode_t;
+
+typedef struct pagelist_t {
+    pageheader_t *first; // CPU所属的页链表
+    lock_t lock;
+} pagelist_t;
+
 static void *kalloc(size_t size) {
     // TODO
     // You can add more .c files to the repo.
@@ -16,7 +51,6 @@ static void kfree(void *ptr) {
     // You can add more .c files to the repo.
 }
 
-#ifndef TEST
 static void pmm_init() {
     uintptr_t pmsize = (
         (uintptr_t)heap.end
@@ -27,16 +61,6 @@ static void pmm_init() {
         pmsize >> 20, heap.start, heap.end
     );
 }
-#else
-// 测试代码的pmm_init
-#define HEAP_SIZE (125 * 1024 * 1024)
-static void pmm_init() {
-    char *ptr = malloc(HEAP_SIZE);
-    heap.start = ptr;
-    heap.end = ptr + HEAP_SIZE;
-    printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
-}
-#endif
 
 MODULE_DEF(pmm) = {
     .init  = pmm_init,
