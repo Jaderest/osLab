@@ -6,6 +6,23 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
+#define AVAILABLE 1
+#define UNAVAILABLE 0
+typedef int iolock_t; // 命名约定：_t表示自定义的数据类型
+
+void iolock(iolock_t *lock) {
+    while (atomic_xchg(lock, UNAVAILABLE) != UNAVAILABLE) ;
+    assert(*lock == UNAVAILABLE);
+}
+void iounlock(iolock_t *lock) {
+    atomic_xchg(lock, AVAILABLE);
+}
+void init_iolock(iolock_t *lock) {
+    *lock = AVAILABLE;
+}
+
+iolock_t io_lock;
+
 void putint(int n) {
   if (n < 0) {
     putch('-');
@@ -22,6 +39,7 @@ int printf(const char *fmt, ...) {
   va_list args; // 声明一个指向可变参数列表的对象，即参数中的...
   va_start(args, fmt); // 宏，用于初始化va_list变量args，源是fmt
 
+  iolock(&io_lock);
   while (*fmt) {
     if (*fmt == '%') {
       fmt++;
@@ -66,6 +84,7 @@ int printf(const char *fmt, ...) {
 
     fmt++;
   }
+  iounlock(&io_lock);
   va_end(args); // 宏，用于清理va_list变量args
   return 0;
 }
