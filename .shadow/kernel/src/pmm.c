@@ -2,6 +2,8 @@
 
 #define MAX_CPU 8
 
+//TODO: 自旋锁
+
 // 一个空闲块的结构
 typedef struct freeblock_t {
     struct freeblock_t *next;
@@ -21,7 +23,6 @@ typedef struct pagelist_t { // 每个cpu有一个的
 } pagelist_t;
 // 设计：每个CPU在自己pages中分配释放时，只需获得对应pagelist_t的锁，不会轻易竞争
 
-// spin_lock heap_lock;
 freeblock_t *head;
 pagelist_t cpu_pagelist[MAX_CPU];
 
@@ -86,7 +87,6 @@ static void kfree(void *ptr) {
 }
 
 static void pmm_init() {
-
     uintptr_t pmsize = (
         (uintptr_t)heap.end
         - (uintptr_t)heap.start
