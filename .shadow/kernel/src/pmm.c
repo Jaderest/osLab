@@ -81,7 +81,10 @@ static void *kalloc(size_t size) {
         } // 16MiB
     } else { // 16 ~ 16KiB
         size_t align = 16;
-        size = (size + align - 1) & ~(align - 1); // 对齐
+        while (align < size) {
+            align *= 2;
+        }
+        size = align;
         printf("size: %d\n", size);
     }
 

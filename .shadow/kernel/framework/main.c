@@ -4,8 +4,8 @@
 #include <klib.h>
 
 void alignTest() {
-    for (int i = 0; i < 10; i ++) {
-        pmm->alloc(32+i);
+    for (int i = 0; i < 119; i ++) {
+        pmm->alloc(16+i);
     }
     while (1) ;
 }
