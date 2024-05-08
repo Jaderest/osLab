@@ -7,7 +7,7 @@
 typedef int lock_t; // 命名约定：_t表示自定义的数据类型
 
 void lock(lock_t *lock) {
-    while (atomic_xchg(lock, UNAVAILABLE) != UNAVAILABLE) ;
+    while (atomic_xchg(lock, UNAVAILABLE) != UNAVAILABLE) { ; }
     assert(*lock == UNAVAILABLE);
 }
 void unlock(lock_t *lock) {
