@@ -7,6 +7,7 @@ void alignTest() {
     for (int i = 0; i < 10; i ++) {
         pmm->alloc(32+i);
     }
+    while (1) ;
 }
 
 int main() {
