@@ -17,6 +17,13 @@ void init_lock(lock_t *lock) {
     *lock = AVAILABLE;
 }
 
+// 一个空闲块的结构
+typedef struct freenode_t {
+    struct freenode_t *next;
+    int size;
+    int magic;
+} freenode_t;
+
 // 每个CPU设计一个page
 typedef struct pageheader_t { // 页头
     struct pageheader_t *next;
@@ -35,9 +42,36 @@ typedef struct pagelist_t {
     lock_t lock;
 } pagelist_t;
 
+lock_t heap_lock;
+freenode_t *head;
+
+#define PAGE_SIZE (64 * 1024)
+
+// 我们通过空闲链表分配页（每个cpu），分配页：这个cpu第一次kalloc  or  当前所需内存块大小的page没有，所以分配一个new page
+void kallocpage(pageheader_t **pagehead) { //一个page多大呢？
+    lock(&heap_lock); // 对整个heap用一把大锁
+
+    // 遍历heap，找到一个大于PAGE_SIZE的空闲块
+    freenode_t *node = head;
+    // freenode_t *prev = NULL;
+    // 找到一个大于PAGE_SIZE的空闲块
+    while (node != NULL) {
+        if (node->size >= PAGE_SIZE) {
+            break;
+        }
+        // prev = node;
+        node = node->next;
+    }
+
+    if (node != NULL) { // 要在此分配一个page了
+        // freenode_t *freenode = (void *)node + PAGE_SIZE;
+    }
+}
+
+
 static void *kalloc(size_t size) {
-    // TODO
-    // You can add more .c files to the repo.
+    // TODO: fast & slow path
+    
     if (size >= 16 * 1024 * 1024) {
         printf("kalloc: 16MiB too large\n");
         return NULL;
