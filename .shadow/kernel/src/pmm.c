@@ -80,8 +80,8 @@ static void *kalloc(size_t size) {
             return NULL;
         } // 16MiB
     } else { // 16 ~ 16KiB
-        // size 对齐 2^n
-        size = (size + 15) & ~0xf;
+        size_t align = 16;
+        size = (size + align - 1) & ~(align - 1); // 对齐
         printf("size: %d\n", size);
     }
 
