@@ -2,21 +2,6 @@
 
 #define MAX_CPU 8
 
-#define AVAILABLE 1
-#define UNAVAILABLE 0
-typedef int lock_t; // 命名约定：_t表示自定义的数据类型
-
-void lock(lock_t *lock) {
-    while (atomic_xchg(lock, UNAVAILABLE) != UNAVAILABLE) { ; }
-    assert(*lock == UNAVAILABLE);
-}
-void unlock(lock_t *lock) {
-    atomic_xchg(lock, AVAILABLE);
-}
-void init_lock(lock_t *lock) {
-    *lock = AVAILABLE;
-}
-
 // 一个空闲块的结构
 typedef struct freeblock_t {
     struct freeblock_t *next;
@@ -32,11 +17,11 @@ typedef struct page_nodes_t { // 页中的块们
 
 typedef struct pagelist_t { // 每个cpu有一个的
     page_nodes_t *first; // CPU所属的页链表
-    lock_t lock;
+    // lock_t lock;
 } pagelist_t;
 // 设计：每个CPU在自己pages中分配释放时，只需获得对应pagelist_t的锁，不会轻易竞争
 
-lock_t heap_lock;
+// spin_lock heap_lock;
 freeblock_t *head;
 pagelist_t cpu_pagelist[MAX_CPU];
 
@@ -101,7 +86,6 @@ static void kfree(void *ptr) {
 }
 
 static void pmm_init() {
-    init_lock(&heap_lock);
 
     uintptr_t pmsize = (
         (uintptr_t)heap.end
