@@ -66,6 +66,7 @@ int printf(const char *fmt, ...) {
 
     fmt++;
   }
+
   va_end(args); // 宏，用于清理va_list变量args
   return 0;
 }
