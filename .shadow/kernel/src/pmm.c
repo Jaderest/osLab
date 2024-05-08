@@ -25,26 +25,20 @@ typedef struct freeblock_t {
 } freeblock_t;
 
 // 每个CPU设计一个page
-typedef struct pageheader_t { // 页头，我该如何管理页中的链表？
-    struct pageheader_t *next;
+typedef struct page_nodes_t { // 页中的块们
+    struct page_nodes_t *next;
     int size;
-    unsigned freenode_start; // 页中空闲链表起点，从该头节点起乘size即为页中空闲块的起始地址
-} pageheader_t;
-
-// typedef struct pagefreenode_t {
-//     struct pagefreenode_t *next;
-//     int size; // 标记空闲链表节点掌握的区域大小
-//     int magic;
-// } pagefreenode_t;
+} page_nodes_t;
 
 typedef struct pagelist_t { // 每个cpu有一个的
-    pageheader_t *first; // CPU所属的页链表
+    page_nodes_t *first; // CPU所属的页链表
     lock_t lock;
 } pagelist_t;
 // 设计：每个CPU在自己pages中分配释放时，只需获得对应pagelist_t的锁，不会轻易竞争
 
 lock_t heap_lock;
 freeblock_t *head;
+pagelist_t cpu_pagelist[MAX_CPU];
 
 #define PAGE_SIZE (64 * 1024)
 
@@ -57,6 +51,10 @@ void kallocpage() {
 
 void *kallocFast(size_t size) {
     //TODO: 分配小内存，page中直接解决，不行就新page
+    int cpu_order = cpu_current();
+    int cpu_nums = cpu_count();
+    printf("cpu_order: %d\n", cpu_order);
+    printf("cpu_nums: %d\n", cpu_nums);
 
     return NULL;
 }
