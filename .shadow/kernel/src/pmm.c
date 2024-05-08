@@ -65,16 +65,24 @@ void kallocpage(pageheader_t **pagehead) { //一个page多大呢？
 
     if (node != NULL) { // 要在此分配一个page了
         // freenode_t *freenode = (void *)node + PAGE_SIZE;
+        //TODO: 这里还没想好怎么分配
     }
 }
 
 
 static void *kalloc(size_t size) {
-    // TODO: fast & slow path
-    
-    if (size >= 16 * 1024 * 1024) {
-        printf("kalloc: 16MiB too large\n");
+    if (size == 0) {
         return NULL;
+    } else if (size < 16) { // 最小单元16字节
+        size = 16;
+    } else if (size > PAGE_SIZE) {//16KiB大内存
+        if (size > 16 * 1024 * 1024) {
+            return NULL;
+        } // 16MiB
+    } else { // 16 ~ 16KiB
+        // size 对齐 2^n
+        size = (size + 15) & ~0xf;
+        printf("size: %d\n", size);
     }
 
     return NULL;
