@@ -25,22 +25,23 @@ typedef struct freeblock_t {
 } freeblock_t;
 
 // 每个CPU设计一个page
-typedef struct pageheader_t { // 页头
+typedef struct pageheader_t { // 页头，我该如何管理页中的链表？
     struct pageheader_t *next;
     int size;
-    unsigned page_start; // 页中空闲链表起点
+    unsigned freenode_start; // 页中空闲链表起点，从该头节点起乘size即为页中空闲块的起始地址
 } pageheader_t;
 
-typedef struct pagefreenode_t {
-    struct pagefreenode_t *next;
-    int size;
-    int magic;
-} pagefreenode_t;
+// typedef struct pagefreenode_t {
+//     struct pagefreenode_t *next;
+//     int size; // 标记空闲链表节点掌握的区域大小
+//     int magic;
+// } pagefreenode_t;
 
-typedef struct pagelist_t { // 每个cpu只有一个的
+typedef struct pagelist_t { // 每个cpu有一个的
     pageheader_t *first; // CPU所属的页链表
     lock_t lock;
 } pagelist_t;
+// 设计：每个CPU在自己pages中分配释放时，只需获得对应pagelist_t的锁，不会轻易竞争
 
 lock_t heap_lock;
 freeblock_t *head;
@@ -48,8 +49,10 @@ freeblock_t *head;
 #define PAGE_SIZE (64 * 1024)
 
 // 我们通过空闲链表分配页（每个cpu），分配页：这个cpu第一次kalloc  or  当前所需内存块大小的page没有，所以分配一个new page
-void kallocpage(pageheader_t (*pagehead)[]) {
-    //TODO：每个cpu分配页（作为缓存），然后这个cpu有许多页，通过链表来管理
+void kallocpage() {
+    //TODO：每个cpu分配页（作为缓存），每个cpu有许多页，通过链表来管理
+    // 获得堆区大锁，空闲链表分配页，释放页
+    // free如何实现？
 }
 
 void *kallocFast(size_t size) {
