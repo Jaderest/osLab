@@ -20,11 +20,12 @@ int main(int argc, char *argv[]) {
         char line_copy[4096];
 
         strcpy(line_copy, line);
-        char *cmd = strtok(line_copy, " ");
-        if (strcmp(cmd, "int") == 0) {
-            printf("int\n");
+        char *token = strtok(line_copy, " ");
+        if (strcmp(token, "int") == 0) {
+            token += 4;
+            printf("int %s\n", token);
         } else {
-            printf("expr_wrapper\n");
+            printf("expr_wrapper: %s\n", line);
         }
 
         // To be implemented.
