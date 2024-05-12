@@ -3,9 +3,12 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
 #include <sys/wait.h>
 
 //! 禁止system和popen
+
+#define DEBUG
 
 #ifdef DEBUG
 #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
@@ -16,44 +19,98 @@
 void *handle[128]; // 用于存储静态库
 int handle_len = 0;
 
-int use_gcc(char src[], char dst[]) {
+int create_file(char *file, char *file_name, char *text) { //ok!
+    char src[128];
+    strcpy(src, file);
+    int fd = mkstemp(src); // 包含了路径
+    if (fd == -1) {
+        perror("mkstemp\n");
+        return 1;
+    }
+    char src_name[128];
+    strcpy(src_name, src);
+    strcat(src_name, ".c");
+    if (rename(src, src_name) == -1) {
+        perror("rename\n");
+        return 1;
+    }
+    close(fd);
+
+    strcpy(file_name, src_name);
     return 0;
 }
 
-int create_src(char file[], char file_name[], char text[]) {
-    int fd = mkstemp(file); // 包含了路径
-    if (fd == -1) {
-        debug("mkstemp\n");
-        return 1;
-    }
-    if (rename(file, file_name) == -1) {
-        debug("rename\n");
-        return 1;
-    }
-    FILE *fp = fopen(file_name, "w");
+int write_src(char *filename, char *text) {
+    FILE *fp = fopen(filename, "w");
     if (fp == NULL) {
-        debug("fopen\n");
+        perror("fopen\n");
         return 1;
     }
 
     fprintf(fp, "%s", text);
+    fclose(fp);
     return 0;
 }
 
-int load_handle(char *text) { // text为用户输入的代码，我们需要解析出函数名
-    // TODO: 创建并加载
-    // 创建文本(mkstemp + write + rename)
-    // 编译一下，编译错误返回一个错误信息
-    // dlopen，修改len和handle
+int write_expr(char *filename, char *text) {
+    FILE *fp = fopen(filename, "a");
+    if (fp == NULL) {
+        perror("fopen\n");
+        return 1;
+    }
 
+    int len = strlen(text);
+    if (text[len - 1] == '\n') {
+        text[len - 1] = '\0';
+    }
+    char expr[4096] = "int __expr_warpper() { return ";
+    strcat(expr, text);
+    strcat(expr, "; }");
+
+    fprintf(fp, "%s", expr);
+    fclose(fp);
+    return 0;
+}
+
+#define FUNC 1
+#define EXPR 2
+
+int use_gcc(char *filename, char *so_name) {
+    return 0;
+}
+
+int load_handle(char *text, int id) { // id是不同调用的两种情况，FUNC和EXPR
     /*-------names-------*/
     char tmpfile[] = "/tmp/XXXXXX"; // 用于.c和.so文件
     char tmpfile_name[128]; // 用于存储文件名，加上.c后缀
     char tmpfile_so[128]; // 用于存储文件名，加上.so后缀
-    strcpy(tmpfile_name, tmpfile);
-    strcat(tmpfile_name, ".c");
-    strcpy(tmpfile_so, tmpfile);
-    strcat(tmpfile_so, ".so");
+
+    /*-------create_file-------*/
+    if (create_file(tmpfile, tmpfile_name, text) != 0) {
+        perror("create_file");
+        return 1;
+    }
+
+    /*-------write_code-------*/
+    if (id == FUNC) {
+        if (write_src(tmpfile_name, text) != 0) {
+            perror("write_src\n");
+            return 1;
+        }
+    } else if (id == EXPR) {
+        if (write_expr(tmpfile_name, text) != 0) {
+            perror("write_expr\n");
+            return 1;
+        }
+    } else {
+        assert(0);
+    }
+
+    /*-------use_gcc-------*/
+    if (use_gcc(tmpfile_name, tmpfile_so) != 0) {
+        debug("use_gcc\n");
+        return 1;
+    }
 
     return 0;
 }
@@ -79,12 +136,11 @@ int main(int argc, char *argv[]) {
 
         char *token = strtok(line_copy, " ");
         if (strcmp(token, "int") == 0) {
-            token += 4;
-            // TODO create a file, gcc and dlopen it.
-            debug("int: %s", token);
+            load_handle(line, FUNC);
+            debug("%s", line);
         } else { // "int"会识别成这里诶
-            // TODO same
-            debug("not int: %s", token);
+            load_handle(line, EXPR);
+            debug("expr: %s\n", line);
         }
 
     }
