@@ -57,7 +57,7 @@ int write_src(char *filename, char *text) {
     return 0;
 }
 
-int write_expr(char *filename, char *text) {
+int write_expr(char *filename, char *text) { //得重构！
     FILE *fp = fopen(filename, "a");
     if (fp == NULL) {
         perror("fopen\n");
@@ -180,12 +180,18 @@ int load_handle(char *text, int id) { // id是不同调用的两种情况，FUNC
         printf("Add %s", line);
     }
     fclose(file);
+    int (*y)();
+    if (handle_len == 2) {
+        debug("doing dlsym\n");
+        y = dlsym(handle[0], "y");
+    }
 
     if (id == EXPR) {
         //TODO: 解析所有的函数，加载一下
         // 所以这里困难的是怎么调用表达式中的函数
+        // 表达式的话我是否可以传入一个函数指针，然后调用这个函数指针
         // 要获取函数指针
-        int (*func)() = dlsym(handle[handle_len - 1], "__expr_warpper");
+        int (*func)() = dlsym(handle[handle_len - 1], "__expr_warpper"); //动态加载函数
         char *error;
         debug("func\n");
         if ((error = dlerror()) != NULL) {
