@@ -7,204 +7,105 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 
-//! 禁止system和popen
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GREEN "\x1b[32m"
+#define ANSI_COLOR_CYAN "\x1b[36m"
+#define ANSI_COLOR_RESET "\x1b[0m"
 
-#define DEBUG
-
+// #define DEBUG
 #ifdef DEBUG
-#define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
+    #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
-#define debug(fmt, ...)
+    #define debug(fmt, ...)
 #endif
 
-void *handle[128]; // 用于存储静态库
+//! 禁止system和popen
+
+void *handle[128];
 int handle_len = 0;
 
-int create_file(char *file, char *file_name, char *file_so, char *text) { //ok!
-    char src[128];
-    strcpy(src, file);
-    int fd = mkstemp(src); // 包含了路径
-    if (fd == -1) {
-        perror("mkstemp\n");
-        return 1;
+typedef int (*func_ptr)();
+
+char dir[] = "/tmp/crepl_XXXXXX";
+
+int read_line(char *strin) {
+    printf(ANSI_COLOR_GREEN "crepl> " ANSI_COLOR_RESET);
+    char *ret = fgets(strin, 4096, stdin);
+    if (ret == NULL) {
+        return 0;
     }
-    char src_name[128];
-    char src_so[128];
-    strcpy(src_name, src);
-    strcpy(src_so, src);
-    strcat(src_name, ".c");
-    strcat(src_so, ".so");
-    if (rename(src, src_name) == -1) {
-        perror("rename\n");
-        return 1;
-    }
-    close(fd);
-
-    strcpy(file_name, src_name);
-    strcpy(file_so, src_so);
-    return 0;
-}
-
-int write_src(char *filename, char *text) {
-    FILE *fp = fopen(filename, "w");
-    if (fp == NULL) {
-        perror("fopen\n");
-        return 1;
-    }
-
-    fprintf(fp, "%s", text);
-    fclose(fp);
-    return 0;
-}
-
-int write_expr(char *filename, char *text) { //得重构！
-    FILE *fp = fopen(filename, "a");
-    if (fp == NULL) {
-        perror("fopen\n");
-        return 1;
-    }
-
-    int len = strlen(text);
-    if (text[len - 1] == '\n') {
-        text[len - 1] = '\0';
-    }
-    char expr[4096] = "int __expr_warpper() { return ";
-    strcat(expr, text);
-    strcat(expr, "; }");
-
-    fprintf(fp, "%s", expr);
-    fclose(fp);
-    return 0;
-}
-
-int use_gcc(char *file_name, char *so_name) {
-    debug("filename: %s\n", file_name);
-    debug("so_name: %s\n", so_name);
-    pid_t pid = fork();
-    if (pid == -1) {
-        perror("fork\n");
-        return 1;
-    }
-
-    if (pid == 0) {
-        char *argv[] = {"gcc", "-shared", "-fPIC", file_name, "-o", so_name, NULL};
-
-        // 保存编译结果并重定向到文件
-        int compile_log = open("/tmp/compile_log.txt", O_CREAT | O_WRONLY | O_APPEND, 0644);
-        if (compile_log == -1) {
-            perror("open\n");
-            return 1;
-        }
-        // gcc全部输出重定向到文件
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
-        dup2(compile_log, STDOUT_FILENO);
-        dup2(compile_log, STDERR_FILENO);
-
-        execvp("gcc", argv);
-        perror("execvp\n");
-        return 1;
-    } else {
-        int status;
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-            char line[4096];
-            FILE *file = fopen(file_name, "r");
-            if (file == NULL) {
-                perror("fopen\n");
-                return 1;
-            }
-            fgets(line, 4096, file);
-            fclose(file);
-        } else {
-            printf("Compile Error\n");
-        }
-    }
-    return 0;
+    return 1;
 }
 
 #define FUNC 1
 #define EXPR 2
 
-int load_handle(char *text, int id) { // id是不同调用的两种情况，FUNC和EXPR
-    /*-------names-------*/
-    char tmpfile[] = "/tmp/XXXXXX"; // 用于.c和.so文件
-    char tmpfile_name[128]; // 用于存储文件名，加上.c后缀
-    char tmpfile_so[128]; // 用于存储文件名，加上.so后缀
-    strcpy(tmpfile_so, tmpfile);
-    strcat(tmpfile_so, ".so");
+void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用于接下来的表达式计算
+    char file_name[4096];
+    char so_name[4096];
+    snprintf(file_name, 4096, "%s/crepl%d.c", dir, handle_len);
+    snprintf(so_name, 4096, "%s/lib%d.so", dir, handle_len);
 
-    /*-------create_file-------*/
-    if (create_file(tmpfile, tmpfile_name, tmpfile_so, text) != 0) {
-        perror("create_file");
-        return 1;
+    FILE *fp = fopen(file_name, "w");
+    if (fp == NULL) {
+        perror("fopen()");
+        return NULL;
     }
+    fprintf(fp, "%s", src);
+    fclose(fp);
 
-    /*-------write_code-------*/
-    if (id == FUNC) {
-        if (write_src(tmpfile_name, text) != 0) {
-            perror("write_src\n");
-            return 1;
-        }
-    } else if (id == EXPR) {
-        if (write_expr(tmpfile_name, text) != 0) {
-            perror("write_expr\n");
-            return 1;
-        }
+    char *argv[] = {"gcc", "-shared", "-fPIC", "-w", file_name, "-o", so_name, NULL};
+    pid_t pid = fork();
+    if (pid == 0) {
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+        execvp("gcc", argv);
+        perror("execvp()");
+        return NULL;
     } else {
-        assert(0);
-    }
-
-    /*-------use_gcc-------*/
-    if (use_gcc(tmpfile_name, tmpfile_so) != 0) {
-        debug("use_gcc\n");
-        return 1;
-    }
-
-    /*-------dlopen-------*/
-    handle[handle_len] = dlopen(tmpfile_so, RTLD_LAZY);
-    if (!handle[handle_len]) {
-        fprintf(stderr, "%s\n", dlerror());
-        return 1;
-    }
-    handle_len++;
-    dlerror();
-    FILE *file = fopen(tmpfile_name, "r");
-    if (file == NULL) {
-        perror("fopen\n");
-        return 1;
-    }
-    char line[4096];
-    fgets(line, 4096, file);
-    if (id == FUNC) {
-        printf("Add %s", line);
-    }
-    fclose(file);
-    int (*y)();
-    if (handle_len == 2) {
-        debug("doing dlsym\n");
-        y = dlsym(handle[0], "y");
-    }
-
-    if (id == EXPR) {
-        //TODO: 解析所有的函数，加载一下
-        // 所以这里困难的是怎么调用表达式中的函数
-        // 表达式的话我是否可以传入一个函数指针，然后调用这个函数指针
-        // 要获取函数指针
-        int (*func)() = dlsym(handle[handle_len - 1], "__expr_warpper"); //动态加载函数
-        char *error;
-        debug("func\n");
-        if ((error = dlerror()) != NULL) {
-            printf("%s\n", error);
-            return 0;
+        int status;
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+            handle[handle_len] = dlopen(so_name, RTLD_LAZY | RTLD_GLOBAL); // 无敌了RTLD_GLOBAL
+            if (handle[handle_len] == NULL) {
+                perror("dlopen()");
+                return NULL;
+            }
+            handle_len++;
+            if (id == FUNC) {
+                printf(ANSI_COLOR_CYAN "Add: " ANSI_COLOR_RESET);
+                printf("%s", src); // src自己背后会有一个换行的
+            }
+        } else {
+            printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
         }
-        debug("func2\n");
-        printf("%d\n", func()); // 所以这里调用出现问题了，y是未加载的函数
-        //! 这里的原因是我没有加载好y，所以调用func()时候崩溃
-        // 我要解决的是：如何识别到y，如何在真正没有y的时候不让它崩溃，我是否需要fork和exec？先不做了cnm
     }
 
-    return 0;
+    return handle[handle_len - 1];
+}
+
+void calc_expr(char *text) { // 包一下
+    char src[4096];
+    char func_name[4096];
+
+    snprintf(func_name, 4096, "__expr_wrap_%d", handle_len);
+    int len = strlen(text);
+    if (text[len - 1] == '\n') {
+        text[len - 1] = '\0';
+    }
+    snprintf(src, 4096, "int __expr_wrap_%d() { return %s; }", handle_len, text);
+    debug("src: %s\n", src);
+
+    void *handle = compile(src, EXPR);
+    debug("handle: %p\n", handle);
+    if (handle != NULL) {
+        debug("func_name: %s\n", func_name);
+        func_ptr func = dlsym(handle, func_name);
+        printf(ANSI_COLOR_CYAN);
+        printf("(%s)", text);
+        printf(ANSI_COLOR_RESET);
+        printf(" = %d\n", func());
+    }
 }
 
 void close_handle() {
@@ -215,48 +116,28 @@ void close_handle() {
 
 int main(int argc, char *argv[]) {
     static char line[4096];
+    if (mkdtemp(dir) == NULL) { //创建临时目录
+        perror("mkdtemp()");
+        return 1;
+    }
 
     while (1) {
-        printf("crepl> ");
-        fflush(stdout);
-
-        if (!fgets(line, sizeof(line), stdin)) {
+        if (!read_line(line)) {
+            perror("fgets()");
             break;
         }
-        char line_copy[4096];
-        strcpy(line_copy, line);
-
-        char *token = strtok(line_copy, " ");
-        if (strcmp(token, "int") == 0) {
-            load_handle(line, FUNC);
-        } else { // "int"会识别成这里诶
-            load_handle(line, EXPR);
+        if (strcmp(line, "exit\n") == 0) {
+            printf(ANSI_COLOR_CYAN "Bye! Thanks for using crepl!\n" ANSI_COLOR_RESET);
+            break;
+        } else if (strncmp(line, "int ", 4) == 0) { //func
+            debug("func\n");
+            compile(line, FUNC);
+        } else { //expr
+            debug("expr\n");
+            calc_expr(line);
         }
-
     }
 
     close_handle();
     return 0;
 }
-
-/*
-!获取foo函数的地址
-// 打开共享库
-handle = dlopen("libfoo.so", RTLD_LAZY);
-if (!handle) {
-    fprintf(stderr, "%s\n", dlerror());
-    return 1;
-}
-
-// 清除现有的错误
-dlerror();
-
-// 获取foo函数的地址
-提供句柄和函数名即可，所以我解析变量需要解析出函数名
-*(void **) (&foo) = dlsym(handle, "foo");
-if ((error = dlerror()) != NULL)  {
-    fprintf(stderr, "%s\n", error);
-    dlclose(handle);
-    return 1;
-}
-*/
