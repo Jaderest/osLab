@@ -11,9 +11,13 @@
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_CYAN "\x1b[36m"
 #define ANSI_COLOR_RESET "\x1b[0m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
 
 // #define DEBUG
 #ifdef DEBUG
+    // #define debug(fmt, ...) printf(ANSI_COLOR_YELLOW); 
+    //                         printf(fmt, ##__VA_ARGS__);
+    //                         printf(ANSI_COLOR_RESET)
     #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
     #define debug(fmt, ...)
@@ -78,7 +82,10 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
                 printf("%s", src); // src自己背后会有一个换行的
             }
         } else {
-            printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+            if (id == FUNC) {
+                printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+            }
+            // printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
         }
     }
 
@@ -98,6 +105,7 @@ void calc_expr(char *text) { // 包一下
     debug("src: %s\n", src);
 
     void *handle = compile(src, EXPR);
+    //! 这个handle在非第一个的时候是能找到的，所以这里会多爆一个compile error，第一个的时候呢，这里的handle又是空的
     debug("handle: %p\n", handle);
     if (handle != NULL) {
         debug("func_name: %s\n", func_name);
@@ -115,7 +123,9 @@ void calc_expr(char *text) { // 包一下
             return;
         } else if (pid == 0) {
             close(pipefd[0]); // close read end
+            close(STDERR_FILENO);
             func_ptr func = dlsym(handle, func_name);
+            debug("func: %p\n", func); // 表达式不认识的时候，虽然能找到函数，但执行会出现错误
             int ans = func();
             write(pipefd[1], &ans, sizeof(int));
             close(pipefd[1]);
@@ -132,12 +142,14 @@ void calc_expr(char *text) { // 包一下
                 printf(ANSI_COLOR_CYAN);
                 printf("(%s)", text);
                 printf(ANSI_COLOR_RESET);
-                printf(" = ");
+                printf(" == ");
                 printf("%d\n", ans);
             } else {
                 printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
             }
         }
+    } else {
+        printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
     }
 }
 
