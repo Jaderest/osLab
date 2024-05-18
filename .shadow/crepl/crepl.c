@@ -1,108 +1,187 @@
-#include <assert.h>
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <time.h>
+#include <dlfcn.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 
-char buf[20000], buf2[20000], funcname[100], filename[100], cname[100],
-    soname[100];
-char *argv_new[20];
-bool isfunc;
-char wrapper[] = "__expr_wrap_";
-int numfunc, numfile;
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GREEN "\x1b[32m"
+#define ANSI_COLOR_CYAN "\x1b[36m"
+#define ANSI_COLOR_RESET "\x1b[0m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
 
-int main(int argc, char *argv[], char *env[]) {
-  srand(time(NULL));
-  argv_new[0] = "/usr/bin/gcc";
-  argv_new[1] = sizeof(void *) == 4 ? "-m32" : "-m64";
-  argv_new[2] = "-fPIC";
-  argv_new[3] = "-shared";
-  argv_new[4] = "-o";
-  argv_new[6] = "-w";
-  argv_new[8] = NULL;
+// #define DEBUG
+#ifdef DEBUG
+    // #define debug(fmt, ...) printf(ANSI_COLOR_YELLOW); 
+    //                         printf(fmt, ##__VA_ARGS__);
+    //                         printf(ANSI_COLOR_RESET)
+    #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#else
+    #define debug(fmt, ...)
+#endif
 
-  while (true) {
-    printf("crepl> ");
-    isfunc = 0;
+//! 禁止system和popen
 
-    // Get input
-    bzero(buf, sizeof(buf));
-    fgets(buf, 10000, stdin);
-    if (feof(stdin)) {
-      printf("\033[A\n");
-      fflush(stdout);
-      break;
+void *handle[128];
+int handle_len = 0;
+
+typedef int (*func_ptr)();
+
+char dir[] = "/tmp/crepl_XXXXXX";
+
+int read_line(char *strin) {
+    printf(ANSI_COLOR_GREEN "crepl> " ANSI_COLOR_RESET);
+    char *ret = fgets(strin, 4096, stdin);
+    if (ret == NULL) {
+        return 0;
     }
-    int b, s, t;
-    for (b = 0; buf[b] == ' '; ++b)
-      ;
-    if (strcmp(buf + b, "exit\n") == 0)
-      return 0;
-    if (strncmp(buf + b, "int", 3) == 0) {
-      bzero(funcname, sizeof(funcname));
-      isfunc = 1;
-      for (s = b + 3; buf[s] == ' '; ++s)
-        ;
-      for (t = s; buf[t] != '('; ++t)
-        ;
-      strncpy(funcname, buf + s, t - s);
-    } else {
-      buf[strlen(buf) - 1] = '\0';
-      bzero(buf2, sizeof(buf2));
-      sprintf(funcname, "%s%d", wrapper, numfunc++);
-      sprintf(buf2, "int %s(){return (%s);}", funcname, buf);
-    }
-
-    // Prepare temp file
-    sprintf(filename, "tmp%d", numfile++);
-    sprintf(cname, "./%s.c", filename);
-    sprintf(soname, "./%s.so", filename);
-    FILE *fp = fopen(cname, "w");
-    fprintf(fp, "%s\n", isfunc ? buf : buf2);
-    fclose(fp);
-    argv_new[5] = soname;
-    argv_new[7] = cname;
-
-    int pid = fork();
-    int status;
-    if (pid == 0) {
-      close(STDERR_FILENO);
-      execve(argv_new[0], argv_new, env);
-    } else {
-      // wait
-      wait(&status);
-      int ret = WEXITSTATUS(status);
-
-      // Deal with result
-      if (ret != 0)
-        printf("  \033[31mCompile Error!\033[0m\n");
-      else {
-        void *dhandle =
-            dlopen(soname, isfunc ? (RTLD_GLOBAL | RTLD_NOW) : RTLD_NOW);
-        if (dhandle == NULL) {
-          printf("  \033[31mCompile Error:\033[0m %s\n", dlerror());
-        } else {
-          if (isfunc) {
-            printf("  \033[32mAdded:\033[0m %s", buf);
-          } else {
-            int (*dfunc)(void);
-            dfunc = dlsym(dhandle, funcname);
-            assert(dfunc != NULL);
-            printf("  (%s) = %d.\n", buf, dfunc());
-          }
-        }
-      }
-    }
-    unlink(cname);
-    unlink(soname);
-  }
-  return 0;
+    return 1;
 }
 
-// gcc -m64 -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-unused-value -Wno-unused-label -Wno-unused-result -O1 -std=gnu11 -ggdb -Wall -Werror -Wno-unused-result -Wno-unused-value -Wno-unused-variable ./crepl.c ./a.c -o crepl-64 -ldl
+#define FUNC 1
+#define EXPR 2
+
+void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用于接下来的表达式计算
+    char file_name[4096];
+    char so_name[4096];
+    snprintf(file_name, 4096, "%s/crepl%d.c", dir, handle_len);
+    snprintf(so_name, 4096, "%s/lib%d.so", dir, handle_len);
+
+    FILE *fp = fopen(file_name, "w");
+    if (fp == NULL) {
+        perror("fopen()");
+        return NULL;
+    }
+    fprintf(fp, "%s", src);
+    fclose(fp);
+
+    char *m3264 = sizeof(void *) == 4 ? "-m32" : "-m64";
+    char *argv[] = {"gcc", "-shared", "-fPIC", "-w", m3264, file_name, "-o", so_name, NULL};
+    pid_t pid = fork();
+    if (pid == 0) {
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+        execvp("gcc", argv);
+        perror("execvp()");
+        return NULL;
+    } else {
+        int status;
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+            handle[handle_len] = dlopen(so_name, RTLD_LAZY | RTLD_GLOBAL); // 无敌了RTLD_GLOBAL
+            if (handle[handle_len] == NULL) {
+                perror("dlopen()");
+                return NULL;
+            }
+            handle_len++;
+            if (id == FUNC) {
+                printf(ANSI_COLOR_CYAN "Add: " ANSI_COLOR_RESET);
+                printf("%s", src); // src自己背后会有一个换行的
+            }
+        } else {
+            if (id == FUNC) {
+                printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+            }
+            // printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+        }
+    }
+
+    return handle[handle_len - 1];
+}
+
+void calc_expr(char *text) { // 包一下
+    char src[4096];
+    char func_name[4096];
+
+    snprintf(func_name, 4096, "__expr_wrap_%d", handle_len);
+    int len = strlen(text);
+    if (text[len - 1] == '\n') {
+        text[len - 1] = '\0';
+    }
+    snprintf(src, 4096, "int __expr_wrap_%d() { return %s; }", handle_len, text);
+    debug("src: %s\n", src);
+
+    void *handle = compile(src, EXPR);
+    //! 这个handle在非第一个的时候是能找到的，所以这里会多爆一个compile error，第一个的时候呢，这里的handle又是空的
+    debug("handle: %p\n", handle);
+    if (handle != NULL) {
+        debug("func_name: %s\n", func_name);
+
+        // 进程间通信
+        int pipefd[2];
+        if (pipe(pipefd) == -1) {
+            perror("pipe()");
+            return;
+        }
+        // 创建子进程
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork()");
+            return;
+        } else if (pid == 0) {
+            close(pipefd[0]); // close read end
+            close(STDERR_FILENO);
+            func_ptr func = dlsym(handle, func_name);
+            debug("func: %p\n", func); // 表达式不认识的时候，虽然能找到函数，但执行会出现错误
+            int ans = func();
+            write(pipefd[1], &ans, sizeof(int));
+            close(pipefd[1]);
+            exit(0);
+        } else {
+            close(pipefd[1]); // close write end
+            int ans;
+            read(pipefd[0], &ans, sizeof(int));
+            close(pipefd[0]);
+
+            int status;
+            waitpid(pid, &status, 0);
+            if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+                printf(ANSI_COLOR_CYAN);
+                printf("(%s)", text);
+                printf(ANSI_COLOR_RESET);
+                printf(" == ");
+                printf("%d\n", ans);
+            } else {
+                printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+            }
+        }
+    } else {
+        printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+    }
+}
+
+void close_handle() {
+    for (int i = 0; i < handle_len; i++) {
+        dlclose(handle[i]);
+    }
+}
+
+int main(int argc, char *argv[]) {
+    static char line[4096];
+    if (mkdtemp(dir) == NULL) { //创建临时目录
+        perror("mkdtemp()");
+        return 1;
+    }
+
+    while (1) {
+        if (!read_line(line)) {
+            perror("fgets()");
+            break;
+        }
+        if (strcmp(line, "exit\n") == 0) {
+            break;
+        } else if (strncmp(line, "int ", 4) == 0) { //func
+            debug("func\n");
+            compile(line, FUNC);
+        } else { //expr
+            debug("expr\n");
+            calc_expr(line);
+        }
+    }
+
+    close_handle();
+    return 0;
+}
