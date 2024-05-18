@@ -15,9 +15,6 @@
 
 // #define DEBUG
 #ifdef DEBUG
-    // #define debug(fmt, ...) printf(ANSI_COLOR_YELLOW); 
-    //                         printf(fmt, ##__VA_ARGS__);
-    //                         printf(ANSI_COLOR_RESET)
     #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
     #define debug(fmt, ...)
@@ -33,7 +30,9 @@ typedef int (*func_ptr)();
 char dir[] = "/tmp/crepl_XXXXXX";
 
 int read_line(char *strin) {
-    printf(ANSI_COLOR_GREEN "crepl> " ANSI_COLOR_RESET);
+    // printf(ANSI_COLOR_GREEN "crepl> " ANSI_COLOR_RESET);
+    printf("crepl> ");
+    fflush(stdout);
     char *ret = fgets(strin, 4096, stdin);
     if (ret == NULL) {
         return 0;
@@ -78,14 +77,17 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
             }
             handle_len++;
             if (id == FUNC) {
-                printf(ANSI_COLOR_CYAN "Add: " ANSI_COLOR_RESET);
+                // printf(ANSI_COLOR_CYAN "Add: " ANSI_COLOR_RESET);
+                printf("Add: ");
                 printf("%s", src); // src自己背后会有一个换行的
+                fflush(stdout);
             }
         } else {
             if (id == FUNC) {
-                printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+                // printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+                printf("Compile error\n");
+                fflush(stdout);
             }
-            // printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
         }
     }
 
@@ -139,17 +141,22 @@ void calc_expr(char *text) { // 包一下
             int status;
             waitpid(pid, &status, 0);
             if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-                printf(ANSI_COLOR_CYAN);
+                // printf(ANSI_COLOR_CYAN);
                 printf("(%s)", text);
-                printf(ANSI_COLOR_RESET);
+                // printf(ANSI_COLOR_RESET);
                 printf(" == ");
                 printf("%d\n", ans);
+                fflush(stdout);
             } else {
-                printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+                // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+                printf("Runtime error\n");
+                fflush(stdout);
             }
         }
     } else {
-        printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+        // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+        printf("Runtime error\n");
+        fflush(stdout);
     }
 }
 
