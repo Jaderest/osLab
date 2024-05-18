@@ -85,7 +85,7 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
         } else {
             if (id == FUNC) {
                 // printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
-                printf("Compile error\n");
+                perror("Compile error\n");
                 fflush(stdout);
             }
         }
@@ -149,13 +149,13 @@ void calc_expr(char *text) { // 包一下
                 fflush(stdout);
             } else {
                 // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
-                printf("Runtime error\n");
+                perror("Runtime error\n");
                 fflush(stdout);
             }
         }
     } else {
         // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
-        printf("Runtime error\n");
+        perror("Runtime error\n");
         fflush(stdout);
     }
 }
