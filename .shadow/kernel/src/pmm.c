@@ -34,7 +34,11 @@ static void *kalloc(size_t size) {
     } else if (size > PAGE_SIZE) { 
 
     } else { // 16 ~ 16KiB
-
+        size_t align = 16;
+        while (align < size) {
+            align *= 2;
+        }
+        size = align;
         printf("size: %d\n", size);
     }
 
@@ -47,6 +51,7 @@ static void kfree(void *ptr) {
     // You can add more .c files to the repo.
 }
 
+#ifndef TEST
 static void pmm_init() {
     uintptr_t pmsize = (
         (uintptr_t)heap.end
@@ -57,6 +62,15 @@ static void pmm_init() {
         pmsize >> 20, heap.start, heap.end
     );
 }
+#else
+#define HEAP_SIZE (128 * 1024 * 1024)
+static void pmm_init() {
+    char *ptr = malloc(HEAP_SIZE);
+    heap.start = ptr;
+    heap.end = ptr + HEAP_SIZE;
+    printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
+}
+#endif
 
 MODULE_DEF(pmm) = {
     .init  = pmm_init,
