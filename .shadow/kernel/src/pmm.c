@@ -2,7 +2,26 @@
 
 #define MAX_CPU 8
 
+#define UNAVAILABLE 0
+#define AVAILABLE 1
 //TODO: 自旋锁
+typedef struct lock_t {
+    int flag;
+} lock_t;
+void lock_init(lock_t *lock) {
+    lock->flag = AVAILABLE;
+}
+void lock(lock_t *lock) {
+    while(atomic_xchg(&lock->flag, UNAVAILABLE) == UNAVAILABLE) {
+        // spin
+    };
+    assert(lock->flag = UNAVAILABLE);
+}
+
+void unlock(lock_t *lock) {
+    assert(lock->flag = UNAVAILABLE);
+    atomic_xchg(&lock->flag, AVAILABLE);
+}
 
 // 一个空闲块的结构
 typedef struct freeblock_t {
@@ -26,7 +45,7 @@ typedef struct pagelist_t { // 每个cpu有一个的
 freeblock_t *head;
 pagelist_t cpu_pagelist[MAX_CPU];
 
-#define PAGE_SIZE (64 * 1024)
+#define PAGE_SIZE (16 * 1024)
 
 // 我们通过空闲链表分配页（每个cpu），分配页：这个cpu第一次kalloc  or  当前所需内存块大小的page没有，所以分配一个new page
 void kallocpage() {

@@ -58,7 +58,7 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
     fclose(fp);
 
     char *m3264 = sizeof(void *) == 4 ? "-m32" : "-m64";
-    char *argv[] = {"gcc", "-shared", "-fPIC", "-w", m3264, file_name, "-o", so_name, NULL};
+    char *argv[] = {"gcc", "-shared", "-fPIC", "-Wno-implicit-function-declaration", m3264, file_name, "-o", so_name, NULL};
     pid_t pid = fork();
     if (pid == 0) {
         close(STDOUT_FILENO);
@@ -85,7 +85,7 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
         } else {
             if (id == FUNC) {
                 // printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
-                perror("Compile error\n");
+                fprintf(stderr, "Compile error\n");
                 fflush(stdout);
             }
         }
@@ -149,13 +149,13 @@ void calc_expr(char *text) { // 包一下
                 fflush(stdout);
             } else {
                 // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
-                perror("Runtime error\n");
+                fprintf(stderr, "Runtime error\n");
                 fflush(stdout);
             }
         }
     } else {
         // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
-        perror("Runtime error\n");
+        fprintf(stderr, "Runtime error\n");
         fflush(stdout);
     }
 }
@@ -175,12 +175,13 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         if (!read_line(line)) {
-            perror("fgets()");
+            // perror("fgets()");
             break;
         }
-        if (strcmp(line, "exit\n") == 0) {
-            break;
-        } else if (strncmp(line, "int ", 4) == 0) { //func
+        // if (strcmp(line, "exit\n") == 0) {
+        //     break;
+        // } else 
+        if (strncmp(line, "int ", 4) == 0) { //func
             debug("func\n");
             compile(line, FUNC);
         } else { //expr
