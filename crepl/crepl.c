@@ -11,6 +11,7 @@
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_CYAN "\x1b[36m"
 #define ANSI_COLOR_RESET "\x1b[0m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
 
 // #define DEBUG
 #ifdef DEBUG
@@ -29,7 +30,9 @@ typedef int (*func_ptr)();
 char dir[] = "/tmp/crepl_XXXXXX";
 
 int read_line(char *strin) {
-    printf(ANSI_COLOR_GREEN "crepl> " ANSI_COLOR_RESET);
+    // printf(ANSI_COLOR_GREEN "crepl> " ANSI_COLOR_RESET);
+    printf("crepl> ");
+    fflush(stdout);
     char *ret = fgets(strin, 4096, stdin);
     if (ret == NULL) {
         return 0;
@@ -54,7 +57,8 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
     fprintf(fp, "%s", src);
     fclose(fp);
 
-    char *argv[] = {"gcc", "-shared", "-fPIC", "-w", file_name, "-o", so_name, NULL};
+    char *m3264 = sizeof(void *) == 4 ? "-m32" : "-m64";
+    char *argv[] = {"gcc", "-shared", "-fPIC", "-Wno-implicit-function-declaration", m3264, file_name, "-o", so_name, NULL};
     pid_t pid = fork();
     if (pid == 0) {
         close(STDOUT_FILENO);
@@ -73,11 +77,17 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
             }
             handle_len++;
             if (id == FUNC) {
-                printf(ANSI_COLOR_CYAN "Add: " ANSI_COLOR_RESET);
+                // printf(ANSI_COLOR_CYAN "Add: " ANSI_COLOR_RESET);
+                printf("Add: ");
                 printf("%s", src); // src自己背后会有一个换行的
+                fflush(stdout);
             }
         } else {
-            printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+            if (id == FUNC) {
+                // printf(ANSI_COLOR_RED "Compile error\n" ANSI_COLOR_RESET);
+                fprintf(stderr, "Compile error\n");
+                fflush(stdout);
+            }
         }
     }
 
@@ -97,14 +107,56 @@ void calc_expr(char *text) { // 包一下
     debug("src: %s\n", src);
 
     void *handle = compile(src, EXPR);
+    //! 这个handle在非第一个的时候是能找到的，所以这里会多爆一个compile error，第一个的时候呢，这里的handle又是空的
     debug("handle: %p\n", handle);
     if (handle != NULL) {
         debug("func_name: %s\n", func_name);
-        func_ptr func = dlsym(handle, func_name);
-        printf(ANSI_COLOR_CYAN);
-        printf("(%s)", text);
-        printf(ANSI_COLOR_RESET);
-        printf(" = %d\n", func());
+
+        // 进程间通信
+        int pipefd[2];
+        if (pipe(pipefd) == -1) {
+            perror("pipe()");
+            return;
+        }
+        // 创建子进程
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork()");
+            return;
+        } else if (pid == 0) {
+            close(pipefd[0]); // close read end
+            close(STDERR_FILENO);
+            func_ptr func = dlsym(handle, func_name);
+            debug("func: %p\n", func); // 表达式不认识的时候，虽然能找到函数，但执行会出现错误
+            int ans = func();
+            write(pipefd[1], &ans, sizeof(int));
+            close(pipefd[1]);
+            exit(0);
+        } else {
+            close(pipefd[1]); // close write end
+            int ans;
+            read(pipefd[0], &ans, sizeof(int));
+            close(pipefd[0]);
+
+            int status;
+            waitpid(pid, &status, 0);
+            if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+                // printf(ANSI_COLOR_CYAN);
+                printf("(%s)", text);
+                // printf(ANSI_COLOR_RESET);
+                printf(" == ");
+                printf("%d\n", ans);
+                fflush(stdout);
+            } else {
+                // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+                fprintf(stderr, "Runtime error\n");
+                fflush(stdout);
+            }
+        }
+    } else {
+        // printf(ANSI_COLOR_RED "Runtime error\n" ANSI_COLOR_RESET);
+        fprintf(stderr, "Runtime error\n");
+        fflush(stdout);
     }
 }
 
@@ -123,13 +175,13 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         if (!read_line(line)) {
-            perror("fgets()");
+            // perror("fgets()");
             break;
         }
-        if (strcmp(line, "exit\n") == 0) {
-            printf(ANSI_COLOR_CYAN "Bye! Thanks for using crepl!\n" ANSI_COLOR_RESET);
-            break;
-        } else if (strncmp(line, "int ", 4) == 0) { //func
+        // if (strcmp(line, "exit\n") == 0) {
+        //     break;
+        // } else 
+        if (strncmp(line, "int ", 4) == 0) { //func
             debug("func\n");
             compile(line, FUNC);
         } else { //expr
