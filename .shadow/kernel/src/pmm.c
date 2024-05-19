@@ -2,25 +2,21 @@
 
 #define MAX_CPU 8
 
-#define UNAVAILABLE 0
-#define AVAILABLE 1
+#define UNLOCKED 0
+#define LOCKED 1
 //TODO: 自旋锁
 typedef struct lock_t {
     int flag;
 } lock_t;
 void lock_init(lock_t *lock) {
-    lock->flag = AVAILABLE;
+    atomic_xchg(&lock->flag, LOCKED);
 }
 void lock(lock_t *lock) {
-    while(atomic_xchg(&lock->flag, UNAVAILABLE) == UNAVAILABLE) {
-        // spin
-    };
-    assert(lock->flag = UNAVAILABLE);
+    while(atomic_xchg(&lock->flag, LOCKED) == LOCKED) {/*spin*/};
 }
 
 void unlock(lock_t *lock) {
-    assert(lock->flag = UNAVAILABLE);
-    atomic_xchg(&lock->flag, AVAILABLE);
+    panic_on(atomic_xchg(&lock->flag, UNLOCKED) != LOCKED, "unlock failed");
 }
 
 #define PAGE_SIZE (16 * 1024)
