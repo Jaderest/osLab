@@ -58,7 +58,7 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
     fclose(fp);
 
     char *m3264 = sizeof(void *) == 4 ? "-m32" : "-m64";
-    char *argv[] = {"gcc", "-shared", "-fPIC", "-w", m3264, file_name, "-o", so_name, NULL};
+    char *argv[] = {"gcc", "-shared", "-fPIC", "-Wno-implicit-function-declaration", m3264, file_name, "-o", so_name, NULL};
     pid_t pid = fork();
     if (pid == 0) {
         close(STDOUT_FILENO);
