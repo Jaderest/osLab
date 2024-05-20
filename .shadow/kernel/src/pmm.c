@@ -2,9 +2,9 @@
 
 #define MAX_CPU 8
 
+//TODO: 自旋锁
 #define UNLOCKED 0
 #define LOCKED 1
-//TODO: 自旋锁
 typedef struct lock_t {
     int flag;
 } lock_t;
@@ -14,7 +14,6 @@ void lock_init(lock_t *lock) {
 void lock(lock_t *lock) {
     while(atomic_xchg(&lock->flag, LOCKED) == LOCKED) {/*spin*/};
 }
-
 void unlock(lock_t *lock) {
     panic_on(atomic_xchg(&lock->flag, UNLOCKED) != LOCKED, "unlock failed");
 }
@@ -30,7 +29,7 @@ static void *kalloc(size_t size) {
     } else if (size > PAGE_SIZE) { 
 
     } else { // 16 ~ 16KiB
-        size_t align = 16;
+        size_t align = 16; //?是否可以优化
         while (align < size) {
             align *= 2;
         }
