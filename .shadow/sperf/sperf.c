@@ -93,7 +93,7 @@ void show_syscalls() {
 void show_verbose_syscalls() {
     qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
     for (int i = 0; i < syscalls_num; ++i) {
-        printf("%s: %lf\n", syscalls[i].name, syscalls[i].total_time);
+        printf("%-20s %-10.6f %-10d\n", syscalls[i].name, syscalls[i].total_time, syscalls[i].count);
     }
 }
 
