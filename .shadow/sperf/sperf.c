@@ -120,8 +120,8 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     } else if (pid == 0) {
         close(pipefd[0]); // close read end
-        close(STDERR_FILENO);
-        dup2(pipefd[1], STDOUT_FILENO);
+        // close(STDERR_FILENO);
+        dup2(pipefd[1], STDERR_FILENO);
         execve("/usr/bin/strace", argv, envp);
         perror("execve()");
         return 1;
