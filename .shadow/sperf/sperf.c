@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <regex.h>
+#include <unistd.h>
 
 #define DEBUG
 #ifdef DEBUG
@@ -98,13 +99,45 @@ void show_verbose_syscalls() {
     }
 }
 
+#define OJ
+
 int main(int argc, char *argv[], char *envp[]) {
     for (int i = 0; i < argc; i++) {
         assert(argv[i]);
         debug("argv[%d] = %s\n", i, argv[i]);
     }
     assert(!argv[argc]);
-    
+
+#ifdef OJ
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        perror("pipe()");
+        return 1;
+    }
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork()");
+        return 1;
+    } else if (pid == 0) {
+        close(pipefd[0]); // close read end
+        close(STDERR_FILENO);
+        dup2(pipefd[1], STDOUT_FILENO);
+        execve("/usr/bin/strace", argv, envp);
+        perror("execve()");
+        return 1;
+    } else {
+        close(pipefd[1]); // close write end
+        FILE *fp = fdopen(pipefd[0], "r");
+        assert(fp);
+        char line[1024];
+        while (fgets(line, sizeof(line), fp)) {
+            deal_line(line);
+        }
+        close_reg();
+        fclose(fp);
+        show_verbose_syscalls();
+    }
+#else
     FILE *fp = fopen("stra.txt", "r");
     assert(fp); // 随便检测一下
     char line[1024];
@@ -112,14 +145,12 @@ int main(int argc, char *argv[], char *envp[]) {
         deal_line(line);
     }
 
-    show_syscalls();
-    // show_verbose_syscalls();
-    
-    // system("clear");
-    // printf("Hello, sperf!\n");
+    // show_syscalls();
+    show_verbose_syscalls();
 
     close_reg();
     fclose(fp);
+#endif
     return 0;
 }
 
