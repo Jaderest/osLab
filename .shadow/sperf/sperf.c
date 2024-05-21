@@ -114,6 +114,9 @@ int main(int argc, char *argv[], char *envp[]) {
 
     // show_syscalls();
     show_verbose_syscalls();
+    
+    system("clear");
+    printf("Hello, sperf!\n");
 
     close_reg();
     fclose(fp);
