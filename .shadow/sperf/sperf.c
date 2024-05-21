@@ -76,14 +76,24 @@ int cmp_syscalls(const void *a, const void *b) {
 
 void show_syscalls() {
     qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
-
-    printf("%-20s %-10s %-10s\n", "Syscall", "Time (s)", "Count");
+    double all_time = 0;
     for (int i = 0; i < syscalls_num; ++i) {
-        printf("%-20s %-10.6f %-10d\n", syscalls[i].name, syscalls[i].total_time, syscalls[i].count);
+        all_time += syscalls[i].total_time;
+    }
+    //! 这里是要输出时间比例
+    for (int i = 0; i < syscalls_num; ++i) {
+        int ratio = (int)((syscalls[i].total_time / all_time) * 100);
+        printf("%s (%d%%)\n", syscalls[i].name, ratio);
     }
 }
 
-int main() {
+int main(int argc, char *argv[], char *envp[]) {
+    for (int i = 0; i < argc; i++) {
+        assert(argv[i]);
+        debug("argv[%d] = %s\n", i, argv[i]);
+    }
+    assert(!argv[argc]);
+    
     FILE *fp = fopen("stra.txt", "r");
     assert(fp); // 随便检测一下
     char line[1024];
@@ -103,7 +113,6 @@ int main() {
 // 仅用execve
 // 每次输出top 5的系统调用、每个系统调用至多输出一次
 /*
-TODO：1. 正则表达式怎么用
 TODO：2. strace  -T 输出格式，我们将argv保存起来，传给strace
 TODO：3. 如何查找环境变量
 TODO：4. 父进程不断读取子进程的输出，直到strace结束（进程需要保持实时通信）
