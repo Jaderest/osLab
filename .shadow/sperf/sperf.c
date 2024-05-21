@@ -143,6 +143,7 @@ int main(int argc, char *argv[], char *envp[]) {
         fclose(fp);
         debug("after fclose\n");
         show_verbose_syscalls();
+        debug("after show\n");
     }
 #else
     FILE *fp = fopen("stra.txt", "r");
