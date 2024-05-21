@@ -81,7 +81,13 @@ void show_syscalls() {
         all_time += syscalls[i].total_time;
     }
     //! 这里是要输出时间比例
-    for (int i = 0; i < syscalls_num; ++i) {
+    int min = 0;
+    if (syscalls_num > 5) {
+        min = 5;
+    } else {
+        min = syscalls_num;
+    }
+    for (int i = 0; i < min; ++i) {
         int ratio = (int)((syscalls[i].total_time / all_time) * 100);
         printf("%s (%d%%)\n", syscalls[i].name, ratio);
     }
