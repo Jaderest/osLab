@@ -112,11 +112,11 @@ int main(int argc, char *argv[], char *envp[]) {
         deal_line(line);
     }
 
-    // show_syscalls();
-    show_verbose_syscalls();
+    show_syscalls();
+    // show_verbose_syscalls();
     
-    system("clear");
-    printf("Hello, sperf!\n");
+    // system("clear");
+    // printf("Hello, sperf!\n");
 
     close_reg();
     fclose(fp);
