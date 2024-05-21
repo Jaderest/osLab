@@ -89,6 +89,7 @@ void show_syscalls() {
         for (int j = 0; j < 80; ++j) {
             printf("%c", '\0');
         }
+        fflush(stdout);
     }
 }
 
@@ -131,14 +132,14 @@ int main(int argc, char *argv[], char *envp[]) {
         FILE *fp = fdopen(pipefd[0], "r");
         assert(fp);
         char line[1024];
-        // while (fgets(line, sizeof(line), fp)) {
-        //     deal_line(line);
-        // }
-        close_reg();
         debug("before while\n");
         while (fgets(line, sizeof(line), fp)) {
-            debug("%s", line);
+            deal_line(line);
         }
+        close_reg();
+        // while (fgets(line, sizeof(line), fp)) {
+        //     debug("%s", line);
+        // }
         debug("after while\n");
         fclose(fp);
         debug("after fclose\n");
