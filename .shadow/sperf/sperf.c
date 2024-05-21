@@ -120,7 +120,7 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     } else if (pid == 0) {
         close(pipefd[0]); // close read end
-        // close(STDERR_FILENO);
+        close(STDERR_FILENO);
         dup2(pipefd[1], STDOUT_FILENO);
         execve("/usr/bin/strace", argv, envp);
         perror("execve()");
@@ -130,12 +130,16 @@ int main(int argc, char *argv[], char *envp[]) {
         FILE *fp = fdopen(pipefd[0], "r");
         assert(fp);
         char line[1024];
+        // while (fgets(line, sizeof(line), fp)) {
+        //     deal_line(line);
+        // }
+        // close_reg();
         while (fgets(line, sizeof(line), fp)) {
-            deal_line(line);
+            debug("%s", line);
         }
-        close_reg();
+        
         fclose(fp);
-        show_verbose_syscalls();
+        // show_verbose_syscalls();
     }
 #else
     FILE *fp = fopen("stra.txt", "r");
