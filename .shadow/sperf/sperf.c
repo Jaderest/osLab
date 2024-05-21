@@ -75,6 +75,7 @@ int cmp_syscalls(const void *a, const void *b) {
 }
 
 void show_syscalls() {
+    system("clear");
     qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
     double all_time = 0;
     for (int i = 0; i < syscalls_num; ++i) {
