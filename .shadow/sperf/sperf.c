@@ -139,8 +139,9 @@ int main(int argc, char *argv[], char *envp[]) {
         while (fgets(line, sizeof(line), fp)) {
             debug("%s", line);
         }
-        
+        debug("after while\n");
         fclose(fp);
+        debug("after fclose\n");
         show_verbose_syscalls();
     }
 #else
