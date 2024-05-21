@@ -131,13 +131,13 @@ int main(int argc, char *argv[], char *envp[]) {
         FILE *fp = fdopen(pipefd[0], "r");
         assert(fp);
         char line[1024];
-        while (fgets(line, sizeof(line), fp)) {
-            deal_line(line);
-        }
-        close_reg();
         // while (fgets(line, sizeof(line), fp)) {
-        //     debug("%s", line);
+        //     deal_line(line);
         // }
+        close_reg();
+        while (fgets(line, sizeof(line), fp)) {
+            debug("%s", line);
+        }
         
         fclose(fp);
         // show_verbose_syscalls();
