@@ -80,19 +80,20 @@ void show_syscalls() {
     for (int i = 0; i < syscalls_num; ++i) {
         all_time += syscalls[i].total_time;
     }
-    //! 这里是要输出时间比例
-    int min = 0;
-    if (syscalls_num > 5) {
-        min = 5;
-    } else {
-        min = syscalls_num;
-    }
+    int min = syscalls_num > 5 ? 5 : syscalls_num;
     for (int i = 0; i < min; ++i) {
         int ratio = (int)((syscalls[i].total_time / all_time) * 100);
         printf("%s (%d%%)\n", syscalls[i].name, ratio);
         for (int j = 0; j < 80; ++j) {
             printf("%c", '\0');
         }
+    }
+}
+
+void show_verbose_syscalls() {
+    qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
+    for (int i = 0; i < syscalls_num; ++i) {
+        printf("%s: %lf\n", syscalls[i].name, syscalls[i].total_time);
     }
 }
 
@@ -110,7 +111,8 @@ int main(int argc, char *argv[], char *envp[]) {
         deal_line(line);
     }
 
-    show_syscalls();
+    // show_syscalls();
+    show_verbose_syscalls();
 
     close_reg();
     fclose(fp);
