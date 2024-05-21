@@ -48,8 +48,6 @@ int deal_line(char *line) {
             debug("Compile regex failed: %s\n", pattern);
             return -1;
         }
-    } else {
-        debug("Match line: %s\n", line);
     }
 
     if (regexec(&reg, line, 4, matches, 0) == 0) { // 正则表达式
