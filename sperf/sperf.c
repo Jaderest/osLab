@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <regex.h>
+#include <unistd.h>
 
 #define DEBUG
 #ifdef DEBUG
@@ -43,7 +44,7 @@ int deal_line(char *line) {
     if (syscalls_num == 0) { // 还没有编译
         const char *pattern = "^([a-zA-Z0-9_]+)\\(.*\\)\\s+=\\s+.*\\s+<([0-9.]+)>";
         if (regcomp(&reg, pattern, REG_EXTENDED) == 0) {
-            debug("Compile regex: %s\n", pattern);
+            // debug("Compile regex: %s\n", pattern);
         } else {
             debug("Compile regex failed: %s\n", pattern);
             return -1;
@@ -75,15 +76,79 @@ int cmp_syscalls(const void *a, const void *b) {
 }
 
 void show_syscalls() {
+    system("clear");
     qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
+    double all_time = 0;
+    for (int i = 0; i < syscalls_num; ++i) {
+        all_time += syscalls[i].total_time;
+    }
+    int min = syscalls_num > 5 ? 5 : syscalls_num;
+    for (int i = 0; i < min; ++i) {
+        int ratio = (int)((syscalls[i].total_time / all_time) * 100);
+        printf("%s (%d%%)\n", syscalls[i].name, ratio);
+        for (int j = 0; j < 80; ++j) {
+            printf("%c", '\0');
+        }
+        fflush(stdout);
+    }
+}
 
-    printf("%-20s %-10s %-10s\n", "Syscall", "Time (s)", "Count");
+void show_verbose_syscalls() {
+    qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
     for (int i = 0; i < syscalls_num; ++i) {
         printf("%-20s %-10.6f %-10d\n", syscalls[i].name, syscalls[i].total_time, syscalls[i].count);
     }
 }
 
-int main() {
+// #define OJ
+
+int main(int argc, char *argv[], char *envp[]) {
+    for (int i = 0; i < argc; i++) {
+        assert(argv[i]);
+        debug("argv[%d] = %s\n", i, argv[i]);
+    }
+    assert(!argv[argc]);
+
+#ifdef OJ
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        perror("pipe()");
+        return 1;
+    }
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork()");
+        return 1;
+    } else if (pid == 0) {
+        close(pipefd[0]); // close read end
+        close(STDERR_FILENO);
+        close(STDOUT_FILENO); // 关闭运行程序的输出
+        dup2(pipefd[1], STDERR_FILENO);
+        execve("/usr/bin/strace", argv, envp); //! 注意这里没有显示时间
+        perror("execve()");
+        return 1;
+    } else {
+        close(pipefd[1]); // close write end
+        FILE *fp = fdopen(pipefd[0], "r");
+        assert(fp);
+        char line[1024];
+        //! 这里每一行写不进去！！！
+        // while (fgets(line, sizeof(line), fp)) {
+        //     deal_line(line);
+        // }
+        close_reg();
+        debug("before while\n");
+        while (fgets(line, sizeof(line), fp)) {
+            debug("%s", line);
+        }
+        debug("after while\n");
+        fclose(fp);
+        debug("after fclose\n");
+        show_verbose_syscalls();
+        debug("syscalls nums: %d\n", syscalls_num);
+        debug("after show\n");
+    }
+#else
     FILE *fp = fopen("stra.txt", "r");
     assert(fp); // 随便检测一下
     char line[1024];
@@ -91,10 +156,12 @@ int main() {
         deal_line(line);
     }
 
-    show_syscalls();
+    // show_syscalls();
+    show_verbose_syscalls();
 
     close_reg();
     fclose(fp);
+#endif
     return 0;
 }
 
