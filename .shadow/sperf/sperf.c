@@ -38,18 +38,20 @@ void add_syscall_time(const char *name, double time) {
     syscalls_num++;
 }
 
-int deal_line(char *line, regex_t *reg, regmatch_t *matches) {
+regex_t reg;
+regmatch_t matches[4];
+int deal_line(char *line) {
     if (syscalls_num == 0) { // 还没有编译
         const char *pattern = "^([a-zA-Z0-9_]+)\\(.*\\)\\s+=\\s+.*\\s+<([0-9.]+)>";
-        if (regcomp(reg, pattern, REG_EXTENDED) == 0) {
-            debug("Compile regex: %s\n", pattern);
+        if (regcomp(&reg, pattern, REG_EXTENDED) == 0) {
+            // debug("Compile regex: %s\n", pattern);
         } else {
             debug("Compile regex failed: %s\n", pattern);
             return -1;
         }
     }
 
-    if (regexec(reg, line, 4, matches, 0) == 0) { // 正则表达式
+    if (regexec(&reg, line, 4, matches, 0) == 0) { // 正则表达式
         char name[64];
         double time;
         strncpy(name, line + matches[1].rm_so, matches[1].rm_eo - matches[1].rm_so);
@@ -60,8 +62,8 @@ int deal_line(char *line, regex_t *reg, regmatch_t *matches) {
     return 0;
 }
 
-void close_reg(regex_t *reg) {
-    regfree(reg);
+void close_reg() {
+    regfree(&reg);
 }
 
 int cmp_syscalls(const void *a, const void *b) {
@@ -98,7 +100,7 @@ void show_verbose_syscalls() {
     }
 }
 
-#define OJ
+// #define OJ
 
 int main(int argc, char *argv[], char *envp[]) {
     for (int i = 0; i < argc; i++) {
@@ -129,18 +131,16 @@ int main(int argc, char *argv[], char *envp[]) {
         close(pipefd[1]); // close write end
         FILE *fp = fdopen(pipefd[0], "r");
         assert(fp);
-        regex_t reg;
-        regmatch_t matches[4];
         char line[1024];
+        //! 这里每一行写不进去！！！
+        // while (fgets(line, sizeof(line), fp)) {
+        //     deal_line(line);
+        // }
+        close_reg();
         debug("before while\n");
         while (fgets(line, sizeof(line), fp)) {
-            deal_line(line, &reg, matches); //对每一行写不进去啊？
-            // debug("%s", line);
+            debug("%s", line);
         }
-        close_reg(&reg);
-        // while (fgets(line, sizeof(line), fp)) {
-        //     debug("%s", line);
-        // }
         debug("after while\n");
         fclose(fp);
         debug("after fclose\n");
