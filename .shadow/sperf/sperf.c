@@ -44,7 +44,7 @@ int deal_line(char *line) {
     if (syscalls_num == 0) { // 还没有编译
         const char *pattern = "^([a-zA-Z0-9_]+)\\(.*\\)\\s+=\\s+.*\\s+<([0-9.]+)>";
         if (regcomp(&reg, pattern, REG_EXTENDED) == 0) {
-            debug("Compile regex: %s\n", pattern);
+            // debug("Compile regex: %s\n", pattern);
         } else {
             debug("Compile regex failed: %s\n", pattern);
             return -1;
@@ -121,8 +121,8 @@ int main(int argc, char *argv[], char *envp[]) {
     } else if (pid == 0) {
         close(pipefd[0]); // close read end
         close(STDERR_FILENO);
-        close(STDOUT_FILENO);
-        // dup2(pipefd[1], STDERR_FILENO);
+        close(STDOUT_FILENO); // 关闭运行程序的输出
+        dup2(pipefd[1], STDERR_FILENO);
         execve("/usr/bin/strace", argv, envp);
         perror("execve()");
         return 1;
@@ -131,13 +131,13 @@ int main(int argc, char *argv[], char *envp[]) {
         FILE *fp = fdopen(pipefd[0], "r");
         assert(fp);
         char line[1024];
-        // while (fgets(line, sizeof(line), fp)) {
-        //     deal_line(line);
-        // }
-        // close_reg();
         while (fgets(line, sizeof(line), fp)) {
-            debug("%s", line);
+            deal_line(line);
         }
+        close_reg();
+        // while (fgets(line, sizeof(line), fp)) {
+        //     debug("%s", line);
+        // }
         
         fclose(fp);
         // show_verbose_syscalls();
