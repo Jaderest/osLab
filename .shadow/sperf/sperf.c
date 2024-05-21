@@ -135,7 +135,7 @@ int main(int argc, char *argv[], char *envp[]) {
         debug("before while\n");
         while (fgets(line, sizeof(line), fp)) {
             deal_line(line);
-            debug("%s", line);
+            // debug("%s", line);
         }
         close_reg();
         // while (fgets(line, sizeof(line), fp)) {
