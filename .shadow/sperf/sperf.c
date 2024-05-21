@@ -123,7 +123,7 @@ int main(int argc, char *argv[], char *envp[]) {
         close(STDERR_FILENO);
         close(STDOUT_FILENO); // 关闭运行程序的输出
         dup2(pipefd[1], STDERR_FILENO);
-        execve("/usr/bin/strace", argv, envp);
+        execve("/usr/bin/strace", argv, envp); //! 注意这里没有显示时间
         perror("execve()");
         return 1;
     } else {
@@ -135,12 +135,13 @@ int main(int argc, char *argv[], char *envp[]) {
         //     deal_line(line);
         // }
         close_reg();
+        debug("before while\n");
         while (fgets(line, sizeof(line), fp)) {
             debug("%s", line);
         }
         
         fclose(fp);
-        // show_verbose_syscalls();
+        show_verbose_syscalls();
     }
 #else
     FILE *fp = fopen("stra.txt", "r");
