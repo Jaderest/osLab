@@ -90,6 +90,9 @@ void show_syscalls() {
     for (int i = 0; i < min; ++i) {
         int ratio = (int)((syscalls[i].total_time / all_time) * 100);
         printf("%s (%d%%)\n", syscalls[i].name, ratio);
+        for (int j = 0; j < 80; ++j) {
+            printf("%c", '\0');
+        }
     }
 }
 
