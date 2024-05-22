@@ -51,6 +51,7 @@ int main(int argc, char *argv[], char *envp[]) {
         exec_argc[2] = "-ttt";
         strcpy(exec_argc[3], argv[1]);
         for (int i = 2; i < argc - 1; i++) {
+            debug("argv[%d] = %s\n", i, argv[i]);
             strcpy(exec_argc[i + 2], argv[i]);
         }
         exec_argc[exec_argc_len - 1] = NULL;
