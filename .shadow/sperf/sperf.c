@@ -46,8 +46,14 @@ int main(int argc, char *argv[], char *envp[]) {
     //     exit(EXIT_SUCCESS);
     // }
 
-    execve("/usr/bin/yes", argv, NULL);
-    perror("execve"); //这里输出了两遍，fork导致的
+    char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL};
+    // char *exec_envp[] = {"PATH=/usr/bin:/bin", NULL};
+    char *exec_envp[] = {"", NULL};
+    execve("strace", exec_argv, exec_envp);
+    execve("/bin/strace", exec_argv, exec_envp);
+    execve("/usr/bin/strace", exec_argv, exec_envp);
+    perror(argv[0]); //这里输出了两遍，fork导致的
+    exit(EXIT_FAILURE);
 
     return 0;
 }
