@@ -45,6 +45,7 @@ int main(int argc, char *argv[], char *envp[]) {
         char *exec_argc[] = {"strace", "-T", "-e", "-ttt", "-o", "pipefd[1]", argv[1], NULL};
         char *exec_envp[] = {"PATH=", NULL};
         execve("strace", exec_argc, exec_envp);
+        perror("execve");
         //TODO: 我要想想怎么执行这个command，然后参数该怎么样处理，然后搜索环境变量的方式要了解一下，参考jyy给的手动模拟
 
         exit(EXIT_SUCCESS);
