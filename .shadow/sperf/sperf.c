@@ -47,7 +47,7 @@ int main(int argc, char *argv[], char *envp[]) {
     // }
 
     char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL};
-    char *exec_envp[] = {"PATH=/bin", NULL};
+    char *exec_envp[] = {"PATH=/usr/bin", NULL};
     // char *exec_envp[] = {"", NULL};
     execve("strace", exec_argv, exec_envp);
     execve("/bin/strace", exec_argv, exec_envp);
