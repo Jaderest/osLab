@@ -44,16 +44,17 @@ int main(int argc, char *argv[], char *envp[]) {
         //TODO: argv[1]的参数也要处理，argv[1]要考虑绝对路径和相对路径，要考虑如何搜索path
         //传参没有传成功
         int exec_argc_len = 4 + argc - 2 + 1; // strace -T -ttt argv[1] argv[2] ... NULL
-        // char *exec_argc[exec_argc_len];
-        // exec_argc[0] = "strace";
-        // exec_argc[1] = "-T";
-        // exec_argc[2] = "-ttt";
-        // exec_argc[3] = argv[1];
-        // for (int i = 2; i < argc; i++) {
-        //     exec_argc[i + 2] = argv[i];
-        //     debug("exec_argc[%d] = %s\n", i + 2, exec_argc[i + 2]);
-        // }
-        char *exec_argc[] = {"strace", "-T", "-ttt", argv[1], NULL};
+        char *exec_argc[exec_argc_len];
+        exec_argc[0] = "strace";
+        exec_argc[1] = "-T";
+        exec_argc[2] = "-ttt";
+        exec_argc[3] = argv[1];
+        debug("exec_argc[3] = %s\n", exec_argc[3]);
+        for (int i = 2; i < argc; i++) {
+            exec_argc[i + 2] = argv[i];
+            debug("exec_argc[%d] = %s\n", i + 2, exec_argc[i + 2]);
+        }
+        // char *exec_argc[] = {"strace", "-T", "-ttt", argv[1], NULL};
         char *exec_envp[] = {"PATH=/usr/bin", NULL};
         debug("execve\n");
         execve("/usr/bin/strace", exec_argc, exec_envp);//
