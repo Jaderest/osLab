@@ -46,7 +46,7 @@ int main(int argc, char *argv[], char *envp[]) {
     //     exit(EXIT_SUCCESS);
     // }
 
-    execve("yes", NULL, NULL);
+    execve("yes", argv, NULL);
 
     return 0;
 }
