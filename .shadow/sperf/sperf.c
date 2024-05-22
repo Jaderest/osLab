@@ -49,10 +49,11 @@ int main(int argc, char *argv[], char *envp[]) {
         exec_argc[1] = "-T";
         exec_argc[2] = "-ttt";
         exec_argc[3] = argv[1];
-        debug("exec_argc[3] = %s\n", exec_argc[3]);
         for (int i = 2; i < argc; i++) {
             exec_argc[i + 2] = argv[i];
-            debug("exec_argc[%d] = %s\n", i + 2, exec_argc[i + 2]);
+        }
+        for (int i = 0; i < exec_argc_len; i++) {
+            debug("exec_argc[%d] = %s\n", i, exec_argc[i]);
         }
         // char *exec_argc[] = {"strace", "-T", "-ttt", argv[1], NULL};
         char *exec_envp[] = {"PATH=/usr/bin", NULL};
