@@ -44,6 +44,7 @@ int main(int argc, char *argv[], char *envp[]) {
         // -o pipefd[1]表示输出到pipefd[1]，argv[1]是要执行的程序
         char *exec_argc[] = {"strace", "-T", "-e", "-ttt", "-o", "pipefd[1]", argv[1], NULL};
         char *exec_envp[] = {"PATH=", NULL};
+        debug("execve\n");
         execve("strace", exec_argc, exec_envp);
         perror("execve");
         //TODO: 我要想想怎么执行这个command，然后参数该怎么样处理，然后搜索环境变量的方式要了解一下，参考jyy给的手动模拟
