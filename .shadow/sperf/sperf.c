@@ -51,6 +51,7 @@ int main(int argc, char *argv[], char *envp[]) {
         exec_argc[3] = argv[1];
         for (int i = 2; i < argc; i++) {
             exec_argc[i + 2] = argv[i];
+            debug("exec_argc[%d] = %s\n", i + 2, exec_argc[i + 2]);
         }
         // char *exec_argc[] = {"strace", "-T", "-ttt", argv[1], NULL};
         char *exec_envp[] = {"PATH=/usr/bin", NULL};
