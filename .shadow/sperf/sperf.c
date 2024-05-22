@@ -55,6 +55,7 @@ int main(int argc, char *argv[], char *envp[]) {
         for (int i = 2; i < argc - 1; i++) {
             debug("argv[%d] = %s\n", i, argv[i]);
             strcpy(exec_argc[i + 2], argv[i]);
+            perror("strcpy");
         }
         debug("after strcpy\n");
         exec_argc[exec_argc_len - 1] = NULL;
