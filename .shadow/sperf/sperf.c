@@ -49,9 +49,9 @@ int main(int argc, char *argv[], char *envp[]) {
         exec_argc[0] = "strace";
         exec_argc[1] = "-T";
         exec_argc[2] = "-ttt";
-        exec_argc[3] = argv[1];
+        strcpy(exec_argc[3], argv[1]);
         for (int i = 2; i < argc - 1; i++) {
-            exec_argc[i + 2] = argv[i];
+            strcpy(exec_argc[i + 2], argv[i]);
         }
         exec_argc[exec_argc_len - 1] = NULL;
         for (int i = 0; i < exec_argc_len; i++) {
