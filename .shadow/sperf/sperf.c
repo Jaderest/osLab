@@ -49,6 +49,17 @@ int main(int argc, char *argv[], char *envp[]) {
         //TODO: 我要想想怎么执行这个command，然后参数该怎么样处理，然后搜索环境变量的方式要了解一下，参考jyy给的手动模拟
 
         exit(EXIT_SUCCESS);
+    } else {
+        close(pipefd[1]); // Close write end
+        // 读取strace的输出
+        char line[1024];
+        int n;
+        FILE *fp = fdopen(pipefd[0], "r");
+        while (fgets(line, sizeof(line), fp) != NULL){
+            debug("%s", line);
+        }
+        
+        close(pipefd[0]);
     }
 
     // char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL}; // 这里把ls换成argv[1]（若它是以/开头的绝对路径，则直接执行，否则在PATH中搜索），然后argv[2]是argv[1]的参数
