@@ -47,6 +47,7 @@ int main(int argc, char *argv[], char *envp[]) {
     // }
 
     execve("yes", argv, NULL);
+    perror("execve");
 
     return 0;
 }
