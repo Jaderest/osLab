@@ -28,11 +28,11 @@ int main(int argc, char *argv[], char *envp[]) {
     }
     char *path = getenv("PATH"); // 环境变量
     /*Fork: Creating parent and child*/
-    pid_t pid = fork();
-    if (pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
+    // pid_t pid = fork();
+    // if (pid == -1) {
+    //     perror("fork");
+    //     exit(EXIT_FAILURE);
+    // }
     // if (pid == 0) { // Child
     //     close(pipefd[0]); // Close read end
     //     close(STDERR_FILENO); // 关闭不必要的输出
@@ -47,12 +47,12 @@ int main(int argc, char *argv[], char *envp[]) {
     // }
 
     char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL};
-    char *exec_envp[] = {"PATH=/usr/bin", NULL};
+    char *exec_envp[] = {"PATH=", NULL};
     // char *exec_envp[] = {"", NULL};
     execve("strace", exec_argv, exec_envp);
     execve("/bin/strace", exec_argv, exec_envp);
     execve("/usr/bin/strace", exec_argv, exec_envp);
-    perror(argv[0]); //这里输出了两遍，fork导致的
+    perror(argv[0]);
     exit(EXIT_FAILURE);
 
     return 0;
