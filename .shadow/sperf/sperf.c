@@ -37,7 +37,7 @@ int main(int argc, char *argv[], char *envp[]) {
     if (pid == 0) { // Child
         close(pipefd[0]); // Close read end
         close(STDERR_FILENO); // 关闭不必要的输出
-        // close(STDOUT_FILENO);
+        close(STDOUT_FILENO);
 
         // 执行strace，并不断输出到pipefd[1]
         // dup2(pipefd[1], STDERR_FILENO);
