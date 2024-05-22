@@ -43,15 +43,17 @@ int main(int argc, char *argv[], char *envp[]) {
         // dup2(pipefd[1], STDERR_FILENO);
         //TODO: argv[1]的参数也要处理，argv[1]要考虑绝对路径和相对路径，要考虑如何搜索path
         //传参没有传成功
+        //argc = 3
         int exec_argc_len = 4 + argc - 2 + 1; // strace -T -ttt argv[1] argv[2] ... NULL
         char *exec_argc[exec_argc_len];
         exec_argc[0] = "strace";
         exec_argc[1] = "-T";
         exec_argc[2] = "-ttt";
         exec_argc[3] = argv[1];
-        for (int i = 2; i < argc; i++) {
+        for (int i = 2; i < argc - 1; i++) {
             exec_argc[i + 2] = argv[i];
         }
+        exec_argc[exec_argc_len - 1] = NULL;
         for (int i = 0; i < exec_argc_len; i++) {
             debug("exec_argc[%d] = %s\n", i, exec_argc[i]);
         }
