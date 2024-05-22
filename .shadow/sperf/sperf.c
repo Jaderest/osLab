@@ -27,6 +27,7 @@ int main(int argc, char *argv[], char *envp[]) {
         exit(EXIT_FAILURE);
     }
     char *path = getenv("PATH"); // 环境变量
+    debug("path = %s\n", path);
     /*Fork: Creating parent and child*/
     // pid_t pid = fork();
     // if (pid == -1) {
@@ -46,14 +47,14 @@ int main(int argc, char *argv[], char *envp[]) {
     //     exit(EXIT_SUCCESS);
     // }
 
-    char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL};
-    char *exec_envp[] = {"PATH=", NULL};
-    // char *exec_envp[] = {"", NULL};
-    execve("strace", exec_argv, exec_envp);
-    execve("/bin/strace", exec_argv, exec_envp);
-    execve("/usr/bin/strace", exec_argv, exec_envp);
-    perror(argv[0]);
-    exit(EXIT_FAILURE);
+    // char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL}; // 这里把ls换成argv[1]，然后argv[2]是argv[1]的参数
+    // char *exec_envp[] = {"PATH=", NULL};
+    // // char *exec_envp[] = {"", NULL};
+    // execve("strace", exec_argv, exec_envp);
+    // execve("/bin/strace", exec_argv, exec_envp);
+    // execve("/usr/bin/strace", exec_argv, exec_envp);
+    // perror(argv[0]);
+    // exit(EXIT_FAILURE);
 
     return 0;
 }
