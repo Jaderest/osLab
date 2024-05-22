@@ -42,7 +42,7 @@ int main(int argc, char *argv[], char *envp[]) {
         // 执行strace，并不断输出到pipefd[1]
         // dup2(pipefd[1], STDERR_FILENO);
         // -o pipefd[1]表示输出到pipefd[1]，argv[1]是要执行的程序
-        char *exec_argc[] = {"strace", "-T", "-e", "-ttt", "-o", "pipefd[1]", argv[1], NULL};
+        char *exec_argc[] = {"strace", "-T", "-e", "-ttt", argv[1], NULL};
         char *exec_envp[] = {"PATH=/usr/bin", NULL};
         debug("execve\n");
         execve("/usr/bin/strace", exec_argc, exec_envp); // 没找到strace，所以这里会报错
