@@ -8,7 +8,7 @@ SRCS   := $(shell find . -maxdepth 1 -name "*.c")
 DEPS   := $(shell find . -maxdepth 1 -name "*.h") $(SRCS)
 CFLAGS += -O1 -std=gnu11 -ggdb -Wall -Werror -Wno-unused-result -Wno-unused-value -Wno-unused-variable
 
-.PHONY: all git test clean commit-and-make
+.PHONY: all git test clean commit-and-make #这里test是伪目标，但是我可以在我子项目中定义test目标，这样就会覆盖这个伪目标
 
 .DEFAULT_GOAL := commit-and-make
 commit-and-make: git all

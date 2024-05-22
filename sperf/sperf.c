@@ -14,154 +14,63 @@
 
 #define MAX_CALLS 1024
 
-typedef struct {
-    char name[64];
-    double total_time;
-    int count;
-} syscall_info_t;
-
-syscall_info_t syscalls[MAX_CALLS];
-int syscalls_num = 0;
-
-void add_syscall_time(const char *name, double time) {
-    for (int i = 0; i < syscalls_num; i++) {
-        if (strcmp(syscalls[i].name, name) == 0) {
-            syscalls[i].total_time += time;
-            syscalls[i].count++;
-            return;
-        }
-    }
-    assert(syscalls_num < MAX_CALLS);
-    strcpy(syscalls[syscalls_num].name, name);
-    syscalls[syscalls_num].total_time = time;
-    syscalls[syscalls_num].count = 1;
-    syscalls_num++;
-}
-
-regex_t reg;
-regmatch_t matches[4];
-int deal_line(char *line) {
-    if (syscalls_num == 0) { // 还没有编译
-        const char *pattern = "^([a-zA-Z0-9_]+)\\(.*\\)\\s+=\\s+.*\\s+<([0-9.]+)>";
-        if (regcomp(&reg, pattern, REG_EXTENDED) == 0) {
-            // debug("Compile regex: %s\n", pattern);
-        } else {
-            debug("Compile regex failed: %s\n", pattern);
-            return -1;
-        }
-    }
-
-    if (regexec(&reg, line, 4, matches, 0) == 0) { // 正则表达式
-        char name[64];
-        double time;
-        strncpy(name, line + matches[1].rm_so, matches[1].rm_eo - matches[1].rm_so);
-        name[matches[1].rm_eo - matches[1].rm_so] = '\0';
-        time = atof(line + matches[2].rm_so);
-        add_syscall_time(name, time);
-    }
-    return 0;
-}
-
-void close_reg() {
-    regfree(&reg);
-}
-
-int cmp_syscalls(const void *a, const void *b) {
-    syscall_info_t *pa = (syscall_info_t *)a;
-    syscall_info_t *pb = (syscall_info_t *)b;
-
-    if (pa->total_time > pb->total_time) return -1;
-    if (pa->total_time < pb->total_time) return 1;
-    return 0;
-}
-
-void show_syscalls() {
-    system("clear");
-    qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
-    double all_time = 0;
-    for (int i = 0; i < syscalls_num; ++i) {
-        all_time += syscalls[i].total_time;
-    }
-    int min = syscalls_num > 5 ? 5 : syscalls_num;
-    for (int i = 0; i < min; ++i) {
-        int ratio = (int)((syscalls[i].total_time / all_time) * 100);
-        printf("%s (%d%%)\n", syscalls[i].name, ratio);
-        for (int j = 0; j < 80; ++j) {
-            printf("%c", '\0');
-        }
-        fflush(stdout);
-    }
-}
-
-void show_verbose_syscalls() {
-    qsort(syscalls, syscalls_num, sizeof(syscall_info_t), cmp_syscalls);
-    for (int i = 0; i < syscalls_num; ++i) {
-        printf("%-20s %-10.6f %-10d\n", syscalls[i].name, syscalls[i].total_time, syscalls[i].count);
-    }
-}
-
-// #define OJ
-
 int main(int argc, char *argv[], char *envp[]) {
     for (int i = 0; i < argc; i++) {
         assert(argv[i]);
         debug("argv[%d] = %s\n", i, argv[i]);
     }
     assert(!argv[argc]);
-
-#ifdef OJ
+    /*Init: Pipe, Environment*/
     int pipefd[2];
     if (pipe(pipefd) == -1) {
-        perror("pipe()");
-        return 1;
+        perror("pipe");
+        exit(EXIT_FAILURE);
     }
+    char *path = getenv("PATH"); // 环境变量
+    // debug("path = %s\n", path);
+    /*Fork: Creating parent and child*/
     pid_t pid = fork();
     if (pid == -1) {
-        perror("fork()");
-        return 1;
-    } else if (pid == 0) {
-        close(pipefd[0]); // close read end
-        close(STDERR_FILENO);
-        close(STDOUT_FILENO); // 关闭运行程序的输出
-        dup2(pipefd[1], STDERR_FILENO);
-        execve("/usr/bin/strace", argv, envp); //! 注意这里没有显示时间
-        perror("execve()");
-        return 1;
-    } else {
-        close(pipefd[1]); // close write end
-        FILE *fp = fdopen(pipefd[0], "r");
-        assert(fp);
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    if (pid == 0) { // Child
+        close(pipefd[0]); // Close read end
+        // close(STDERR_FILENO); // 关闭不必要的输出
+        // close(STDOUT_FILENO);
+
+        // 执行strace，并不断输出到pipefd[1]
+        // dup2(pipefd[1], STDERR_FILENO);
+        //TODO: argv[1]的参数也要处理，argv[1]要考虑绝对路径和相对路径，要考虑如何搜索path
+        //! 传参没有传成功
+        char *exec_argc[] = {"strace", "-T", "-ttt", argv[1], NULL};
+        char *exec_envp[] = {"PATH=/usr/bin", NULL};
+        debug("execve\n");
+        execve("/usr/bin/strace", exec_argc, exec_envp);//
+        perror("execve");
+
+        exit(EXIT_SUCCESS);
+    } else { // Parent
+        close(pipefd[1]); // Close write end
         char line[1024];
-        //! 这里每一行写不进去！！！
-        // while (fgets(line, sizeof(line), fp)) {
-        //     deal_line(line);
-        // }
-        close_reg();
-        debug("before while\n");
-        while (fgets(line, sizeof(line), fp)) {
+        int n;
+        FILE *fp = fdopen(pipefd[0], "r");
+        while (fgets(line, sizeof(line), fp) != NULL){
             debug("%s", line);
         }
-        debug("after while\n");
-        fclose(fp);
-        debug("after fclose\n");
-        show_verbose_syscalls();
-        debug("syscalls nums: %d\n", syscalls_num);
-        debug("after show\n");
-    }
-#else
-    FILE *fp = fopen("stra.txt", "r");
-    assert(fp); // 随便检测一下
-    char line[1024];
-    while (fgets(line, sizeof(line), fp)) {
-        deal_line(line);
+        
+        close(pipefd[0]);
     }
 
-    // show_syscalls();
-    show_verbose_syscalls();
+    // char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL}; // 这里把ls换成argv[1]（若它是以/开头的绝对路径，则直接执行，否则在PATH中搜索），然后argv[2]是argv[1]的参数
+    // char *exec_envp[] = {"PATH=", NULL};
+    // // char *exec_envp[] = {"", NULL};
+    // execve("strace", exec_argv, exec_envp);
+    // execve("/bin/strace", exec_argv, exec_envp);
+    // execve("/usr/bin/strace", exec_argv, exec_envp);
+    // perror(argv[0]);
+    // exit(EXIT_FAILURE);
 
-    close_reg();
-    fclose(fp);
-#endif
     return 0;
 }
 
