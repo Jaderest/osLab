@@ -45,7 +45,7 @@ int main(int argc, char *argv[], char *envp[]) {
         char *exec_argc[] = {"strace", "-T", "-e", "-ttt", "-o", "pipefd[1]", argv[1], NULL};
         char *exec_envp[] = {"PATH=/usr/bin", NULL};
         debug("execve\n");
-        execve("strace", exec_argc, exec_envp); // 没找到strace，所以这里会报错
+        execve("/usr/bin/strace", exec_argc, exec_envp); // 没找到strace，所以这里会报错
         perror("execve");
         //TODO: 我要想想怎么执行这个command，然后参数该怎么样处理，然后搜索环境变量的方式要了解一下，参考jyy给的手动模拟
 
