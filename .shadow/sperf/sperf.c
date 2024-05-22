@@ -45,6 +45,7 @@ int main(int argc, char *argv[], char *envp[]) {
         //传参没有传成功
         //argc = 3
         int exec_argc_len = 4 + argc - 2 + 1; // strace -T -ttt argv[1] argv[2] ... NULL
+        debug("exec_argc_len = %d\n", exec_argc_len);
         char *exec_argc[exec_argc_len];
         exec_argc[0] = "strace";
         exec_argc[1] = "-T";
