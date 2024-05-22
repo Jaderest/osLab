@@ -46,8 +46,8 @@ int main(int argc, char *argv[], char *envp[]) {
     //     exit(EXIT_SUCCESS);
     // }
 
-    execve("yes", argv, NULL);
-    perror("execve");
+    execve("/usr/bin/yes", argv, NULL);
+    perror("execve"); //这里输出了两遍，fork导致的
 
     return 0;
 }
