@@ -27,27 +27,30 @@ int main(int argc, char *argv[], char *envp[]) {
         exit(EXIT_FAILURE);
     }
     char *path = getenv("PATH"); // 环境变量
-    debug("path = %s\n", path);
+    // debug("path = %s\n", path);
     /*Fork: Creating parent and child*/
-    // pid_t pid = fork();
-    // if (pid == -1) {
-    //     perror("fork");
-    //     exit(EXIT_FAILURE);
-    // }
-    // if (pid == 0) { // Child
-    //     close(pipefd[0]); // Close read end
-    //     close(STDERR_FILENO); // 关闭不必要的输出
-    //     close(STDOUT_FILENO);
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    if (pid == 0) { // Child
+        close(pipefd[0]); // Close read end
+        close(STDERR_FILENO); // 关闭不必要的输出
+        close(STDOUT_FILENO);
 
-    //     // 执行strace，并不断输出到pipefd[1]
-    //     dup2(pipefd[1], STDERR_FILENO);
-    //     char *exec_argc[] = {"strace", "-T", "-e", "-ttt", "trace=", "-o", "pipefd[1]", argv[1], NULL};
-    //     //TODO: 我要想想怎么执行这个command，然后参数该怎么样处理，然后搜索环境变量的方式要了解一下，参考jyy给的手动模拟
+        // 执行strace，并不断输出到pipefd[1]
+        dup2(pipefd[1], STDERR_FILENO);
+        // -o pipefd[1]表示输出到pipefd[1]，argv[1]是要执行的程序
+        char *exec_argc[] = {"strace", "-T", "-e", "-ttt", "-o", "pipefd[1]", argv[1], NULL};
+        char *exec_envp[] = {"PATH=", NULL};
+        execve("strace", exec_argc, exec_envp);
+        //TODO: 我要想想怎么执行这个command，然后参数该怎么样处理，然后搜索环境变量的方式要了解一下，参考jyy给的手动模拟
 
-    //     exit(EXIT_SUCCESS);
-    // }
+        exit(EXIT_SUCCESS);
+    }
 
-    // char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL}; // 这里把ls换成argv[1]，然后argv[2]是argv[1]的参数
+    // char *exec_argv[] = {"strace", "-T", "-ttt", "ls", NULL}; // 这里把ls换成argv[1]（若它是以/开头的绝对路径，则直接执行，否则在PATH中搜索），然后argv[2]是argv[1]的参数
     // char *exec_envp[] = {"PATH=", NULL};
     // // char *exec_envp[] = {"", NULL};
     // execve("strace", exec_argv, exec_envp);
