@@ -36,13 +36,12 @@ int main(int argc, char *argv[], char *envp[]) {
     }
     if (pid == 0) { // Child
         close(pipefd[0]); // Close read end
-        // close(STDERR_FILENO); // 关闭不必要的输出
-        // close(STDOUT_FILENO);
+        close(STDERR_FILENO); // 关闭不必要的输出
+        close(STDOUT_FILENO);
 
         // 执行strace，并不断输出到pipefd[1]
-        // dup2(pipefd[1], STDERR_FILENO);
         // -o pipefd[1]表示输出到pipefd[1]，argv[1]是要执行的程序
-        char *exec_argc[] = {"strace", "-T", "-ttt", "-o", "pipefd[1]", argv[1], NULL};
+        char *exec_argc[] = {"strace", "-T", "-ttt", "-o", "pipefd[1]", argv[1], NULL}; //的确是丢到管道里了，一会在父进程中检测一下是否有输出
         char *exec_envp[] = {"PATH=/usr/bin", NULL};
         debug("execve\n");
         execve("/usr/bin/strace", exec_argc, exec_envp); // 没找到strace，所以这里会报错
