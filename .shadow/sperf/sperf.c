@@ -41,17 +41,16 @@ int main(int argc, char *argv[], char *envp[]) {
 
         // 执行strace，并不断输出到pipefd[1]
         dup2(pipefd[1], STDERR_FILENO);
-        char *exec_argc[] = {"strace", "-T", "-ttt", argv[1], NULL}; //的确是丢到管道里了，一会在父进程中检测一下是否有输出
+        //TODO: argv[1]的参数也要处理，argv[1]要考虑绝对路径和相对路径，要考虑如何搜索path
+        char *exec_argc[] = {"strace", "-T", "-ttt", argv[1], NULL};
         char *exec_envp[] = {"PATH=/usr/bin", NULL};
         debug("execve\n");
-        execve("/usr/bin/strace", exec_argc, exec_envp); // 没找到strace，所以这里会报错
+        execve("/usr/bin/strace", exec_argc, exec_envp);
         perror("execve");
-        //TODO: 我要想想怎么执行这个command，然后参数该怎么样处理，然后搜索环境变量的方式要了解一下，参考jyy给的手动模拟
 
         exit(EXIT_SUCCESS);
-    } else {
+    } else { // Parent
         close(pipefd[1]); // Close write end
-        // 读取strace的输出
         char line[1024];
         int n;
         FILE *fp = fdopen(pipefd[0], "r");
