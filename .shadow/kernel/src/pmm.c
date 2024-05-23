@@ -2,6 +2,14 @@
 
 #define MAX_CPU 8
 
+#ifdef TEST
+#include <am.h>
+void putch(char ch) {
+    putchar(ch);
+}
+#endif
+
+
 //TODO: 自旋锁
 #define UNLOCKED 0
 #define LOCKED 1
