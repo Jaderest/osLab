@@ -84,6 +84,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
             debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
         }
         execve("/usr/bin/strace", strace_argv, envp); // 成功传参
+        debug("execve\n");
         int fdtty = open("/dev/tty", O_WRONLY);
         dup2(fdtty, STDERR_FILENO);
         perror("execve"); // 果然传yes会出现问题
