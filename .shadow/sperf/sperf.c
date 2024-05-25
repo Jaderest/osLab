@@ -12,7 +12,7 @@
 #define debug(fmt, ...)
 #endif
 
-#define MAX_SYSCALL 2048
+#define MAX_SYSCALL (1024 * 1024)
 
 typedef struct {
     double start_time;
@@ -107,6 +107,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         }
         double duration = syscalls[syscall_count - 1].start_time - syscalls[0].start_time;
         double total_time = 0;
+        debug("duration = %lf\n", duration);
         syscall_summary_t summaries[MAX_SYSCALL];
         int summary_count = 0;
         for (int i = 0; i < syscall_count; i++) {
