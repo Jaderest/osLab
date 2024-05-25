@@ -12,13 +12,13 @@
 #define debug(fmt, ...)
 #endif
 
-#define MAX_SYSCALL (1024 * 1024)
+#define MAX_SYSCALL 2048
 
 typedef struct {
     double start_time;
     char name[64];
     double duration;
-} syscall_info_t;
+} syscall_info_t; // 这个数据结构肯定不行捏，必爆内存
 
 typedef struct {
     double total_time;
