@@ -72,12 +72,13 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         close(STDERR_FILENO);
         dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
         debug("execve\n");
-        close(STDOUT_FILENO);
+        // close(STDOUT_FILENO);
         // 是会有execve失败的时候吧
         execve("/usr/bin/strace", strace_argv, envp); // 成功传参
         
         int fd = open("/dev/tty", O_WRONLY);
         dup2(fd, STDERR_FILENO);
+        debug("execve failed\n");
         perror("execve");
         close(fd);
     } else { // parent
