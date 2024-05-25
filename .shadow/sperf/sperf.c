@@ -69,7 +69,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     }
     if (pid == 0) {
         close(pipefd[0]); // close read end
-        // close(STDERR_FILENO);
+        close(STDERR_FILENO);
         // 事实上这个dup2和>比较像，但是这个是系统调用，而>是shell的功能，都是重定向
         // dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
         debug("execve\n");
@@ -84,6 +84,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
             debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
         }
         execve("/usr/bin/strace", strace_argv, envp); // 成功传参
+        int fdtty = open("/dev/tty", O_WRONLY);
+        dup2(fdtty, STDERR_FILENO);
         perror("execve"); // 果然传yes会出现问题
     } else { // parent
         close(pipefd[1]); // close write end
