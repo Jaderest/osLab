@@ -52,6 +52,9 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         }
         strace_argv[strace_argc] = NULL; // 这是最后一个参数，以NULL结尾
     }
+    for (int i = 0; i < strace_argc; i++) {
+        debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
+    }
     /*-------fork and pipe-------*/
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -86,6 +89,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
 
         char line[4096];
         while (fgets(line, sizeof(line), fp) != NULL) {
+            debug("1");
             regmatch_t pmatch[4];
             if (regexec(&reg, line, 4, pmatch, 0) == 0) {
                 // 好的，这里正在进行统计
