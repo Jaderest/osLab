@@ -128,7 +128,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         for (int i = 0; i < min; i++) {
             int ratio = summaries[i].total_time / duration * 100;
             printf("%s (%d%%)\n", summaries[i].name, ratio);
-            for (int j = 0; j < 80; j++) printf("\0");
+            for (int j = 0; j < 80; j++) printf("%c", '\0');
             fflush(stdout);
         }
     }
