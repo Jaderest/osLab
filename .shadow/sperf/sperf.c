@@ -71,6 +71,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
         dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
+        debug("execve\n");
         execve("/usr/bin/strace", strace_argv, envp); // 成功传参
     } else { // parent
         close(pipefd[1]); // close write end
@@ -89,7 +90,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
 
         char line[4096];
         while (fgets(line, sizeof(line), fp) != NULL) {
-            // debug("1");
+            debug("%s", line);
             regmatch_t pmatch[4];
             if (regexec(&reg, line, 4, pmatch, 0) == 0) {
                 // 好的，这里正在进行统计
