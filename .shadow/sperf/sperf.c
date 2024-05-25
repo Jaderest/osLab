@@ -40,7 +40,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     int strace_argc = argc - 1;
     char **strace_argv = NULL;
     if (strace_argc <= 0) { // 什么东西都不传给strace就报错
-        assert(0);
+        // assert(0);
     } else {
         strace_argc += 3; // strace -T -ttt
         // 注意strace还要加一些别的参数，整理一下先
@@ -69,12 +69,12 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     }
     if (pid == 0) {
         close(pipefd[0]); // close read end
-        close(STDERR_FILENO);
+        // close(STDERR_FILENO);
         // 事实上这个dup2和>比较像，但是这个是系统调用，而>是shell的功能，都是重定向
-        dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
+        // dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
         debug("execve\n");
         int fd = open("/dev/null", O_WRONLY); //这样stdout就不会输出了
-        dup2(fd, STDOUT_FILENO);
+        // dup2(fd, STDOUT_FILENO);
         /**
          * filename：是相对于进程的当前目录
         */
