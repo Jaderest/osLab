@@ -70,12 +70,15 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     if (pid == 0) {
         close(pipefd[0]); // close read end
         close(STDERR_FILENO);
+        // 事实上这个dup2和>比较像，但是这个是系统调用，而>是shell的功能，都是重定向
         dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
         debug("execve\n");
-        int fd = open("/dev/null", O_WRONLY);
+        int fd = open("/dev/null", O_WRONLY); //这样stdout就不会输出了
         dup2(fd, STDOUT_FILENO);
-        // 是会有execve失败的时候吧，考虑一下寻找path，这里就是hard test2
-        execve("/usr/bin/strace", strace_argv, envp); // 成功传参
+        /**
+         * filename：是相对于进程的当前目录
+        */
+        execve("yes", strace_argv, envp); // 成功传参
     } else { // parent
         close(pipefd[1]); // close write end
         FILE *fp = fdopen(pipefd[0], "r");
