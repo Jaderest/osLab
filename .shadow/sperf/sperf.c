@@ -18,5 +18,8 @@ int main(int argc, char *argv[]) { // 参数存在argv中
         printf("argv[%d] = %s\n", i, argv[i]);
     }
     assert(!argv[argc]);
+    char cmd[64];
+    strcpy(cmd, argv[1]);
+    debug("cmd = %s\n", cmd);
     return 0;
 }
