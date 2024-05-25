@@ -73,7 +73,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         // 事实上这个dup2和>比较像，但是这个是系统调用，而>是shell的功能，都是重定向
         // dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
         debug("execve\n");
-        int fd = open("/dev/null", O_WRONLY); //这样stdout就不会输出了
+        // int fd = open("/dev/null", O_WRONLY); //这样stdout就不会输出了
         // dup2(fd, STDOUT_FILENO);
         /**
          * filename：是相对于进程的当前目录
