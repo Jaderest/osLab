@@ -4,6 +4,7 @@
 #include <string.h>
 #include <regex.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #define DEBUG
 #ifdef DEBUG
@@ -72,7 +73,13 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         close(STDERR_FILENO);
         dup2(pipefd[1], STDERR_FILENO); // redirect stdout to pipe
         debug("execve\n");
+        // 是会有execve失败的时候吧
         execve("/usr/bin/strace", strace_argv, envp); // 成功传参
+        
+        int fd = open("/dev/tty", O_WRONLY);
+        dup2(fd, STDERR_FILENO);
+        perror("execve");
+        close(fd);
     } else { // parent
         close(pipefd[1]); // close write end
         FILE *fp = fdopen(pipefd[0], "r");
@@ -85,9 +92,6 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
             exit(1);
         }
 
-        syscall_info_t syscalls[MAX_SYSCALL];
-        int syscall_count = 0;
-
         char line[4096];
         while (fgets(line, sizeof(line), fp) != NULL) {
             debug("%s", line);
@@ -99,46 +103,13 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 strncpy(name, line + pmatch[2].rm_so, pmatch[2].rm_eo - pmatch[2].rm_so);
                 name[pmatch[2].rm_eo - pmatch[2].rm_so] = '\0';
                 double duration = atof(line + pmatch[3].rm_so);
-                // 保存到syscalls数组中
-                syscall_info_t *info = &syscalls[syscall_count++];
-                info->start_time = start_time;
-                strncpy(info->name, name, sizeof(info->name));
-                info->duration = duration;
+                // 以上是匹配结果，接下来该怎么做
+
             }
         }
-        double duration = syscalls[syscall_count - 1].start_time - syscalls[0].start_time;
+        double duration = 0;
         double total_time = 0;
-        debug("duration = %lf\n", duration);
-        syscall_summary_t summaries[MAX_SYSCALL];
-        int summary_count = 0;
-        for (int i = 0; i < syscall_count; i++) {
-            int found = 0;
-            for (int j = 0; j < summary_count; j++) {
-                if (strcmp(summaries[j].name, syscalls[i].name) == 0) {
-                    summaries[j].total_time += syscalls[i].duration;
-                    summaries[j].count++;
-                    found = 1;
-                    break; //强行加了，这里得插个flag
-                }
-            }
-            if (found) continue;
-            assert(summary_count < MAX_SYSCALL);
-            strcpy(summaries[summary_count].name, syscalls[i].name);
-            summaries[summary_count].total_time = syscalls[i].duration;
-            summaries[summary_count].count = 1;
-            summary_count++;
-        }
-        debug("----------------------------\n");
-        if (duration > 0.1) {
-            qsort(summaries, summary_count, sizeof(syscall_summary_t), cmp);
-            int min = summary_count > 5 ? 5 : summary_count;
-            for (int i = 0; i < min; i++) {
-                int ratio = summaries[i].total_time / total_time * 100;
-                printf("%s (%d%%)\n", summaries[i].name, ratio);
-                for (int j = 0; j < 80; j++) printf("%c", '\0');
-                fflush(stdout);
-            }
-        }
+        
     }
 
 
