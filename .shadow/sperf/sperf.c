@@ -79,6 +79,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
          * filename：是相对于进程的当前目录
         */
         execve("yes", strace_argv, envp); // 成功传参
+        perror("execve");
     } else { // parent
         close(pipefd[1]); // close write end
         FILE *fp = fdopen(pipefd[0], "r");
