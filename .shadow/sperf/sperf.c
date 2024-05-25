@@ -75,11 +75,16 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         debug("execve\n");
         // int fd = open("/dev/null", O_WRONLY); //这样stdout就不会输出了
         // dup2(fd, STDOUT_FILENO);
+        //TODO：以上de好环境问题再解除注释
         /**
          * filename：是相对于进程的当前目录
         */
-        execve("yes", strace_argv, envp); // 成功传参
-        perror("execve");
+        //TODO: envp传参
+        for (int i = 0; strace_argv[i] != NULL; i++) {
+            debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
+        }
+        execve("/usr/bin/strace", strace_argv, envp); // 成功传参
+        perror("execve"); // 果然传yes会出现问题
     } else { // parent
         close(pipefd[1]); // close write end
         FILE *fp = fdopen(pipefd[0], "r");
