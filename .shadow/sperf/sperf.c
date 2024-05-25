@@ -55,6 +55,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     }
     for (int i = 0; i < strace_argc; i++) {
         debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
+        fflush(stdout);
     }
     /*-------fork and pipe-------*/
     int pipefd[2];
@@ -80,10 +81,10 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
          * filename：是相对于进程的当前目录
         */
         //TODO: envp传参
+        execve("/usr/bin/strace", strace_argv, envp); // 成功传参
         for (int i = 0; strace_argv[i] != NULL; i++) {
             debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
         }
-        execve("/usr/bin/strace", strace_argv, envp); // 成功传参
         debug("execve\n");
         int fdtty = open("/dev/tty", O_WRONLY);
         dup2(fdtty, STDERR_FILENO);
