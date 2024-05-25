@@ -89,7 +89,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
 
         char line[4096];
         while (fgets(line, sizeof(line), fp) != NULL) {
-            debug("1");
+            // debug("1");
             regmatch_t pmatch[4];
             if (regexec(&reg, line, 4, pmatch, 0) == 0) {
                 // 好的，这里正在进行统计
