@@ -123,13 +123,15 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
             summary_count++;
         }
         debug("----------------------------\n");
-        qsort(summaries, summary_count, sizeof(syscall_summary_t), cmp);
-        int min = summary_count > 5 ? 5 : summary_count;
-        for (int i = 0; i < min; i++) {
-            int ratio = summaries[i].total_time / duration * 100;
-            printf("%s (%d%%)\n", summaries[i].name, ratio);
-            for (int j = 0; j < 80; j++) printf("%c", '\0');
-            fflush(stdout);
+        if (duration > 0.1) {
+            qsort(summaries, summary_count, sizeof(syscall_summary_t), cmp);
+            int min = summary_count > 5 ? 5 : summary_count;
+            for (int i = 0; i < min; i++) {
+                int ratio = summaries[i].total_time / total_time * 100;
+                printf("%s (%d%%)\n", summaries[i].name, ratio);
+                for (int j = 0; j < 80; j++) printf("%c", '\0');
+                fflush(stdout);
+            }
         }
     }
 
