@@ -1,5 +1,13 @@
 #include <common.h>
 
+#ifdef TEST
+#include <am.h>
+#include <stdio.h>
+void putch(char ch) {
+    putchar(ch);
+}
+#endif
+
 static void os_init() {
     pmm->init();
 }

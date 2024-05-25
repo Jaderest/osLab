@@ -2,6 +2,14 @@
 
 #define MAX_CPU 8
 
+#ifdef TEST
+#include <am.h>
+void putch(char ch) {
+    putchar(ch);
+}
+#endif
+
+
 //TODO: 自旋锁
 #define UNLOCKED 0
 #define LOCKED 1
@@ -29,12 +37,12 @@ static void *kalloc(size_t size) {
     } else if (size > PAGE_SIZE) { 
 
     } else { // 16 ~ 16KiB
-        size_t align = 16; //?是否可以优化
+        size_t align = 16;
         while (align < size) {
             align *= 2;
         }
         size = align;
-        printf("size: %d\n", size);
+        printf("size: %ld\n", size); //TODO: 我的klib要实现一下%ld
     }
 
     void *ret = NULL;
@@ -58,7 +66,8 @@ static void pmm_init() {
     );
 }
 #else
-#define HEAP_SIZE (128 * 1024 * 1024)
+#include <stdio.h>
+#define HEAP_SIZE (125 * 1024 * 1024)
 static void pmm_init() {
     char *ptr = malloc(HEAP_SIZE);
     heap.start = ptr;

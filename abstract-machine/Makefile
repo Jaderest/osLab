@@ -37,9 +37,7 @@ ISA        = $(word 1,$(ARCH_SPLIT))
 PLATFORM   = $(word 2,$(ARCH_SPLIT))
 
 ### Check if there is something to build
-#### 获取SRCS的类型，如果是undefined，说明没有定义SRCS，就报错
-#### ./am/src/x86/qemu/boot/Makefile:SRCS := start.S main.c
-#### ?where to find SRCS
+#### ?where to find SRCS，SRCS是在待编译项目中定义，比如kernel文件夹中的Makefile中定义了SRCS，AM实际上是一个裸机程序，所以没有SRCS
 ifeq ($(flavor SRCS), undefined)
   $(error Nothing to build)
 endif
@@ -50,7 +48,7 @@ endif
 ## 2. General Compilation Targets
 
 ### Create the destination directory (`build/$ARCH`)
-#### 或许可以手动指定ARCH? 然后这里build的文件夹是否可以删掉重新编译？
+#### 项目中手动指定ARCH
 WORK_DIR  = $(shell pwd)
 DST_DIR   = $(WORK_DIR)/build/$(ARCH)
 $(shell mkdir -p $(DST_DIR))
@@ -70,7 +68,6 @@ LINKAGE   = $(OBJS) \
     $(LIBS) ))
 
 ## 3. General Compilation Flags
-
 ### (Cross) compilers, e.g., mips-linux-gnu-g++
 #### 交叉编译工具链的前缀，用于编译针对x86_64架构的目标程序
 AS        = $(CROSS_COMPILE)gcc
