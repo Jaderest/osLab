@@ -81,6 +81,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
          * filename：是相对于进程的当前目录
         */
         //TODO: envp传参
+        // ./sperf-32 /usr/find . 正常执行了是为什么，牛魔的搞不清了
         execve("/usr/bin/strace", strace_argv, envp); // 成功传参
         for (int i = 0; strace_argv[i] != NULL; i++) {
             debug("strace_argv[%d] = %s\n", i, strace_argv[i]);

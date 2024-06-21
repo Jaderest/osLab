@@ -26,26 +26,14 @@ void unlock(lock_t *lock) {
     panic_on(atomic_xchg(&lock->flag, UNLOCKED) != LOCKED, "unlock failed");
 }
 
-#define PAGE_SIZE (16 * 1024)
-
+lock_t pmm_lock;
+void *start;
 
 static void *kalloc(size_t size) {
-    if (size == 0) {
-        return NULL;
-    } else if (size < 16) { // 最小单元16字节
-        size = 16;
-    } else if (size > PAGE_SIZE) { 
-
-    } else { // 16 ~ 16KiB
-        size_t align = 16;
-        while (align < size) {
-            align *= 2;
-        }
-        size = align;
-        printf("size: %ld\n", size); //TODO: 我的klib要实现一下%ld
-    }
-
-    void *ret = NULL;
+    lock(&pmm_lock);
+    void *ret = start;
+    start += size;
+    unlock(&pmm_lock);
     return ret;
 }
 
@@ -60,6 +48,7 @@ static void pmm_init() {
         (uintptr_t)heap.end
         - (uintptr_t)heap.start
     ); // Area heap = {}; 然后Area里面有两个指针
+    start = heap.start;
     printf(
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
