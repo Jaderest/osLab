@@ -30,9 +30,17 @@ lock_t pmm_lock;
 void *start;
 
 static void *kalloc(size_t size) {
+    int align = 1;
+    while (align < size) {
+        align *= 2;
+    }
+    if (align > 16 * 1024 * 1024) {
+        return NULL;
+    }
+    
     lock(&pmm_lock);
     void *ret = start;
-    start += size;
+    start += align;
     unlock(&pmm_lock);
     return ret;
 }
