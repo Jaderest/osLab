@@ -122,3 +122,9 @@ void co_yield() {
         return;
     }
 }
+
+void traverse() {
+    for (int i = 0; i < co_num; i++) {
+        debug("co[%d]: %s\n", i, costack[i]->name);
+    }
+}
