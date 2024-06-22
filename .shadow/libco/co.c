@@ -1,192 +1,236 @@
 #include "co.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
+#include <stdio.h>
 #include <setjmp.h>
-#include <assert.h>
-#include <time.h>
-
-#define DEBUG
-#ifdef DEBUG
-    #define debug(...) printf(__VA_ARGS__)
-#else
-    #define debug(...)
-#endif
-
-#define STACK_SIZE 64 * 1024
-#define MAX_CO 150
-
-enum co_status {
-    CO_NEW = 1, // 新创建，还未执行过
-    CO_RUNNING, // 已经执行过
-    CO_WAITING, // 等待其他协程
-    CO_DEAD,    // 已经结束，但还未释放资源
-};
+#include <sys/types.h>
+#include <stdint.h>
 
 static inline void stack_switch_call(void *sp, void *entry, uintptr_t arg)
 {
-	asm volatile(
+    asm volatile(
 #if __x86_64__
-		"movq %%rsp,-0x10(%0); leaq -0x20(%0), %%rsp; movq %2, %%rdi ; call *%1; movq -0x10(%0) ,%%rsp;"
-		:
-		: "b"((uintptr_t)sp), "d"(entry), "a"(arg)
-		: "memory"
+        "movq %0, %%rsp; movq %2, %%rdi; jmp *%1"
+        :
+        : "b"((uintptr_t)sp), "d"(entry), "a"(arg)
+        : "memory"
 #else
-		"movl %%esp, -0x8(%0); leal -0xC(%0), %%esp; movl %2, -0xC(%0); call *%1;movl -0x8(%0), %%esp"
-		:
-		: "b"((uintptr_t)sp), "d"(entry), "a"(arg)
-		: "memory"
+        "movl %0, %%esp; movl %2, 4(%0); jmp *%1"
+        :
+        : "b"((uintptr_t)sp), "d"(entry), "a"(arg)
+        : "memory"
 #endif
-	);
+    );
 }
 
-struct co {
-    char *name;
-    void (*func)(void *); // co_start 指定的入口地址和函数
-    void *arg;
-
-    enum co_status status;
-    struct co *waiter;
-    jmp_buf context; // 寄存器现场
-    uint8_t stack[STACK_SIZE]; // 协程的堆栈
+#define STACKSIZE 65536
+enum co_status
+{
+    CO_NEW = 1, // 新创建，还未执行过
+    CO_RUNNING, // 已经执行过
+    CO_WAITING, // 在 co_wait 上等待
+    CO_DEAD,    // 已经结束，但还未释放资源
 };
 
-// 全局指针，指向当前运行的协程
-struct co* current = NULL;
+struct co
+{
+    
+    __uint8_t stack[STACKSIZE]; // 协程的堆栈
+    const char *name;
+    void (*func)(void *); // co_start 指定的入口地址和参数
+    void *arg;
 
-struct co* costack[MAX_CO]; // 存放所有的协程
-int co_num = 0; // 当前协程的数量
+    enum co_status status;      // 协程的状态
+    struct co *waiter;          // 是否有其他协程在等待当前协程
+    jmp_buf jb;                 // 寄存器现场 (setjmp.h)
+    
+};
+struct co *current;
+struct _q
+{
+    struct co *array[128];
+    size_t size;
+};
 
-struct co* choose() {
-    int waiter = 0;
-    int a = rand() % 2;
-    if (a == 0) {
-        for (int i = 0; i < co_num; i++) {
-            if (costack[i]->status == CO_WAITING) {
-                waiter = i;
-                continue;
-            }
-            if (costack[i]->status != CO_DEAD && current != costack[i]) {
-                return costack[i];
-            }
+struct _q q = {.size =0};
+
+
+static struct co * pick(){
+    // pick one routinue to run
+
+    int waiter=0;
+    int a = rand()&1;
+    if(a == 0){
+        for(int i=0;i<q.size;i++){
+        if(q.array[i]->status == CO_WAITING){
+            waiter = i;
+            continue;
         }
-    } else {
-        for (int i = co_num - 1; i >= 0; i--) {
-            if (costack[i]->status == CO_WAITING) {
-                waiter = i;
-                continue;
-            }
-            if (costack[i]->status != CO_DEAD && current != costack[i]) {
-                return costack[i];
-            }
+        if(q.array[i]->status != CO_DEAD && current!=q.array[i]){ // only not dead or waiting
+
+            return q.array[i];
+        }
+        }
+    }else{
+        for(int i=q.size;i-->0;){
+        if(q.array[i]->status == CO_WAITING){
+            waiter = i;
+            continue;
+        }
+        if(q.array[i]->status != CO_DEAD && current!=q.array[i]){ // only not dead or waiting
+
+            return q.array[i];
+        }
         }
     }
-    return costack[waiter];
+    
+    return q.array[waiter];
 }
-void append(struct co* co) {
-    assert(co_num < MAX_CO);
-    costack[co_num++] = co;
+
+
+static void push(struct co *co_r)
+{
+    q.array[q.size++] = co_r;
 }
-void delete(struct co* co) {
-    if (co_num < 1) {
+
+static void delete(struct co *co_r)
+{
+    if (q.size < 1)
+    {
         return;
     }
-    for (int i = 0; i < co_num; i++) {
-        if (costack[i] == co) { // TODO？
-            for (int j = i; j < co_num - 1; j++) {
-                costack[j] = costack[j + 1];
-            }
-            co_num--;
-            return;
+    int i = 0;
+
+    for (; i < q.size; i++)
+    {
+        if (co_r == q.array[i])
+        {
+            break;
         }
     }
+    for (int j = i + 1; j < q.size; j++)
+    {
+        q.array[i] = q.array[j];
+    }
+    q.size--;
 }
 
-void __attribute__((constructor)) co_init() {
-    debug("co_init\n");
-    current = (struct co *)malloc(sizeof(struct co));
-    assert(current != NULL);
-    current->name = "main";
-    current->status = CO_RUNNING;
-    current->func = NULL;
-    current->arg = NULL;
-    append(current);
+
+struct co *co_start(const char *name, void (*func)(void *), void *arg)
+{
+    struct co *newco = malloc(sizeof(struct co));
+    newco->name = name;
+    newco->func = func;
+    newco->arg = arg;
+    newco->status = CO_NEW;
+    newco->waiter = NULL;
+
+    push(newco);
+
+    return newco;
 }
 
-struct co *co_start(const char *name, void (*func)(void *), void *arg) {
-    struct co *co = (struct co *)malloc(sizeof(struct co));
-    assert(co != NULL);
-    co->name = strdup(name);
-    co->func = func;
-    co->arg = arg;
-    co->status = CO_NEW; // 新创建的协程
-    co->waiter = NULL;
-    append(co);
-    return co;
-}
-
-void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
-    while (1) {
-        if (co->status == CO_DEAD) {
+void co_wait(struct co *co)
+{
+    while (1){
+        if (co->status == CO_DEAD)
+        {
             delete(co);
-            free(co->name);
             free(co);
-            int i = 0;
-            for (i = 0; i < co_num; i++) {
-                if (costack[i] == current) { // 即如果有协程在等待当前协程
+            int i=0;
+            for(;i<q.size;i++){ // 如果没人等，那就改状态
+                if(q.array[i]->waiter == current){
                     break;
                 }
             }
-            if (i == co_num) {
-                current->status = CO_RUNNING; // 恢复当前协程的状态
+            if(i==q.size){
+                current->status = CO_RUNNING;
             }
-            break; // 那么回到当前current协程
-        } else {
+            break;
+        }
+        else
+        {
             co->waiter = current;
             current->status = CO_WAITING;
             co_yield();
         }
     }
+    
 }
 
-void co_wrapper(struct co *co) {
-    co->func(co->arg);
-}
-
-// static void co_finish() {
-//     current->status = CO_DEAD;
-//     if (current->waiter != NULL) {
-//         current = current->waiter;
-//         longjmp(current->context, 0);
-//     } else {
-//         struct co *next = choose();
-//         current = next;
-//         if (current->status == CO_NEW) {
-//             next->status = CO_RUNNING;
-//             stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
-//         } else {
-//             longjmp(current->context, 1);
-//         }
-//     }
-// }
-
-void co_yield() {
-    if (current->status == CO_DEAD) {
-        return;
-    }
-    int val = setjmp(current->context);
-    if (val == 0) {
-        struct co *next = choose();
-        current = next;
-        if (current->status == CO_NEW) {
+static void co_finish()
+{
+    current->status = CO_DEAD;
+    if(current->waiter!=NULL){
+        // switch to waiter
+        // struct co*temp = current;s
+        current = current->waiter;
+        longjmp(current->jb, 0);
+    }else{
+        // switch to other
+        // pick one routinue to run
+        struct co * next=pick();
+        
+        // printf("cur:%s next:%s\n", current->name, next->name);
+        current=next;
+        if(next->status == CO_NEW){
+            
+            void *base = (void *)((((uintptr_t)next)-15+STACKSIZE)&~0xf); // 获取对齐的地址
             next->status = CO_RUNNING;
-            stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
-        } else {
-            debug("co_yield: %s\n", current->name);
-            longjmp(current->context, 1);
+
+            
+            void ** retfun= base-sizeof(void *);
+            *retfun = co_finish;
+            // printf("base=%p next=%p next+stacksize=%p\n" , base, next, &next->stack[STACKSIZE]);
+            stack_switch_call(base-sizeof(void *),next->func, (uintptr_t)next->arg); // 数据结构在堆上申请，低地址是结构的第一个参数，而栈是向下增长，所以要用高地址作为栈顶
         }
-    } else {
-        return;
+        else{
+            longjmp(next->jb, 1);
+        }
     }
+}
+
+void co_print(){
+    for(int i=0;i<q.size;i++){
+        printf("name=%s status=%d\n", q.array[i]->name, q.array[i]->status);
+    }
+}
+
+void co_yield()
+{
+    int val = setjmp(current->jb);
+    if (val == 0)
+    {
+        // pick one routinue to run
+        struct co * next=pick();
+        
+        // printf("cur:%s cur->status:%d next:%s next->status:%d\n", current->name, current->status, next->name, next->status );
+        // printf("yield():");
+        // co_print();
+        current=next;
+        if(next->status == CO_NEW){
+            
+            void *base = (void *)((((uintptr_t)next)+STACKSIZE)&~0xf); // 获取对齐的地址
+            next->status = CO_RUNNING;
+
+            
+            void ** retfun= base-sizeof(void *);
+            *retfun = co_finish;
+            // printf("base=%p next=%p next+stacksize=%p\n" , base, next, &next->stack[STACKSIZE]);
+            stack_switch_call(base-sizeof(void *),next->func, (uintptr_t)next->arg); // 数据结构在堆上申请，低地址是结构的第一个参数，而栈是向下增长，所以要用高地址作为栈顶
+        }
+        else{
+            longjmp(next->jb, 1);
+        }
+    }
+    else
+    {
+        ;
+    }
+}
+
+void  __attribute__((constructor)) before();
+void before(){
+    current = co_start("main", NULL, NULL);
+    current->status = CO_RUNNING;
+    current->waiter = NULL;
 }
