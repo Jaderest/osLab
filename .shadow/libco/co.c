@@ -103,13 +103,14 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     while (co->status != CO_DEAD) {
         debug("co_wait\n");
-        co_yield();
+        co_yield(); // 使用co_yield切换到其他协程
     }
     free(co);
 }
 
 void co_yield() {
     int val = setjmp(current->context);
+    debug("co_yield, %d\n", val);
     if (val == 0) {
         int next = rand() % co_num;
         struct co *next_co = costack[next];
