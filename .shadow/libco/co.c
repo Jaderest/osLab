@@ -119,6 +119,7 @@ void co_yield() {
         }
         current = next_co;
         current->status = CO_RUNNING;
+        debug("co_yield, switch to %s\n", current->name);
         stack_switch_call(current->stack + STACK_SIZE, co_wrapper, (uintptr_t)current);
     } else {
         return;
