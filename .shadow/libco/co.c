@@ -175,7 +175,7 @@ void co_yield() {
             next->status = CO_RUNNING;
             stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
         } else {
-            debug("co_yield: %s\n", current->name);
+            //! debug("co_yield: %s\n", current->name);
             longjmp(current->context, 1);
         }
     } else {
