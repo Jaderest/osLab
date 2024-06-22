@@ -20,6 +20,7 @@
 enum co_status {
     CO_NEW = 1, // 新创建，还未执行过
     CO_RUNNING, // 已经执行过
+    CO_WAITING, // 等待其他协程
     CO_DEAD,    // 已经结束，但还未释放资源
 };
 
@@ -46,6 +47,7 @@ struct co {
     void *arg;
 
     enum co_status status;
+    struct co *waiter;
     jmp_buf context; // 寄存器现场
     uint8_t stack[STACK_SIZE]; // 协程的堆栈
 };
@@ -56,13 +58,42 @@ struct co* current = NULL;
 struct co* costack[MAX_CO]; // 存放所有的协程
 int co_num = 0; // 当前协程的数量
 
+struct co* choose() {
+    int waiter = 0;
+    int a = rand() % 2;
+    if (a == 0) {
+        for (int i = 0; i < co_num; i++) {
+            if (costack[i]->status == CO_WAITING) {
+                waiter = i;
+                continue;
+            }
+            if (costack[i]->status != CO_DEAD && current != costack[i]) {
+                return costack[i];
+            }
+        }
+    } else {
+        for (int i = co_num - 1; i >= 0; i--) {
+            if (costack[i]->status == CO_WAITING) {
+                waiter = i;
+                continue;
+            }
+            if (costack[i]->status != CO_DEAD && current != costack[i]) {
+                return costack[i];
+            }
+        }
+    }
+    return costack[waiter];
+}
 void append(struct co* co) {
     assert(co_num < MAX_CO);
     costack[co_num++] = co;
 }
 void delete(struct co* co) {
+    if (co_num < 1) {
+        return;
+    }
     for (int i = 0; i < co_num; i++) {
-        if (costack[i] == co) {
+        if (costack[i] == co) { // TODO？
             for (int j = i; j < co_num - 1; j++) {
                 costack[j] = costack[j + 1];
             }
@@ -83,13 +114,6 @@ void __attribute__((constructor)) co_init() {
     append(current);
 }
 
-void co_wrapper(struct co* co) {
-    debug("co_wrapper, %s\n", co->name);
-    co->func(co->arg);
-    co->status = CO_DEAD;
-    delete(co);
-}
-
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     struct co *co = (struct co *)malloc(sizeof(struct co));
     assert(co != NULL);
@@ -97,38 +121,68 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
     co->func = func;
     co->arg = arg;
     co->status = CO_NEW; // 新创建的协程
+    co->waiter = NULL;
     append(co);
     return co;
 }
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
-    while (co->status != CO_DEAD) {
-        debug("co_wait\n");
-        co_yield(); // 使用co_yield切换到其他协程
+    while (1) {
+        if (co->status == CO_DEAD) {
+            delete(co);
+            free(co->name);
+            free(co);
+            int i = 0;
+            for (i = 0; i < co_num; i++) {
+                if (costack[i] == current) { // 即如果有协程在等待当前协程
+                    break;
+                }
+            }
+            if (i == co_num) {
+                current->status = CO_RUNNING; // 恢复当前协程的状态
+            }
+            break; // 那么回到当前current协程
+        } else {
+            co->waiter = current;
+            current->status = CO_WAITING;
+            co_yield();
+        }
     }
-    free(co);
+}
+
+void co_wrapper(struct co *co) {
+    co->func(co->arg);
+}
+
+static void co_finish() {
+    current->status = CO_DEAD;
+    if (current->waiter != NULL) {
+        current = current->waiter;
+        longjmp(current->context, 0);
+    } else {
+        struct co *next = choose();
+        current = next;
+        if (current->status == CO_NEW) {
+            next->status = CO_RUNNING;
+            stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
+        } else {
+            longjmp(current->context, 1);
+        }
+    }
 }
 
 void co_yield() {
     int val = setjmp(current->context);
-    debug("co_yield, %d\n", val);
     if (val == 0) {
-        int next = rand() % co_num;
-        struct co *next_co = costack[next];
-        if (next_co->status == CO_DEAD) {
-            return;
+        struct co *next = choose();
+        current = next;
+        if (current->status == CO_NEW) {
+            next->status = CO_RUNNING;
+            stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
+        } else {
+            longjmp(current->context, 1);
         }
-        current = next_co;
-        current->status = CO_RUNNING;
-        debug("co_yield, switch to %s\n", current->name);
-        stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
     } else {
         return;
-    }
-}
-
-void traverse() {
-    for (int i = 0; i < co_num; i++) {
-        debug("co[%d]: %s\n", i, costack[i]->name);
     }
 }
