@@ -102,6 +102,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 
 void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     while (co->status != CO_DEAD) {
+        debug("co_wait\n");
         co_yield();
     }
     free(co);

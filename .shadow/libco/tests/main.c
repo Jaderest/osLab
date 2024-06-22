@@ -33,8 +33,8 @@ static void test_1() {
     printf("222\n");
     struct co *thd2 = co_start("thread-2", work, "Y");
     printf("333\n");
-    // traverse();
-
+    
+    // 从main进程切到thd1
     co_wait(thd1);
 
     // traverse();
