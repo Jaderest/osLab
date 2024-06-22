@@ -172,6 +172,9 @@ void co_wrapper(struct co *co) {
 // }
 
 void co_yield() {
+    if (current->status == CO_DEAD) {
+        return;
+    }
     int val = setjmp(current->context);
     if (val == 0) {
         struct co *next = choose();
