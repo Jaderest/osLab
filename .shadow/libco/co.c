@@ -154,22 +154,22 @@ void co_wrapper(struct co *co) {
     co->func(co->arg);
 }
 
-static void co_finish() {
-    current->status = CO_DEAD;
-    if (current->waiter != NULL) {
-        current = current->waiter;
-        longjmp(current->context, 0);
-    } else {
-        struct co *next = choose();
-        current = next;
-        if (current->status == CO_NEW) {
-            next->status = CO_RUNNING;
-            stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
-        } else {
-            longjmp(current->context, 1);
-        }
-    }
-}
+// static void co_finish() {
+//     current->status = CO_DEAD;
+//     if (current->waiter != NULL) {
+//         current = current->waiter;
+//         longjmp(current->context, 0);
+//     } else {
+//         struct co *next = choose();
+//         current = next;
+//         if (current->status == CO_NEW) {
+//             next->status = CO_RUNNING;
+//             stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
+//         } else {
+//             longjmp(current->context, 1);
+//         }
+//     }
+// }
 
 void co_yield() {
     int val = setjmp(current->context);
