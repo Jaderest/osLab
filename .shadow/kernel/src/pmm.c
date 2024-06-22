@@ -40,6 +40,7 @@ static void *kalloc(size_t size) {
     
     lock(&pmm_lock);
     void *ret = start;
+    printf("alloc %d bytes at %p\n", align, ret);
     start += align;
     unlock(&pmm_lock);
     return ret;
