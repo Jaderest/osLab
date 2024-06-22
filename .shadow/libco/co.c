@@ -42,7 +42,6 @@ static inline void stack_switch_call(void *sp, void *entry, uintptr_t arg)
 }
 
 struct co {
-    uint8_t stack[STACK_SIZE]; // 协程的堆栈
     char *name;
     void (*func)(void *); // co_start 指定的入口地址和函数
     void *arg;
@@ -50,6 +49,7 @@ struct co {
     enum co_status status;
     struct co *waiter;
     jmp_buf context; // 寄存器现场
+    uint8_t stack[STACK_SIZE]; // 协程的堆栈
 };
 
 // 全局指针，指向当前运行的协程
@@ -92,16 +92,15 @@ void delete(struct co* co) {
     if (co_num < 1) {
         return;
     }
-    int i = 0;
-    for (i = 0; i < co_num; i++) {
-        if (costack[i] == co) {
-            break;
+    for (int i = 0; i < co_num; i++) {
+        if (costack[i] == co) { // TODO？
+            for (int j = i; j < co_num - 1; j++) {
+                costack[j] = costack[j + 1];
+            }
+            co_num--;
+            return;
         }
     }
-    for (int j = i; j < co_num - 1; j++) {
-        costack[j] = costack[j + 1];
-    }
-    co_num--;
 }
 
 void __attribute__((constructor)) co_init() {
@@ -155,25 +154,22 @@ void co_wrapper(struct co *co) {
     co->func(co->arg);
 }
 
-static void co_finish() {
-    current->status = CO_DEAD;
-    if (current->waiter != NULL) {
-        current = current->waiter;
-        longjmp(current->context, 0);
-    } else {
-        struct co *next = choose();
-        current = next;
-        if (current->status == CO_NEW) {
-            void *base = &current->stack[STACK_SIZE];
-            next->status = CO_RUNNING;
-            void **retfun = base-sizeof(void*);
-            *retfun = co_finish;
-            stack_switch_call(base-sizeof(void *), next->func, (uintptr_t)next->arg);
-        } else {
-            longjmp(current->context, 1);
-        }
-    }
-}
+// static void co_finish() {
+//     current->status = CO_DEAD;
+//     if (current->waiter != NULL) {
+//         current = current->waiter;
+//         longjmp(current->context, 0);
+//     } else {
+//         struct co *next = choose();
+//         current = next;
+//         if (current->status == CO_NEW) {
+//             next->status = CO_RUNNING;
+//             stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
+//         } else {
+//             longjmp(current->context, 1);
+//         }
+//     }
+// }
 
 void co_yield() {
     int val = setjmp(current->context);
@@ -181,11 +177,9 @@ void co_yield() {
         struct co *next = choose();
         current = next;
         if (current->status == CO_NEW) {
-            void *base = (void *)((((uintptr_t)next)+STACK_SIZE)&~0xf);
             next->status = CO_RUNNING;
-            void **retfun = base-sizeof(void*);
-            *retfun = co_finish;
-            stack_switch_call(base-sizeof(void *), next->func, (uintptr_t)next->arg);
+            debug("co_yield: %s\n", current->name);
+            stack_switch_call(&current->stack[STACK_SIZE], co_wrapper, (uintptr_t)current);
         } else {
             longjmp(current->context, 1);
         }
