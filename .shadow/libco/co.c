@@ -60,7 +60,7 @@ int co_num = 0; // 当前协程的数量
 
 struct co* choose() {
     int waiter = 0;
-    int a = rand() % 2;
+    int a = rand()&1;
     if (a == 0) {
         for (int i = 0; i < co_num; i++) {
             if (costack[i]->status == CO_WAITING) {
@@ -92,15 +92,16 @@ void delete(struct co* co) {
     if (co_num < 1) {
         return;
     }
-    for (int i = 0; i < co_num; i++) {
-        if (costack[i] == co) { // TODO？
-            for (int j = i; j < co_num - 1; j++) {
-                costack[j] = costack[j + 1];
-            }
-            co_num--;
-            return;
+    int i = 0;
+    for (i = 0; i < co_num; i++) {
+        if (costack[i] == co) {
+            break;
         }
     }
+    for (int j = i + 1; j < co_num; j++) {
+        costack[i] = costack[j];
+    }
+    co_num--;
 }
 
 void __attribute__((constructor)) co_init() {
