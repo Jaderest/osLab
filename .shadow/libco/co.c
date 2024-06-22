@@ -152,3 +152,4 @@ void co_yield ()
 	{
 		return;
 	}
+}
