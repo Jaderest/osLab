@@ -101,9 +101,33 @@ struct co* co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void co_wait(struct co *co) {
-    
+    while (co->status != CO_DEAD) {
+        co_yield();
+    }
+
 }
 
 void co_yield() {
-
+    struct co *next = NULL;
+    for (int i = 0; i < co_stack.size; i++) {
+        if (co_stack.q[i] == current) {
+            next = co_stack.q[(i + 1) % co_stack.size];
+            break;
+        }
+    }
+    if (next == NULL) {
+        return;
+    }
+    int val = setjmp(current->ctx);
+    if (val == 0) {
+        current = next;
+        if (current->status == CO_NEW) {
+            current->status = CO_RUNNING;
+            stack_switch_call(current->stack + STACK_SIZE, (void *)co_wrapper, (uintptr_t)current);
+        } else {
+            longjmp(current->ctx, 1);
+        }
+    } else {
+        return;
+    }
 }
