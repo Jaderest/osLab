@@ -146,6 +146,8 @@ void co_wait(struct co *co) { // 当前协程需要等待 co 执行完成
     }
 }
 
+void co_wrapper(struct co *co);
+
 static void co_finish() {
     current->status = CO_DEAD;
     if (current->waiter != NULL) {
