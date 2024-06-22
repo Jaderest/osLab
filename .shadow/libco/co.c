@@ -84,6 +84,7 @@ void __attribute__((constructor)) co_init() {
 }
 
 void co_wrapper(struct co* co) {
+    debug("co_wrapper, %s\n", co->name);
     co->func(co->arg);
     co->status = CO_DEAD;
     delete(co);
