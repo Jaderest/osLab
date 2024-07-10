@@ -120,11 +120,12 @@ void matmul_thread_func(int arg) {
     }
 }
 
+struct matmul_args args[4];
+
 // 矩阵乘法前向传播函数
 void matmul_forward(float* out, float* inp, float* weight, float* bias,
                     int B, int T, int C, int OC) {
     int thread_num = 4;
-    struct matmul_args args[thread_num];
     int chunk_size = (B + thread_num - 1) / thread_num;
 
     for (int i = 0; i < thread_num; i++) {
