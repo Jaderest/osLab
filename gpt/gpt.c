@@ -85,6 +85,20 @@ void layernorm_forward(float* out, float* mean, float* rstd,
     }
 }
 
+struct matmul_args {
+    float* out;
+    float* inp;
+    float* weight;
+    float* bias;
+    int B;
+    int T;
+    int C;
+    int OC;
+    int start;
+    int end;
+};
+
+//TODO：反正优化这里就行了
 //matrix multiply
 void matmul_forward(float* out,
                     float* inp, float* weight, float* bias,
