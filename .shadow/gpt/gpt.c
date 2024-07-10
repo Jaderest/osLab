@@ -120,7 +120,7 @@ void matmul_thread_func(int arg) {
     }
 }
 
-struct matmul_args args[4];
+struct matmul_args args[16];
 
 // 矩阵乘法前向传播函数
 void matmul_forward(float* out, float* inp, float* weight, float* bias,
