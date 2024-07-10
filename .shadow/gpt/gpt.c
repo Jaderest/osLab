@@ -85,28 +85,64 @@ void layernorm_forward(float* out, float* mean, float* rstd,
     }
 }
 
+//TODO：反正优化这里就行了
 //matrix multiply
-void matmul_forward(float* out,
-                    float* inp, float* weight, float* bias,
-                    int B, int T, int C, int OC) {
-    // most of the running time is spent here and in matmul_backward
-    // OC is short for "output channels"
-    // inp is (B,T,C), weight is (OC, C), bias is (OC)
-    // out will be (B,T,OC)
-    for (int b = 0; b < B; b++) {
-        for (int t = 0; t < T; t++) {
-            float* out_bt = out + b * T * OC + t * OC;
-            float* inp_bt = inp + b * T * C + t * C;
-            for (int o = 0; o < OC; o++) {
-                float val = (bias != NULL) ? bias[o] : 0.0f;
-                float* wrow = weight + o*C;
-                for (int i = 0; i < C; i++) {
+// 定义一个结构体来传递参数给每个线程
+struct matmul_args {
+    float* out;
+    float* inp;
+    float* weight;
+    float* bias;
+    int B;
+    int T;
+    int C;
+    int OC;
+    int start;
+    int end;
+};
+
+// 矩阵乘法的线程函数
+void matmul_thread_func(int arg) {
+    struct matmul_args *args = (struct matmul_args *)(intptr_t)arg;
+    for (int b = args->start; b < args->end; b++) {
+        for (int t = 0; t < args->T; t++) {
+            float* out_bt = args->out + b * args->T * args->OC + t * args->OC; // out[b,t,:]
+            float* inp_bt = args->inp + b * args->T * args->C + t * args->C; // inp[b,t,:]
+            for (int o = 0; o < args->OC; o++) {
+                float val = (args->bias != NULL) ? args->bias[o] : 0.0f;
+                float* wrow = args->weight + o * args->C;
+                for (int i = 0; i < args->C; i++) {
                     val += inp_bt[i] * wrow[i];
                 }
                 out_bt[o] = val;
             }
         }
     }
+}
+
+// 矩阵乘法前向传播函数
+void matmul_forward(float* out, float* inp, float* weight, float* bias,
+                    int B, int T, int C, int OC) {
+    int thread_num = 4;
+    struct matmul_args args[thread_num];
+    int chunk_size = (B + thread_num - 1) / thread_num;
+
+    for (int i = 0; i < thread_num; i++) {
+        args[i] = (struct matmul_args){
+            .out = out,
+            .inp = inp,
+            .weight = weight,
+            .bias = bias,
+            .B = B,
+            .T = T,
+            .C = C,
+            .OC = OC,
+            .start = i * chunk_size,
+            .end = (i + 1) * chunk_size > B ? B : (i + 1) * chunk_size
+        };
+        create((void (*)(int))(intptr_t)&matmul_thread_func);
+    }
+    join();
 }
 
 // void attension_work(int);
