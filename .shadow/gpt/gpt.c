@@ -109,7 +109,7 @@ void matmul_forward(float* out,
     }
 }
 
-void attension_work(int)
+void attension_work(int);
 
 
 //注意力机制的前向传播
