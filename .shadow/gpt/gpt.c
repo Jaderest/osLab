@@ -86,30 +86,74 @@ void layernorm_forward(float* out, float* mean, float* rstd,
 }
 
 //matrix multiply
-void matmul_forward(float* out,
-                    float* inp, float* weight, float* bias,
-                    int B, int T, int C, int OC) {
-    // most of the running time is spent here and in matmul_backward
-    // OC is short for "output channels"
-    // inp is (B,T,C), weight is (OC, C), bias is (OC)
-    // out will be (B,T,OC)
-    for (int b = 0; b < B; b++) {
-        for (int t = 0; t < T; t++) {
-            float* out_bt = out + b * T * OC + t * OC;
-            float* inp_bt = inp + b * T * C + t * C;
-            for (int o = 0; o < OC; o++) {
-                float val = (bias != NULL) ? bias[o] : 0.0f;
-                float* wrow = weight + o*C;
-                for (int i = 0; i < C; i++) {
-                    val += inp_bt[i] * wrow[i];
-                }
-                out_bt[o] = val;
-            }
+
+typedef struct {
+    float *out;
+    float *inp;
+    float *weight;
+    float *bias;
+    int B, T, C, OC;
+    int start;
+    int end;
+} ThreadData;
+
+void* thread_func(void* arg) {
+    ThreadData *data = (ThreadData*) arg;
+    float *out = data->out;
+    float *inp = data->inp;
+    float *weight = data->weight;
+    float *bias = data->bias;
+    int B = data->B;
+    int T = data->T;
+    int C = data->C;
+    int OC = data->OC;
+
+    for (int idx = data->start; idx < data->end; idx++) {
+        int b = idx / (T * OC);
+        int t = (idx / OC) % T;
+        int o = idx % OC;
+
+        float* out_bt = out + b * T * OC + t * OC;
+        float* inp_bt = inp + b * T * C + t * C;
+        float val = (bias != NULL) ? bias[o] : 0.0f;
+        float* wrow = weight + o * C;
+        for (int i = 0; i < C; i++) {
+            val += inp_bt[i] * wrow[i];
         }
+        out_bt[o] = val;
     }
+
+    pthread_exit(NULL);
 }
 
-// void attension_work(int);
+void matmul_forward(float* out, float* inp, float* weight, float* bias,
+                    int B, int T, int C, int OC) {
+    int num_threads = 4;  // Number of threads to create
+    pthread_t threads[num_threads];
+    ThreadData thread_data[num_threads];
+
+    int total_elements = B * T * OC;
+    int chunk_size = (total_elements + num_threads - 1) / num_threads;
+
+    for (int i = 0; i < num_threads; i++) {
+        thread_data[i].out = out;
+        thread_data[i].inp = inp;
+        thread_data[i].weight = weight;
+        thread_data[i].bias = bias;
+        thread_data[i].B = B;
+        thread_data[i].T = T;
+        thread_data[i].C = C;
+        thread_data[i].OC = OC;
+        thread_data[i].start = i * chunk_size;
+        thread_data[i].end = (thread_data[i].start + chunk_size < total_elements) ? 
+                              (thread_data[i].start + chunk_size) : total_elements;
+        pthread_create(&threads[i], NULL, thread_func, (void*)&thread_data[i]);
+    }
+
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+}
 
 
 //注意力机制的前向传播
