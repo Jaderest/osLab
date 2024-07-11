@@ -39,7 +39,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
         // TODO：准备一下argv
         debug("execve(\"/usr/bin/strace\", argv, envp);\n");
-        //execve("/usr/bin/strace", argv, envp);
+        execve("/usr/bin/strace", argv, envp);
         write(pipefd[1], "hello", 5);
     } else if (pid > 0) {
         //TODO 父进程
