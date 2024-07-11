@@ -86,6 +86,7 @@ void layernorm_forward(float* out, float* mean, float* rstd,
 }
 
 //matrix multiply
+
 void matmul_forward(float* out,
                     float* inp, float* weight, float* bias,
                     int B, int T, int C, int OC) {
@@ -108,8 +109,6 @@ void matmul_forward(float* out,
         }
     }
 }
-
-// void attension_work(int);
 
 
 //注意力机制的前向传播
