@@ -5,8 +5,6 @@
 #include <regex.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/wait.h>
-
 
 #define DEBUG
 #ifdef DEBUG
@@ -91,7 +89,6 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
 
     if (pid == 0) {
         //TODO 子进程
-        debug("Child process\n");
         close(pipefd[0]); // close read end
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
         int fd = open("/dev/null", O_WRONLY);
@@ -117,46 +114,17 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     } else if (pid > 0) {
         //TODO 父进程
         close(pipefd[1]); // close write end
-
-
-        SyscallArray syscalls;
-        init_syscall_array(&syscalls);
-
-        double first_time = 0, last_time = 0;
-        int first_time_set = 0;
         char buffer[4096];
         ssize_t bytes_read;
-        FILE *stream = fdopen(pipefd[0], "r");
-
-        while (fgets(buffer, sizeof(buffer), stream)) {
-            double timestamp;
-            char syscall_name[256];
-            double duration;
-            if (sscanf(buffer, "%lf %255s = %*d <%lf>", &timestamp, syscall_name, &duration) == 3) {
-                if (!first_time_set) {
-                    first_time = timestamp;
-                    first_time_set = 1;
-                }
-                last_time = timestamp;
-                add_syscall(&syscalls, syscall_name, duration);
-
-                if (last_time - first_time > 0.1) {
-                    print_top_syscalls(&syscalls, 5);
-                    free_syscall_array(&syscalls);
-                    init_syscall_array(&syscalls);
-                    first_time_set = 0;
-                }
-            }
+        while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+            buffer[bytes_read] = '\0'; // 确保字符串以 '\0' 结尾
+            debug("%s", buffer);
         }
 
-        fclose(stream);
-        close(pipefd[0]); // 关闭读端
-
-        // 等待子进程结束
-        wait(NULL);
-
-        // 清理内存
-        free_syscall_array(&syscalls);
+        if (bytes_read == -1) {
+            perror("read");
+            return 1;
+        }
     } else {
         perror("fork()");
         return 1;
