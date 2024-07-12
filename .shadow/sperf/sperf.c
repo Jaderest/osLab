@@ -91,6 +91,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
 
     if (pid == 0) {
         //TODO 子进程
+        debug("Child process\n");
         close(pipefd[0]); // close read end
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
         int fd = open("/dev/null", O_WRONLY);
@@ -117,7 +118,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         //TODO 父进程
         close(pipefd[1]); // close write end
 
-        
+
         SyscallArray syscalls;
         init_syscall_array(&syscalls);
 
