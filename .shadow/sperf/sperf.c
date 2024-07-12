@@ -111,6 +111,10 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     } else if (pid > 0) {
         // 父进程
         close(pipefd[1]); // close write end
+        // 数据结构
+        SyscallArray syscall_array;
+        init_syscall_array(&syscall_array);
+        double st = 0.0f; //作为每一个节点统计的开始
         
         //---------------正则表达式----------------
         regex_t regex;
@@ -131,8 +135,16 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 const char *name = buf + matchs[2].rm_so;
                 double syscall_time = atof(buf + matchs[3].rm_so);
 
-                debug("%f  %s  %f\n", start_time, name, syscall_time);
+                add_syscall(&syscall_array, name, syscall_time);
+                if (st == 0.0f) {
+                    st = start_time;
+                } else if (start_time - st > 0.1f) {
+                    print_top_syscalls(&syscall_array, 5);
+                    free_syscall_array(&syscall_array);
+                    st = 0.0f;
+                }
             }
+            // 在这个循环中不断读取输出
         }
         regfree(&regex);
     } else {
