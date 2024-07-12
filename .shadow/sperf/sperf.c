@@ -123,14 +123,15 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         char buf[1024];
         while (fgets(buf, sizeof(buf), fdopen(pipefd[0], "r")) != NULL) {
             if (regexec(&regex, buf, 4, matchs, 0) == 0) {
-                char time_str[32];
-                char syscall_name[256];
-                strncpy(time_str, buf + matchs[1].rm_so, matchs[1].rm_eo - matchs[1].rm_so);
-                time_str[matchs[1].rm_eo - matchs[1].rm_so] = '\0';
-                strncpy(syscall_name, buf + matchs[2].rm_so, matchs[2].rm_eo - matchs[2].rm_so);
-                syscall_name[matchs[2].rm_eo - matchs[2].rm_so] = '\0';
-                double time = atof(time_str);
-                debug("time = %f, syscall_name = %s\n", time, syscall_name);
+                buf[matchs[1].rm_eo] = '\0';
+                buf[matchs[2].rm_eo] = '\0';
+                buf[matchs[3].rm_eo] = '\0';
+
+                double start_time = atof(buf + matchs[1].rm_so);
+                const char *name = buf + matchs[2].rm_so;
+                double syscall_time = atof(buf + matchs[3].rm_so);
+
+                debug("start_time = %f, name = %s, syscall_time = %f\n", start_time, name, syscall_time);
             }
         }
         regfree(&regex);
