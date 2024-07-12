@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <regex.h>
 
-#define DEBUG
+// #define DEBUG
 #ifdef DEBUG
 #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
