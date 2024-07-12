@@ -147,10 +147,10 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                     st = 0.0f;
                 }
             }
-            print_top_syscalls(&syscall_array, 5);
-            free_syscall_array(&syscall_array);
             // 在这个循环中不断读取输出
         }
+        print_top_syscalls(&syscall_array, 5);
+        free_syscall_array(&syscall_array);
         regfree(&regex);
     } else {
         perror("fork()");
