@@ -40,7 +40,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         // TODO：准备一下argv
         debug("execve(\"/usr/bin/strace\", argv, envp);\n");
         execve("/usr/bin/strace", argv, envp);
-        write(pipefd[1], "hello", 5);
+        // 执行了上面的发现write没有输出，说明execve是把当前进程变成了strace，之后的代码不会执行
+        // write(pipefd[1], "hello", 5);
     } else if (pid > 0) {
         //TODO 父进程
         close(pipefd[1]); // close write end
