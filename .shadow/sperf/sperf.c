@@ -67,6 +67,7 @@ void print_top_syscalls(SyscallArray *arr, size_t n, double total) {
     qsort(arr->data, arr->size, sizeof(Syscall), compare_syscall);
     //TODO: 修改一下
     printf("Top %zu system calls:\n", n);
+    printf("Total time: %f\n", total);
     for (size_t i = 0; i < n && i < arr->size; ++i) {
         printf("%s: %f\n", arr->data[i].name, arr->data[i].total_time);
     }
