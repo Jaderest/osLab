@@ -35,9 +35,9 @@ void init_syscall_array(SyscallArray *arr) {
 
 void free_syscall_array(SyscallArray *arr) {
     free(arr->data);
-    arr->data = NULL;
     arr->size = 0;
     arr->capacity = 10;
+    arr->data = malloc(arr->capacity * sizeof(Syscall));
 }
 
 void add_syscall(SyscallArray *arr, const char *name, double time) {
@@ -52,7 +52,6 @@ void add_syscall(SyscallArray *arr, const char *name, double time) {
         arr->data = realloc(arr->data, arr->capacity * sizeof(Syscall));
     }
     assert(arr->size < arr->capacity);
-    debug("arr->size = %zu\n", arr->size);
     assert(arr->data); // 这里data assert失败了
     strcpy(arr->data[arr->size].name, name);
     arr->data[arr->size].total_time = time;
