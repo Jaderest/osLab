@@ -139,7 +139,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 // debug("%f  %s  %f\n", start_time, name, syscall_time);
                 if (st == 0.0f) {
                     st = start_time;
-                } else if (start_time - st > 0.05f) {
+                } else if (start_time - st > 0.1f) {
                     debug("------------------------\n");
                     debug("st = %f\n", st);
                     print_top_syscalls(&syscall_array, 5);
@@ -147,6 +147,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                     st = 0.0f;
                 }
             }
+            print_top_syscalls(&syscall_array, 5);
+            free_syscall_array(&syscall_array);
             // 在这个循环中不断读取输出
         }
         regfree(&regex);
