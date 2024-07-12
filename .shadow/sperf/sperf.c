@@ -5,6 +5,8 @@
 #include <regex.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/wait.h>
+
 
 #define DEBUG
 #ifdef DEBUG
@@ -14,6 +16,60 @@
 #endif
 
 #define MAX_SYSCALL 2048
+
+typedef struct {
+    char name[256];
+    double total_time;
+} Syscall;
+
+typedef struct {
+    Syscall *data;
+    size_t size;
+    size_t capacity;
+} SyscallArray;
+
+void init_syscall_array(SyscallArray *arr) {
+    arr->size = 0;
+    arr->capacity = 10;
+    arr->data = malloc(arr->capacity * sizeof(Syscall));
+}
+
+void free_syscall_array(SyscallArray *arr) {
+    free(arr->data);
+    arr->data = NULL;
+    arr->size = 0;
+    arr->capacity = 0;
+}
+
+void add_syscall(SyscallArray *arr, const char *name, double time) {
+    for (size_t i = 0; i < arr->size; ++i) {
+        if (strcmp(arr->data[i].name, name) == 0) {
+            (arr->data[i]).total_time += time;
+            return;
+        }
+    }
+    if (arr->size >= arr->capacity) {
+        arr->capacity *= 2;
+        arr->data = realloc(arr->data, arr->capacity * sizeof(Syscall));
+    }
+    strcpy(arr->data[arr->size].name, name);
+    arr->data[arr->size].total_time = time;
+    arr->size++;
+}
+
+int compare_syscall(const void *a, const void *b) {
+    double diff = ((Syscall *)b)->total_time - ((Syscall *)a)->total_time;
+    return (diff > 0) - (diff < 0);
+}
+
+void print_top_syscalls(SyscallArray *arr, size_t n) {
+    qsort(arr->data, arr->size, sizeof(Syscall), compare_syscall);
+    //TODO: 修改一下
+    printf("Top %zu system calls:\n", n);
+    for (size_t i = 0; i < n && i < arr->size; ++i) {
+        printf("%s: %f\n", arr->data[i].name, arr->data[i].total_time);
+    }
+}
 
 // 子进程strace，持续通信给父进程输出相应信息，父进程创造数据结构存储系统调用时间，此时两个进程是并行的
 // 父进程一定不能等子进程结束，二者必须要通信，然后父进程需要统计时间进行输出，子进程则负责环境变量的查找
@@ -54,29 +110,52 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         for (int i = 0; i < strace_argc; i++) {
             debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
         }
-        //  = {
-        //     "/usr/bin/strace",
-        //     "-T", "-ttt", //TODO: 底下拷进去那个argv里面的东西
-        //     "yes",
-        //     NULL,
-        // };
         execve("/usr/bin/strace", strace_argv, envp);
         // 执行了上面的发现write没有输出，说明execve是把当前进程变成了strace，之后的代码不会执行
         // write(pipefd[1], "hello", 5);
     } else if (pid > 0) {
         //TODO 父进程
         close(pipefd[1]); // close write end
+
+        
+        SyscallArray syscalls;
+        init_syscall_array(&syscalls);
+
+        double first_time = 0, last_time = 0;
+        int first_time_set = 0;
         char buffer[4096];
         ssize_t bytes_read;
-        while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
-            buffer[bytes_read] = '\0'; // 确保字符串以 '\0' 结尾
-            debug("%s", buffer);
+        FILE *stream = fdopen(pipefd[0], "r");
+
+        while (fgets(buffer, sizeof(buffer), stream)) {
+            double timestamp;
+            char syscall_name[256];
+            double duration;
+            if (sscanf(buffer, "%lf %255s = %*d <%lf>", &timestamp, syscall_name, &duration) == 3) {
+                if (!first_time_set) {
+                    first_time = timestamp;
+                    first_time_set = 1;
+                }
+                last_time = timestamp;
+                add_syscall(&syscalls, syscall_name, duration);
+
+                if (last_time - first_time > 0.1) {
+                    print_top_syscalls(&syscalls, 5);
+                    free_syscall_array(&syscalls);
+                    init_syscall_array(&syscalls);
+                    first_time_set = 0;
+                }
+            }
         }
 
-        if (bytes_read == -1) {
-            perror("read");
-            return 1;
-        }
+        fclose(stream);
+        close(pipefd[0]); // 关闭读端
+
+        // 等待子进程结束
+        wait(NULL);
+
+        // 清理内存
+        free_syscall_array(&syscalls);
     } else {
         perror("fork()");
         return 1;
