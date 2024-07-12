@@ -37,7 +37,7 @@ void free_syscall_array(SyscallArray *arr) {
     free(arr->data);
     arr->data = NULL;
     arr->size = 0;
-    arr->capacity = 0;
+    arr->capacity = 10;
 }
 
 void add_syscall(SyscallArray *arr, const char *name, double time) {
