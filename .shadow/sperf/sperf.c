@@ -38,8 +38,15 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         close(pipefd[0]); // close read end
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
         // TODO：准备一下argv
+
         debug("execve(\"/usr/bin/strace\", argv, envp);\n");
-        execve("/usr/bin/strace", argv, envp);
+        char *strace_argv[] = {
+            "/usr/bin/strace",
+            "-T", "-ttt", //TODO: 底下拷进去那个argv里面的东西
+            "yes",
+            NULL,
+        };
+        execve("/usr/bin/strace", strace_argv, envp);
         // 执行了上面的发现write没有输出，说明execve是把当前进程变成了strace，之后的代码不会执行
         // write(pipefd[1], "hello", 5);
     } else if (pid > 0) {
