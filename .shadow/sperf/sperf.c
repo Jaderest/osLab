@@ -159,7 +159,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                     st = 0.0f;
                 }
             }
-            printf("buf = %s\n", buf);
+            printf("%s", buf);
             // 在这个循环中不断读取输出
         }
         print_top_syscalls(&syscall_array, 5, total);
