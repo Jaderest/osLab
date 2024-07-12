@@ -66,10 +66,15 @@ int compare_syscall(const void *a, const void *b) {
 void print_top_syscalls(SyscallArray *arr, size_t n, double total) {
     qsort(arr->data, arr->size, sizeof(Syscall), compare_syscall);
     //TODO: 修改一下
-    printf("Top %zu system calls:\n", n);
-    printf("Total time: %f\n", total);
+    // printf("Top %zu system calls:\n", n);
+    // printf("Total time: %f\n", total);
+    printf("------------------------\n");
     for (size_t i = 0; i < n && i < arr->size; ++i) {
-        printf("%s: %f\n", arr->data[i].name, arr->data[i].total_time);
+        int rate = (int)(arr->data[i].total_time / total * 100);
+        printf("%s (%d%%)\n", arr->data[i].name, rate);
+        for(int j = 0; j < 80; j++) {
+            printf("%c", '\0');
+        }
     }
 }
 
@@ -150,7 +155,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                     debug("st = %f\n", st);
                     print_top_syscalls(&syscall_array, 5, total);
                     debug("before free_syscall_array\n");
-                    free_syscall_array(&syscall_array);
+                    free_syscall_array(&syscall_array); //TODO 或许这个要重构，可能是总体的时间，所以不需要free，total也不需要清零，先交一发oj试试
                     debug("after free_syscall_array\n");
                     st = 0.0f;
                     total = 0.0f;
