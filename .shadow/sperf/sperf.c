@@ -131,7 +131,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 const char *name = buf + matchs[2].rm_so;
                 double syscall_time = atof(buf + matchs[3].rm_so);
 
-                debug("start_time = %f, name = %s, syscall_time = %f\n", start_time, name, syscall_time);
+                debug("%f  %s  %f\n", start_time, name, syscall_time);
             }
         }
         regfree(&regex);
