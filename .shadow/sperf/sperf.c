@@ -138,6 +138,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 add_syscall(&syscall_array, name, syscall_time);
                 // debug("%f  %s  %f\n", start_time, name, syscall_time);
                 if (st == 0.0f) {
+                    debug("ssssssst = %f\n", st);
                     st = start_time;
                 } else if (start_time - st > 0.1f) {
                     debug("------------------------\n");
