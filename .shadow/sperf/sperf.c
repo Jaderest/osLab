@@ -40,12 +40,24 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         // TODO：准备一下argv
 
         debug("execve(\"/usr/bin/strace\", argv, envp);\n");
-        char *strace_argv[] = {
-            "/usr/bin/strace",
-            "-T", "-ttt", //TODO: 底下拷进去那个argv里面的东西
-            "yes",
-            NULL,
-        };
+        int strace_argc = 3 + (argc - 1) + 1;
+        char *strace_argv[strace_argc];
+        strace_argv[0] = "/usr/bin/strace";
+        strace_argv[1] = "-T";
+        strace_argv[2] = "-ttt";
+        for (int i = 1; i < argc; i++) {
+            strace_argv[i + 2] = argv[i];
+        }
+        strace_argv[strace_argc - 1] = NULL;
+        for (int i = 0; i < strace_argc; i++) {
+            debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
+        }
+        //  = {
+        //     "/usr/bin/strace",
+        //     "-T", "-ttt", //TODO: 底下拷进去那个argv里面的东西
+        //     "yes",
+        //     NULL,
+        // };
         execve("/usr/bin/strace", strace_argv, envp);
         // 执行了上面的发现write没有输出，说明execve是把当前进程变成了strace，之后的代码不会执行
         // write(pipefd[1], "hello", 5);
@@ -53,13 +65,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         //TODO 父进程
         close(pipefd[1]); // close write end
         char buf[4096];
-        int len = read(pipefd[0], buf, sizeof(buf));
-        if (len == -1) {
-            perror("read()");
-            return 1;
-        }
-        buf[len] = '\0';
-        debug("buf = %s\n", buf);
+        
     } else {
         perror("fork()");
         return 1;
