@@ -63,7 +63,7 @@ int compare_syscall(const void *a, const void *b) {
     return (diff > 0) - (diff < 0);
 }
 
-void print_top_syscalls(SyscallArray *arr, size_t n) {
+void print_top_syscalls(SyscallArray *arr, size_t n, double total) {
     qsort(arr->data, arr->size, sizeof(Syscall), compare_syscall);
     //TODO: 修改一下
     printf("Top %zu system calls:\n", n);
@@ -117,6 +117,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         SyscallArray syscall_array;
         init_syscall_array(&syscall_array);
         double st = 0.0f; //作为每一个节点统计的开始
+        double total = 0.0f; //总时间
         
         //---------------正则表达式----------------
         regex_t regex;
@@ -138,6 +139,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 double syscall_time = atof(buf + matchs[3].rm_so);
 
                 add_syscall(&syscall_array, name, syscall_time);
+                total += syscall_time;
                 // debug("%f  %s  %f\n", start_time, name, syscall_time);
                 if (st == 0.0f) {
                     debug("ssssssst = %f\n", st);
@@ -145,16 +147,17 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 } else if (start_time - st > 0.1f) {
                     debug("------------------------\n");
                     debug("st = %f\n", st);
-                    print_top_syscalls(&syscall_array, 5);
+                    print_top_syscalls(&syscall_array, 5, total);
                     debug("before free_syscall_array\n");
                     free_syscall_array(&syscall_array);
                     debug("after free_syscall_array\n");
                     st = 0.0f;
+                    total = 0.0f;
                 }
             }
             // 在这个循环中不断读取输出
         }
-        print_top_syscalls(&syscall_array, 5);
+        print_top_syscalls(&syscall_array, 5, total);
         free_syscall_array(&syscall_array);
         regfree(&regex);
     } else {
