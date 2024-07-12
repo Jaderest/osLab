@@ -155,10 +155,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                     debug("st = %f\n", st);
                     print_top_syscalls(&syscall_array, 5, total);
                     debug("before free_syscall_array\n");
-                    free_syscall_array(&syscall_array); //TODO 或许这个要重构，可能是总体的时间，所以不需要free，total也不需要清零，先交一发oj试试
                     debug("after free_syscall_array\n");
                     st = 0.0f;
-                    total = 0.0f;
                 }
             }
             // 在这个循环中不断读取输出
