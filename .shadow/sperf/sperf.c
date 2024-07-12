@@ -38,7 +38,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         close(pipefd[0]); // close read end
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
         int fd = open("/dev/null", O_WRONLY);
-        dup2(fd, STDOUT_FILENO); // redirect stdout to /dev/null
+        dup2(fd, STDOUT_FILENO); // 不输出子进程的其他东西
         // TODO：准备一下argv
 
         debug("execve(\"/usr/bin/strace\", argv, envp);\n");
