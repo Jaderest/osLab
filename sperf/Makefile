@@ -4,11 +4,14 @@ all: $(NAME)-64 $(NAME)-32
 
 include ../Makefile
 
-fast: $(NAME)-64
+fast: $(NAME)-64 git
 	./$(NAME)-64 find .
 
-ez: $(NAME)-32
+ez: $(NAME)-32 git
 	./$(NAME)-32 true
 
-hd1: $(NAME)-64
+hd1: $(NAME)-64 git
 	./$(NAME)-64 find /
+
+hd2: $(NAME)-64 git
+	./$(NAME)-64 yes
