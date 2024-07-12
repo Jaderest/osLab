@@ -5,6 +5,7 @@
 #include <regex.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <regex.h>
 
 #define DEBUG
 #ifdef DEBUG
@@ -88,14 +89,12 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     pid_t pid = fork();
 
     if (pid == 0) {
-        //TODO 子进程
+        //子进程
         close(pipefd[0]); // close read end
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
         int fd = open("/dev/null", O_WRONLY);
         dup2(fd, STDOUT_FILENO); // 不输出子进程的其他东西
-        // TODO：准备一下argv
 
-        debug("execve(\"/usr/bin/strace\", argv, envp);\n");
         int strace_argc = 3 + (argc - 1) + 1;
         char *strace_argv[strace_argc];
         strace_argv[0] = "/usr/bin/strace";
@@ -109,24 +108,32 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
             debug("strace_argv[%d] = %s\n", i, strace_argv[i]);
         }
         execve("/usr/bin/strace", strace_argv, envp);
-        // 执行了上面的发现write没有输出，说明execve是把当前进程变成了strace，之后的代码不会执行
-        // write(pipefd[1], "hello", 5);
     } else if (pid > 0) {
-        //TODO 父进程
+        // 父进程
         close(pipefd[1]); // close write end
-        char buffer[4096];
-        ssize_t bytes_read;
-        while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
-            buffer[bytes_read] = '\0'; // 确保字符串以 '\0' 结尾
-            debug("%s", buffer);
-        }
-
-        if (bytes_read == -1) {
-            perror("read");
+        
+        //---------------正则表达式----------------
+        regex_t regex;
+        regmatch_t matchs[4];
+        const char *pattern = "^([0-9]+\\.[0-9]+) ([a-zA-Z0-9_]+)\\(.*<([0-9]+\\.[0-9]+)>";
+        if (regcomp(&regex, pattern, REG_EXTENDED) != 0) {
+            perror("regcomp()");
             return 1;
         }
-
-        
+        char buf[1024];
+        while (fgets(buf, sizeof(buf), fdopen(pipefd[0], "r")) != NULL) {
+            if (regexec(&regex, buf, 4, matchs, 0) == 0) {
+                char time_str[32];
+                char syscall_name[256];
+                strncpy(time_str, buf + matchs[1].rm_so, matchs[1].rm_eo - matchs[1].rm_so);
+                time_str[matchs[1].rm_eo - matchs[1].rm_so] = '\0';
+                strncpy(syscall_name, buf + matchs[2].rm_so, matchs[2].rm_eo - matchs[2].rm_so);
+                syscall_name[matchs[2].rm_eo - matchs[2].rm_so] = '\0';
+                double time = atof(time_str);
+                debug("time = %f, syscall_name = %s\n", time, syscall_name);
+            }
+        }
+        regfree(&regex);
     } else {
         perror("fork()");
         return 1;
