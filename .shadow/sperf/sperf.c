@@ -143,7 +143,9 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                     debug("------------------------\n");
                     debug("st = %f\n", st);
                     print_top_syscalls(&syscall_array, 5);
+                    debug("before free_syscall_array\n");
                     free_syscall_array(&syscall_array);
+                    debug("after free_syscall_array\n");
                     st = 0.0f;
                 }
             }
