@@ -51,6 +51,8 @@ void add_syscall(SyscallArray *arr, const char *name, double time) {
         arr->capacity *= 2;
         arr->data = realloc(arr->data, arr->capacity * sizeof(Syscall));
     }
+    assert(arr->size < arr->capacity);
+    assert(arr->data);
     strcpy(arr->data[arr->size].name, name);
     arr->data[arr->size].total_time = time;
     arr->size++;
