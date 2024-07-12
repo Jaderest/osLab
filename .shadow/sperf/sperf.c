@@ -114,17 +114,17 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
     } else if (pid > 0) {
         //TODO 父进程
         close(pipefd[1]); // close write end
-        // char buffer[4096];
-        // ssize_t bytes_read;
-        // while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
-        //     buffer[bytes_read] = '\0'; // 确保字符串以 '\0' 结尾
-        //     debug("%s", buffer);
-        // }
+        char buffer[4096];
+        ssize_t bytes_read;
+        while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+            buffer[bytes_read] = '\0'; // 确保字符串以 '\0' 结尾
+            debug("%s", buffer);
+        }
 
-        // if (bytes_read == -1) {
-        //     perror("read");
-        //     return 1;
-        // }
+        if (bytes_read == -1) {
+            perror("read");
+            return 1;
+        }
 
         
     } else {
