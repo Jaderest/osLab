@@ -140,6 +140,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                 if (st == 0.0f) {
                     st = start_time;
                 } else if (start_time - st > 0.05f) {
+                    debug("------------------------\n");
+                    debug("st = %f\n", st);
                     print_top_syscalls(&syscall_array, 5);
                     free_syscall_array(&syscall_array);
                     st = 0.0f;
