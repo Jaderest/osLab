@@ -137,7 +137,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         }
         char buf[1024];
         while (fgets(buf, sizeof(buf), fdopen(pipefd[0], "r")) != NULL) {
-            printf("%s", buf); // 观察这里输出的buf，会出现大量开始时间戳，但是没有其他东西，我们要解决的便是这个问题
+            printf("%s", buf); // 奇怪啊
             if (regexec(&regex, buf, 4, matchs, 0) == 0) {
                 buf[matchs[1].rm_eo] = '\0';
                 buf[matchs[2].rm_eo] = '\0';
