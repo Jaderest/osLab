@@ -75,6 +75,7 @@ void print_top_syscalls(SyscallArray *arr, size_t n, double total) {
         for(int j = 0; j < 80; j++) {
             printf("%c", '\0');
         }
+        fflush(stdout);
     }
 }
 
@@ -137,7 +138,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         }
         char buf[1024];
         while (fgets(buf, sizeof(buf), fdopen(pipefd[0], "r")) != NULL) {
-            printf("%s", buf); // 奇怪啊
+            // printf("%s", buf); // 奇怪啊
             if (regexec(&regex, buf, 4, matchs, 0) == 0) {
                 buf[matchs[1].rm_eo] = '\0';
                 buf[matchs[2].rm_eo] = '\0';
