@@ -47,8 +47,24 @@ static void *kalloc(size_t size) {
         return NULL;
     } else if (size < 16) { // 最小单元16字节
         size = 16;
-    } else if (size > PAGE_SIZE) { 
+    } else if (size > MAX_SIZE) { 
         return NULL;
+    } else if (size > PAGE_SIZE) { // 16KiB ~ 16MiB
+        size_t align = PAGE_SIZE;
+        while (align < size) {
+            align *= 2;
+        }
+        size = align;
+        debug("size: %d\n", size); //TODO: 我的klib要实现一下%ld
+        int offset = 0;
+        while (offset <= right) {
+            offset += size;
+        }
+        right = offset;
+        void *ret = NULL;
+        ret = heap.end - offset;
+        unlock(&pmm_lock);
+        return ret;
     } else { // 16 ~ 16KiB
         size_t align = 16;
         while (align < size) {
@@ -56,19 +72,18 @@ static void *kalloc(size_t size) {
         }
         size = align;
         debug("size: %d\n", size); //TODO: 我的klib要实现一下%ld
+        int offset = 0;
+        while (offset <= left) {
+            offset += size;
+        }
+        left = offset;
+        void *ret = NULL;
+        ret = heap.start + offset;
+        unlock(&pmm_lock);
+        return ret;
     }
-    int offset = 0;
-    while (offset <= left) {
-        offset += size;
-    }
-    left = offset;
 
-    void *ret = NULL;
-    //TODO: 实现指针偏移
-    ret = heap.start + offset;
-    unlock(&pmm_lock);
-
-    return ret;
+    return NULL;
 }
 
 static void kfree(void *ptr) {
