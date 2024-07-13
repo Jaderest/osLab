@@ -75,6 +75,7 @@ void print_top_syscalls(SyscallArray *arr, size_t n, double total) {
         for(int j = 0; j < 80; j++) {
             printf("%c", '\0');
         }
+        fflush(stdout);
     }
 }
 
