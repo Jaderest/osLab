@@ -9,7 +9,8 @@ void alignTest() {
     }
 
     for (int i = 0; i < 119; i ++) {
-        pmm->alloc(16+i);
+        void *p = pmm->alloc(16+i);
+        printf("p: %x\n", p);
     }
 
     while (1) ;

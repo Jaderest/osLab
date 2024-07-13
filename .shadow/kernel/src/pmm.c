@@ -28,6 +28,8 @@ void unlock(lock_t *lock) {
 
 #define PAGE_SIZE (16 * 1024)
 
+//TODO: 创建数据结构
+int end = 0;
 
 static void *kalloc(size_t size) {
     if (size == 0) {
@@ -35,7 +37,7 @@ static void *kalloc(size_t size) {
     } else if (size < 16) { // 最小单元16字节
         size = 16;
     } else if (size > PAGE_SIZE) { 
-
+        return NULL;
     } else { // 16 ~ 16KiB
         size_t align = 16;
         while (align < size) {
@@ -44,8 +46,16 @@ static void *kalloc(size_t size) {
         size = align;
         printf("size: %d\n", size); //TODO: 我的klib要实现一下%ld
     }
+    int offset = 0;
+    while (offset <= end) {
+        offset += size;
+    }
+    end = offset;
 
     void *ret = NULL;
+    //TODO: 实现指针偏移
+    ret = heap.start + offset;
+
     return ret;
 }
 
