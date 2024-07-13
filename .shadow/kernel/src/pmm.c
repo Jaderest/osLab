@@ -9,29 +9,40 @@ void putch(char ch) {
 }
 #endif
 
+#define DEBUG
+#ifdef DEBUG
+    #define debug(...) printf(__VA_ARGS__)
+#else
+    #define debug(...)
+#endif
+
 
 //TODO: 自旋锁
 #define UNLOCKED 0
 #define LOCKED 1
-typedef struct lock_t {
-    int flag;
-} lock_t;
-void lock_init(lock_t *lock) {
-    atomic_xchg(&lock->flag, LOCKED);
+// typedef struct lock_t {
+//     int flag;
+// } lock_t;
+// void lock_init(int *lock) {
+//     atomic_xchg(lock, LOCKED);
+// }
+void lock(int *lock) {
+    while(atomic_xchg(lock, LOCKED) == LOCKED) {/*spin*/};
 }
-void lock(lock_t *lock) {
-    while(atomic_xchg(&lock->flag, LOCKED) == LOCKED) {/*spin*/};
-}
-void unlock(lock_t *lock) {
-    panic_on(atomic_xchg(&lock->flag, UNLOCKED) != LOCKED, "unlock failed");
+void unlock(int *lock) {
+    panic_on(atomic_xchg(lock, UNLOCKED) != LOCKED, "unlock failed");
 }
 
 #define PAGE_SIZE (16 * 1024)
+#define MAX_SIZE (16 * 1024 * 1024)
 
 //TODO: 创建数据结构
-int end = 0;
+int left = 0;
+int right = 0;
+int pmm_lock = UNLOCKED;
 
 static void *kalloc(size_t size) {
+    lock(&pmm_lock);
     if (size == 0) {
         return NULL;
     } else if (size < 16) { // 最小单元16字节
@@ -44,17 +55,18 @@ static void *kalloc(size_t size) {
             align *= 2;
         }
         size = align;
-        printf("size: %d\n", size); //TODO: 我的klib要实现一下%ld
+        debug("size: %d\n", size); //TODO: 我的klib要实现一下%ld
     }
     int offset = 0;
-    while (offset <= end) {
+    while (offset <= left) {
         offset += size;
     }
-    end = offset;
+    left = offset;
 
     void *ret = NULL;
     //TODO: 实现指针偏移
     ret = heap.start + offset;
+    unlock(&pmm_lock);
 
     return ret;
 }
