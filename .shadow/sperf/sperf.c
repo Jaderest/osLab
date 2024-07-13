@@ -100,6 +100,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         //子进程
         close(pipefd[0]); // close read end
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
+        //strace -T -ttt ../pstree/pstree-64 -V
+        //记住这个例子，它会有标准错误输出，所以一股脑重定向过去会导致pstree的输出也会过去，从而导致读取错误，find /的结果也会过去
         int fd = open("/dev/null", O_WRONLY);
         dup2(fd, STDOUT_FILENO); // 不输出子进程的其他东西
 
