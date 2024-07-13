@@ -100,6 +100,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         //子进程
         close(pipefd[0]); // close read end
         dup2(pipefd[1], STDERR_FILENO); // redirect stderr to pipe，即将strace的输出重定向过去
+        //strace -T -ttt ../pstree/pstree-64 -V
+        //记住这个例子，它会有标准错误输出，所以一股脑重定向过去会导致pstree的输出也会过去，从而导致读取错误，find /的结果也会过去
         int fd = open("/dev/null", O_WRONLY);
         dup2(fd, STDOUT_FILENO); // 不输出子进程的其他东西
 
@@ -135,6 +137,7 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
         }
         char buf[1024];
         while (fgets(buf, sizeof(buf), fdopen(pipefd[0], "r")) != NULL) {
+            printf("%s", buf); // 奇怪啊
             if (regexec(&regex, buf, 4, matchs, 0) == 0) {
                 buf[matchs[1].rm_eo] = '\0';
                 buf[matchs[2].rm_eo] = '\0';
@@ -155,10 +158,8 @@ int main(int argc, char *argv[], char *envp[]) { // 参数存在argv中
                     debug("st = %f\n", st);
                     print_top_syscalls(&syscall_array, 5, total);
                     debug("before free_syscall_array\n");
-                    free_syscall_array(&syscall_array); //TODO 或许这个要重构，可能是总体的时间，所以不需要free，total也不需要清零，先交一发oj试试
                     debug("after free_syscall_array\n");
                     st = 0.0f;
-                    total = 0.0f;
                 }
             }
             // 在这个循环中不断读取输出
