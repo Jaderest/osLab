@@ -18,7 +18,7 @@ void alignTest() {
 
 int main() {
     os->init();
-    mpe_init(os->run);
-    // mpe_init(alignTest);
+    // mpe_init(os->run);
+    mpe_init(alignTest);
     return 1;
 }
