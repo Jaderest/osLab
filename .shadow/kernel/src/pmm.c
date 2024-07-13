@@ -42,7 +42,7 @@ static void *kalloc(size_t size) {
             align *= 2;
         }
         size = align;
-        printf("size: %ld\n", size); //TODO: 我的klib要实现一下%ld
+        printf("size: %d\n", size); //TODO: 我的klib要实现一下%ld
     }
 
     void *ret = NULL;
