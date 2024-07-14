@@ -1,7 +1,7 @@
 #include <common.h>
 #include "pmm.h"
 
-//TODO: 虚拟机不断重启!
+//TODO: 虚拟机不断重启！导致不断重复调用os->init()，然后调用pmm_init()，然后调用buddy_pool_init()，然后调用split2buddies()，输出pmm->init()里的信息
 
 // static void *pmm_end = NULL;
 // static *pmm_start = NULL;
