@@ -1,6 +1,8 @@
 #include <common.h>
 #include "pmm.h"
 
+//TODO: 虚拟机不断重启!
+
 // static void *pmm_end = NULL;
 // static *pmm_start = NULL;
 
@@ -180,6 +182,7 @@ static void pmm_init() {
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
     );
+    debug("test\n");
     buddy_pool_init(&g_buddy_pool, heap.start, heap.end);
 }
 
