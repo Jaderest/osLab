@@ -1,12 +1,9 @@
 #include <common.h>
-#include "list.h"
 #include "pmm.h"
-#include "thread.h"
 
 static void *kalloc(size_t size) {
     
     void *ret = NULL;
-    
 
     return ret;
 }
