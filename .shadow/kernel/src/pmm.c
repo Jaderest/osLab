@@ -1,4 +1,5 @@
 #include <common.h>
+#include "list.h"
 
 #define DEBUG
 #ifdef DEBUG
