@@ -33,7 +33,7 @@ void unlock(int *lock) {
     panic_on(atomic_xchg(lock, UNLOCKED) != LOCKED, "unlock failed");
 }
 
-#define PAGE_SIZE (16 * 1024)
+#define PAGE_SIZE (4 * 1024)
 #define MAX_SIZE (16 * 1024 * 1024)
 
 //TODO: 创建数据结构
@@ -72,11 +72,13 @@ static void *kalloc(size_t size) {
             offset += size;
         }
         left = offset;
+        debug("left: %d\n", left);
     } else {
         while (offset <= right) {
             offset += size;
         }
         right = offset;
+        debug("right: %d\n", right);
     }
 
     void *ret = NULL;
