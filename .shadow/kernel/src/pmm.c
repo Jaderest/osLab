@@ -137,6 +137,7 @@ void buddy_free(buddy_pool_t *pool, void *addr) {
     lock(&global_lock);
     debug("buddy_free: %p\n", addr);
     buddy_block_t *block = addr2block(pool, addr);
+    debug("block: %p\n", block);
     buddy_system_merge(pool, block);
     unlock(&global_lock);
 }
