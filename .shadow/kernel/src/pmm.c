@@ -74,7 +74,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) {
         void *addr = block2addr(pool, block); // block -> addr
         buddy_free(pool, addr); // 要将所有的page都放到free list中
     }
-    debug_pool(pool);
+    // debug_pool(pool);
 }
 
 // split the block until the order is equal to target_order
