@@ -43,12 +43,21 @@ int pmm_lock = UNLOCKED;
 
 static void *kalloc(size_t size) {
     lock(&pmm_lock);
+    int flag = 0; // 表示默认小内存
     if (size == 0) {
         return NULL;
     } else if (size < 16) { // 最小单元16字节
         size = 16;
     } else if (size > MAX_SIZE) { 
         return NULL;
+    } else if (size > PAGE_SIZE) {
+        flag = 1;
+        size_t align = PAGE_SIZE;
+        while (align < size) {
+            align *= 2;
+        }
+        size = align;
+        debug("size: %d\n", size);
     } else { // 16 ~ 16KiB
         size_t align = 16;
         while (align < size) {
@@ -58,14 +67,25 @@ static void *kalloc(size_t size) {
         debug("size: %d\n", size); //TODO: 我的klib要实现一下%ld
     }
     int offset = 0;
-    while (offset <= left) {
-        offset += size;
+    if (flag == 0) {
+        while (offset <= left) {
+            offset += size;
+        }
+        left = offset;
+    } else {
+        while (offset <= right) {
+            offset += size;
+        }
+        right = offset;
     }
-    left = offset;
 
     void *ret = NULL;
     //TODO: 实现指针偏移
-    ret = heap.start + offset;
+    if (flag == 0) {
+        ret = heap.start + offset;
+    } else {
+        ret = heap.end - offset;
+    }
     unlock(&pmm_lock);
 
     return ret;
