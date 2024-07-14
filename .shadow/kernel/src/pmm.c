@@ -126,11 +126,24 @@ buddy_block_t *addr2block(buddy_pool_t *pool, void *addr) {
 
 void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     int order = block->order;
-    while (order < MAX_ORDER) {
-        // buddy_block_t *buddy = get_buddy_chunk(pool, block);
-        //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    while (order < MAX_ORDER) { //TODO: 卡死在这了
+        buddy_block_t *buddy = get_buddy_chunk(pool, block);
+        if (buddy == NULL || buddy->free == 0 || buddy->order != order) {
+            break;
+        }
+        list_del((struct list_head *)buddy);
+        pool->free_lists[order].nr_free--;
+        if ((uintptr_t)buddy < (uintptr_t)block) {
+            block = buddy;
+        }
+        order++;
+        block->order = order;
+        block->free = 1;
     }
-    
+    block->order = order;
+    block->free = 1;
+    list_add(&(block->node), &(pool->free_lists[order].free_list));
+    pool->free_lists[order].nr_free++;
 }
 
 void buddy_free(buddy_pool_t *pool, void *addr) {
