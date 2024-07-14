@@ -160,7 +160,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
         break;
       
       default:  
-        panic("Not implemented");
+        // panic("Not implemented");
         if (*fmt == '%') {
           *str++ = '%';
         }
