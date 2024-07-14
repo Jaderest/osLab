@@ -1,5 +1,6 @@
 #include <common.h>
 #include "list.h"
+#include "pmm.h"
 
 #define DEBUG
 #ifdef DEBUG
