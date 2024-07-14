@@ -25,6 +25,9 @@ static void pmm_init() {
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
     );
+    lock_t lock_id = 0;
+    lock(&lock_id);
+    unlock(&lock_id);
 }
 
 MODULE_DEF(pmm) = {
