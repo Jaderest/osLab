@@ -47,7 +47,7 @@ typedef struct buddy_block {
 typedef struct buddy_pool {
 #define MIN_ORDER 0 // 2^0 * 4KiB = 4 KiB
 #define MAX_ORDER 12 // 2^12 * 4KiB = 16 MiB
-    struct free_list free_area[MAX_ORDER + 1]; // 空闲链表（每一个链表对应一种类型的block）
+    struct free_list free_lists[MAX_ORDER + 1]; // 空闲链表（每一个链表对应一种类型的block）
     lock_t pool_lock[MAX_ORDER + 1]; // 保护伙伴系统的锁
     void *pool_meta_data; // 伙伴系统的元数据
     void *pool_start_addr; // 伙伴系统的起始地址
