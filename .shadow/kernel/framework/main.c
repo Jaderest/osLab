@@ -22,12 +22,10 @@ void alignTest2() {
     }
 
     for (int i = 0; i < 10; i ++) {
-        void *p = pmm->alloc(5000);
-        printf("p: %x\n", p);
-    }
-    for (int i = 0; i < 10; i ++) {
-        void *p = pmm->alloc(8200);
-        printf("p: %x\n", p);
+        void *p1 = pmm->alloc(5000);
+        void *p2 = pmm->alloc(8200);
+        printf("p1: %x\n", p1);
+        printf("p2: %x\n", p2);
     }
 
     while (1) ;
