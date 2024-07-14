@@ -25,7 +25,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) {
     // 初始化伙伴系统的元数据
     size_t page_num = (end - start) >> PAGE_SHIFT;
     pool->pool_meta_data = (void *)start;
-    debug("buddy pool init: start = %p, end = %p, page_num = %ld\n", start, end,
+    debug("buddy pool init: start = %p, end = %p, page_num = %d\n", start, end,
         page_num);
 }
 
