@@ -7,6 +7,7 @@
 
 #define MAX_CACHES 10
 #define PAGE_SIZE 4096
+#define ALIGN(_A, _B) (((_A + _B - 1) / _B) * _B)
 #define MIB (1024 * 1024)
 
 // slab allocator
@@ -54,7 +55,7 @@ typedef struct buddy_pool {
 } buddy_pool_t;
 
 
-// 以下是buddy相关的函数
+// buddy相关的函数
 buddy_block_t *split2buddies(buddy_pool_t *pool, buddy_block_t *old, int new_order);
 void *block2addr(buddy_pool_t *pool, buddy_block_t *block);
 buddy_block_t *addr2block(buddy_pool_t *pool, void *addr);
