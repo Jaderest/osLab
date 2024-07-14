@@ -1,6 +1,34 @@
 #include <common.h>
 #include "pmm.h"
 
+// static void *pmm_end = NULL;
+// static *pmm_start = NULL;
+
+// align
+// static size_t align_size(size_t size) {
+//     size_t ret = 16;
+//     while (ret < size) {
+//         ret <<= 1;
+//     }
+//     ret = (ret > 16) ? ret : 16;
+//     return ret;
+// }
+
+// buddy system
+#define PAGE_SHIFT 12
+// static size_t buddy_mem_sz = 0;
+static buddy_pool_t g_buddy_pool = {};
+// static lock_t global_lock = LOCK_INIT();
+
+
+void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) {
+    // 初始化伙伴系统的元数据
+    size_t page_num = (end - start) >> PAGE_SHIFT;
+    pool->pool_meta_data = (void *)start;
+    debug("buddy pool init: start = %p, end = %p, page_num = %ld\n", start, end,
+        page_num);
+}
+
 static void *kalloc(size_t size) {
     
     void *ret = NULL;
@@ -22,9 +50,7 @@ static void pmm_init() {
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
     );
-    lock_t lock_id = 0;
-    lock(&lock_id);
-    unlock(&lock_id);
+    buddy_pool_init(&g_buddy_pool, heap.start, heap.end);
 }
 
 MODULE_DEF(pmm) = {

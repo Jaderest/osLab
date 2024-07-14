@@ -5,6 +5,7 @@
 #include "list.h"
 #include "thread.h"
 
+#define MAX_CACHES 10
 #define PAGE_SIZE 4096
 #define MIB (1024 * 1024)
 
