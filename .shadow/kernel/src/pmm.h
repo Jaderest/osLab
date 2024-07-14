@@ -1,7 +1,7 @@
 #ifndef _PMM_H
 #define _PMM_H
 
-// #include <common.h>
+#include <common.h>
 #include "list.h"
 #include "thread.h"
 

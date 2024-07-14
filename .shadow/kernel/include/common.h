@@ -1,3 +1,7 @@
+#ifndef __COMMON_H__
+#define __COMMON_H__
+
+
 #include <kernel.h>
 #include <klib.h>
 #include <klib-macros.h>
@@ -27,4 +31,6 @@
 #define debug(fmt, ...)
 #define PANIC(fmt, ...)
 #define PANIC_ON(condition, message, ...)
+#endif
+
 #endif
