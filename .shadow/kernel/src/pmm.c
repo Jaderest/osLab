@@ -48,8 +48,6 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) {
     for (int i = 0; i <= MAX_ORDER; i++) {
         init_list_head(&pool->free_lists[i].free_list);
     }
-    debug("meta data of buddy pool: [%p, %p)\n", pool->pool_meta_data,
-        pool->pool_meta_data + page_num * sizeof(buddy_block_t));
     // buddy blocks
 
     // memset()
