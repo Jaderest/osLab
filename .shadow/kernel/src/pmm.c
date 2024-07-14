@@ -1,15 +1,7 @@
 #include <common.h>
 #include "list.h"
 #include "pmm.h"
-
-#define DEBUG
-#ifdef DEBUG
-    #define debug(...) printf(__VA_ARGS__)
-#else
-    #define debug(...)
-#endif
-
-
+#include "thread.h"
 
 static void *kalloc(size_t size) {
     
