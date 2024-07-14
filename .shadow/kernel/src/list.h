@@ -22,4 +22,13 @@ static inline void list_append(struct list_head *node, struct list_head *head) {
   return list_add(node, tail);
 }
 
+static inline void list_del(struct list_head *node) {
+  node->prev->next = node->next;
+  node->next->prev = node->prev;
+}
+
+static inline int list_empty(struct list_head *head) {
+  return (head->prev == head && head->next == head);
+}
+
 #endif
