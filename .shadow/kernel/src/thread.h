@@ -14,11 +14,11 @@ void lock(lock_t *lk) {
       break;
     }
   }
-  debug("Obtain Lock successfully\n");
+  // debug("Obtain Lock successfully\n");
 }
 void unlock(lock_t *lk) {
   atomic_xchg(lk, 0);
-  debug("Restore Lock successfully\n");
+  // debug("Restore Lock successfully\n");
 }
 
 #endif
