@@ -1,6 +1,8 @@
 #ifndef _THREAD_H
 #define _THREAD_H
 
+#include <common.h>
+
 // Spinlock
 typedef int lock_t;
 #define LOCK_INIT() 0

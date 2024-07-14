@@ -6,7 +6,7 @@
 #include <klib.h>
 #include <klib-macros.h>
 
-// #define DEBUG
+#define DEBUG
 #ifdef DEBUG
 
 // 使用可变参数的方式定义debug宏
