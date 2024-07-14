@@ -72,11 +72,13 @@ static void *kalloc(size_t size) {
             offset += size;
         }
         left = offset;
+        debug("left: %d\n", left);
     } else {
         while (offset <= right) {
             offset += size;
         }
         right = offset;
+        debug("right: %d\n", right);
     }
 
     void *ret = NULL;
