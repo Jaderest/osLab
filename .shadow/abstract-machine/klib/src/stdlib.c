@@ -2,7 +2,6 @@
 #include <klib.h>
 #include <klib-macros.h>
 
-//以下行表示接入标准库或者老师实现的klib，不然就用自己实现的
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 static unsigned long int next = 1;
 
