@@ -20,7 +20,7 @@ void unlock(int *lock) {
     panic_on(atomic_xchg(lock, UNLOCKED) != LOCKED, "unlock failed");
 }
 
-#define PAGE_SIZE (4 * 1024)
+#define PAGE_SIZE (8 * 1024)
 #define MAX_SIZE (16 * 1024 * 1024)
 
 //TODO: 创建数据结构
