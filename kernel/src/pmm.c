@@ -1,95 +1,170 @@
 #include <common.h>
+#include "pmm.h"
 
-#define MAX_CPU 8
+//TODO: 虚拟机不断重启！导致不断重复调用os->init()，然后调用pmm_init()，然后调用buddy_pool_init()，然后调用split2buddies()，输出pmm->init()里的信息
 
-#ifdef TEST
-#include <am.h>
-void putch(char ch) {
-    putchar(ch);
-}
-#endif
+// static void *pmm_end = NULL;
+// static *pmm_start = NULL;
 
-#define DEBUG
-#ifdef DEBUG
-    #define debug(...) printf(__VA_ARGS__)
-#else
-    #define debug(...)
-#endif
-
-
-//TODO: 自旋锁
-#define UNLOCKED 0
-#define LOCKED 1
-// typedef struct lock_t {
-//     int flag;
-// } lock_t;
-// void lock_init(int *lock) {
-//     atomic_xchg(lock, LOCKED);
-// }
-void lock(int *lock) {
-    while(atomic_xchg(lock, LOCKED) == LOCKED) {/*spin*/};
-}
-void unlock(int *lock) {
-    panic_on(atomic_xchg(lock, UNLOCKED) != LOCKED, "unlock failed");
+// align
+static size_t align_size(size_t size) {
+    size_t ret = 16;
+    while (ret < size) {
+        ret <<= 1;
+    }
+    ret = (ret > 16) ? ret : 16;
+    return ret;
 }
 
-#define PAGE_SIZE (4 * 1024)
-#define MAX_SIZE (16 * 1024 * 1024)
+// ----------------buddy system（Page以上大内存）----------------
+// PAGE_SHIFT 是页大小的对数
+#define PAGE_SHIFT 12
+// static size_t buddy_mem_sz = 0;
+static buddy_pool_t g_buddy_pool = {};
+static lock_t global_lock = LOCK_INIT();
 
-//TODO: 创建数据结构
-int left = 0;
-int right = 0;
-int pmm_lock = UNLOCKED;
+void debug_pool(buddy_pool_t *pool) {
+    for (int i = 0; i <= MAX_ORDER; i++) {
+        struct list_head *list = &(pool->free_lists[i].free_list);
+        if (list_empty(list)) {
+            continue;
+        }
+        debug("order %d: ", i);
+        buddy_block_t *block = (buddy_block_t *)list->next;
+        while (&block->node != list) {
+            debug("%p :", block);
+            debug("range: [%p, %p), ", block2addr(pool, block),
+                block2addr(pool, block) + (1 << block->order) * PAGE_SIZE);
+            block = (buddy_block_t *)block->node.next;
+        }
+        debug("\n");
+    }
+}
+
+void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) {
+    // free lists
+    size_t page_num = (end - start) >> PAGE_SHIFT;
+    pool->pool_meta_data = (void *)start;
+    debug("buddy pool init: start = %p, end = %p, page_num = %d\n", start, end,
+        page_num);
+    for (int i = 0; i <= MAX_ORDER; i++) {
+        init_list_head(&pool->free_lists[i].free_list);
+    }
+    // buddy blocks
+
+    // memset()
+    start += page_num * sizeof(buddy_block_t); // meta data
+    page_num -= page_num * sizeof(buddy_block_t) >> PAGE_SHIFT;
+    pool->pool_start_addr = (void*)ALIGN((uintptr_t)start, PAGE_SIZE);
+    pool->pool_end_addr = end;
+    page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
+    debug("memory that can be allocated: [%p, %p)\n", pool->pool_start_addr,
+        pool->pool_end_addr);
+
+    // 将整个内存空间分为一个个page，每个page绑定一个buddy_block_t
+    int page_idx;
+    for (page_idx = 0; page_idx < page_num; page_idx++) {
+        buddy_block_t *block = (buddy_block_t *)pool->pool_meta_data + sizeof(buddy_block_t) * page_idx;
+        block->order = 0;
+        block->free = 0;
+    }
+
+    for (page_idx = 0; page_idx < page_num; page_idx++) {
+        buddy_block_t *block = (buddy_block_t *)pool->pool_meta_data + sizeof(buddy_block_t) * page_idx;
+        void *addr = block2addr(pool, block); // block -> addr
+        buddy_free(pool, addr); // 要将所有的page都放到free list中
+    }
+    // debug_pool(pool);
+}
+
+// split the block until the order is equal to target_order
+buddy_block_t *buddy_system_split(buddy_pool_t *pool, buddy_block_t *block, int target_order) {
+    buddy_block_t *ret = NULL;
+    int order = block->order;
+    while (order > 0 && order > target_order) {
+        order--;
+        ret = split2buddies(pool, ret, order);
+    }
+    return ret;
+}
+
+buddy_block_t *get_buddy_chunk(buddy_pool_t *pool, buddy_block_t *block) {
+    uintptr_t addr = (uintptr_t)block2addr(pool, block);
+    uintptr_t buddy_addr = addr ^ (1UL << (block->order + PAGE_SHIFT));
+    if (buddy_addr < (uintptr_t)pool->pool_start_addr || buddy_addr + (1UL << (block->order + PAGE_SHIFT)) >= (uintptr_t)pool->pool_end_addr) {
+        return NULL;
+    }
+    return addr2block(pool, (void *)buddy_addr);
+}
+
+buddy_block_t *split2buddies(buddy_pool_t *pool, buddy_block_t *old, int new_order) {
+    panic_on(old->order <= 0, "split2buddies: order <= 0");
+    uintptr_t left_addr = (uintptr_t)block2addr(pool, old);
+    uintptr_t right_addr = left_addr + (1 << (new_order + PAGE_SHIFT));
+    buddy_block_t *left = addr2block(pool, (void *)left_addr);
+    buddy_block_t *right = addr2block(pool, (void *)right_addr);
+    left->order = new_order;
+    right->order = new_order;
+    left->free = 0;
+    right->free = 1;
+    list_add((struct list_head *)right, &(pool->free_lists[new_order].free_list));
+    pool->free_lists[new_order].nr_free++;
+    return left;
+}
+
+void *block2addr(buddy_pool_t *pool, buddy_block_t *block) {
+    int index = ((void *)block - pool->pool_meta_data) / sizeof(buddy_block_t);
+    void *addr = index * PAGE_SIZE + pool->pool_start_addr;
+    return addr;
+}
+
+buddy_block_t *addr2block(buddy_pool_t *pool, void *addr) {
+    panic_on(((uintptr_t)addr % PAGE_SIZE), "addr is supposed to aligned to page");
+    int index = (uintptr_t)(addr - pool->pool_start_addr) >> PAGE_SHIFT;
+    return (buddy_block_t *)(pool->pool_meta_data + index * sizeof(buddy_block_t));
+}
+
+void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
+    int order = block->order;
+    while (order < MAX_ORDER) { //TODO: 卡死在这了
+        buddy_block_t *buddy = get_buddy_chunk(pool, block);
+        if (buddy == NULL || buddy->free == 0 || buddy->order != order) {
+            break;
+        }
+        list_del((struct list_head *)buddy);
+        pool->free_lists[order].nr_free--;
+        if ((uintptr_t)buddy < (uintptr_t)block) {
+            block = buddy;
+        }
+        order++;
+        block->order = order;
+        block->free = 1;
+    }
+    block->order = order;
+    block->free = 1;
+    list_add(&(block->node), &(pool->free_lists[order].free_list));
+    pool->free_lists[order].nr_free++;
+}
+
+void buddy_free(buddy_pool_t *pool, void *addr) {
+    lock(&global_lock);
+    buddy_block_t *block = addr2block(pool, addr);
+    buddy_system_merge(pool, block);
+    unlock(&global_lock);
+}
 
 static void *kalloc(size_t size) {
-    lock(&pmm_lock);
-    int flag = 0; // 表示默认小内存
-    if (size == 0) {
-        return NULL;
-    } else if (size < 16) { // 最小单元16字节
-        size = 16;
-    } else if (size > MAX_SIZE) { 
-        return NULL;
-    } else if (size > PAGE_SIZE) {
-        flag = 1;
-        size_t align = PAGE_SIZE;
-        while (align < size) {
-            align *= 2;
-        }
-        size = align;
-        debug("size: %d\n", size);
-    } else { // 16 ~ 16KiB
-        size_t align = 16;
-        while (align < size) {
-            align *= 2;
-        }
-        size = align;
-        debug("size: %d\n", size); //TODO: 我的klib要实现一下%ld
-    }
-    int offset = 0;
-    if (flag == 0) {
-        while (offset <= left) {
-            offset += size;
-        }
-        left = offset;
-        debug("left: %d\n", left);
-    } else {
-        while (offset <= right) {
-            offset += size;
-        }
-        right = offset;
-        debug("right: %d\n", right);
-    }
-
     void *ret = NULL;
-    //TODO: 实现指针偏移
-    if (flag == 0) {
-        ret = heap.start + offset;
-    } else {
-        ret = heap.end - offset;
+    size = align_size(size);
+    if (size > (1 << MAX_ORDER) * PAGE_SIZE) {
+        return NULL;
+    } else if (size >= PAGE_SIZE) { // buddy system
+        // ret = buddy_alloc(&g_buddy_pool, size);
+        // panic_on(((uintptr_t)ret >= (uintptr_t)g_buddy_pool.pool_end_addr),
+        //     "buddy_alloc: out of memory");
+    } else { // slab allocator
+        // ret = slab_alloc(size);
     }
-    unlock(&pmm_lock);
-
     return ret;
 }
 
@@ -98,7 +173,6 @@ static void kfree(void *ptr) {
     // You can add more .c files to the repo.
 }
 
-#ifndef TEST
 static void pmm_init() {
     uintptr_t pmsize = (
         (uintptr_t)heap.end
@@ -108,17 +182,9 @@ static void pmm_init() {
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
     );
+    debug("test\n");
+    buddy_pool_init(&g_buddy_pool, heap.start, heap.end);
 }
-#else
-#include <stdio.h>
-#define HEAP_SIZE (125 * 1024 * 1024)
-static void pmm_init() {
-    char *ptr = malloc(HEAP_SIZE);
-    heap.start = ptr;
-    heap.end = ptr + HEAP_SIZE;
-    printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
-}
-#endif
 
 MODULE_DEF(pmm) = {
     .init  = pmm_init,
