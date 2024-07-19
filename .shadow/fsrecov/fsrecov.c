@@ -13,7 +13,7 @@
 
 #define DEBUG
 #ifdef DEBUG
-#define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
+#define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
 #define debug(fmt, ...)
 #endif
