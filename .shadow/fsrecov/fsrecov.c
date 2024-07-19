@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   debug("Volume ID: %u\n", hdr->BS_VolID);
   debug("Volume Label: %s\n", hdr->BS_VolLab);
   debug("File System Type: %s\n", hdr->BS_FilSysType);
-  debug("img size: %u\n", image_size);
+  debug("img size: %zu\n", image_size);
   // size_t cluster_size = CLUSTER_SIZE;
   // scan_clusters(disk_image, image_size, cluster_size);
   // munmap(disk_image, image_size);
