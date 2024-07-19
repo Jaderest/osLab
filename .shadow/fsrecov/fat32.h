@@ -51,6 +51,41 @@ struct fat32dent {
     u32 DIR_FileSize;
 } __attribute__((packed));
 
+struct fat32LongName {
+    u8  LDIR_Ord;
+    u8  LDIR_Name1[10]; // 1-5
+    u8  LDIR_Attr;
+    u8  LDIR_Type; // 0x0F
+    u8  LDIR_Chksum; // Checksum of name in the
+    u8  LDIR_Name2[12]; // 6-11
+    u16 LDIR_FstClusLO;
+    u8  LDIR_Name3[4]; // 12-13
+} __attribute__((packed));
+
+struct BmpHeader {
+    u16 bfType; // "BM"
+    u32 bfSize; // File size
+    u16 bfReserved1;
+    u16 bfReserved2;
+    u32 bfOffBits; // Offset to image data
+} __attribute__((packed));
+
+struct BmpInfoHeader {
+    u32 biSize; // Size of this header, 40
+    u32 biWidth; // Width of image
+    u32 biHeight; // Height of image
+    u16 biPlanes; // Number of color planes, 1
+    u16 biBitCount; // Number of bits per pixel
+    u32 biCompression; // Compression type
+    u32 biSizeImage; // Size of image data
+    u32 biXPelsPerMeter; // Horizontal resolution（分辨率）
+    u32 biYPelsPerMeter; // Vertical resolution
+    u32 biClrUsed; // Number of colors used
+    u32 biClrImportant; // Number of important colors
+} __attribute__((packed));
+
+
+
 #define CLUS_INVALID   0xffffff7
 
 #define ATTR_READ_ONLY 0x01
@@ -59,3 +94,4 @@ struct fat32dent {
 #define ATTR_VOLUME_ID 0x08
 #define ATTR_DIRECTORY 0x10
 #define ATTR_ARCHIVE   0x20
+#define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
