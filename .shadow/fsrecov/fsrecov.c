@@ -10,7 +10,7 @@
 
 #define SECTOR_SIZE 512
 #define CLUSTER_SIZE 4096 // 8 sectors
-#define DIR_SIZE (sizeof(struct fat32dent))
+#define DIR_SIZE (sizeof(fat32dir))
 
 #define DEBUG
 #ifdef DEBUG
@@ -35,25 +35,6 @@ void *map_disk_image(const char *path, size_t *size) {
   return disk_image;
 }
 
-void scan_clusters(const void *disk_image, size_t image_size, size_t cluster_size) {
-  // 其实这里不止这个，还要恢复文件名，所以扫描clusters这里还要分类
-  /**
-   * 目录文件，以此恢复文件名（注意还得将它们文件名转化称ascii）
-   * BMP文件头部
-   * BMP实际数据
-   * 未使用的cluster
-   */
-  size_t cluster_count = image_size / cluster_size;
-
-  for (size_t cluster_num = 0; cluster_num < cluster_count; cluster_count++) {
-    void *cluster_data = (u8 *)disk_image + cluster_num * cluster_size;
-    struct BmpHeader *bmp_hdr = (struct BmpHeader *)cluster_data;
-    if (bmp_hdr->bfType == 0x4d42) { // "BM"
-      // TODO：恢复文件，文件名，然后调用sha1sum
-    }
-  }
-}
-
 int main(int argc, char *argv[]) {
   size_t image_size;
   void *disk_image = map_disk_image(argv[1], &image_size); //映射文件+获取文件大小
@@ -61,29 +42,13 @@ int main(int argc, char *argv[]) {
   assert(hdr->Signature_word == 0xaa55);
   debug("Volume ID: %u\n", hdr->BS_VolID);
   debug("img size: %zu\n", image_size);
-  // size_t cluster_size = CLUSTER_SIZE;
-  // scan_clusters(disk_image, image_size, cluster_size);
-  // munmap(disk_image, image_size);
+  debug("Bytes per sector: %u\n", hdr->BPB_BytsPerSec);
+  debug("Sectors per cluster: %u\n", hdr->BPB_SecPerClus);
+  debug("Reserved sectors: %u\n", hdr->BPB_RsvdSecCnt);
+  debug("Number of FATs: %u\n", hdr->BPB_NumFATs);
+  debug("Root entries: %u\n", hdr->BPB_RootEntCnt);
+  debug("Root cluster: %u\n", hdr->BPB_RootClus);
 
-  void *cluster_addr = (void *)((uintptr_t)hdr + (hdr->BPB_RsvdSecCnt + hdr->BPB_NumFATs * hdr->BPB_TotSec32 + hdr->BPB_HiddSec) * hdr->BPB_BytsPerSec);
-  uintptr_t addr = (uintptr_t)cluster_addr; // cluster_addr是void*类型，不能直接加减
-
-  struct fat32dent *dir;
-  struct fat32LongName *lfn; // 所以最关键的还是对这个目录条目的理解
-  struct BmpHeader *bmp_hdr;
-  struct BmpInfoHeader *bmp_info_hdr;
-  
-  for (; addr < (uintptr_t)disk_image + image_size; addr += DIR_SIZE) {
-    dir = (struct fat32dent *)addr;
-    if (dir->DIR_Name[0] == 0x00) {
-      break;
-    }
-    if (dir->DIR_Name[0] == ATTR_LONG_NAME) {
-      continue;
-    }
-    if (dir->DIR_Attr == 0x0f) {
-      lfn = (struct fat32LongName *)dir;
-    }
-  }
+  // 接下来就是遍历每个cluster，找到目录项，然后把可能的bmp文件恢复出来（加上文件名）
   return 0;
 }

@@ -4,7 +4,7 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-struct fat32hdr {
+struct fat32hdr { //fat32 header
     u8  BS_jmpBoot[3];
     u8  BS_OEMName[8];
     u16 BPB_BytsPerSec;
@@ -49,7 +49,7 @@ struct fat32dent {
     u16 DIR_WrtDate;
     u16 DIR_FstClusLO;
     u32 DIR_FileSize;
-} __attribute__((packed));
+} __attribute__((packed)); // 防止对齐 
 
 struct fat32LongName {
     u8  LDIR_Ord;
@@ -61,6 +61,12 @@ struct fat32LongName {
     u16 LDIR_FstClusLO;
     u8  LDIR_Name3[4]; // 12-13
 } __attribute__((packed));
+
+// typedef union {
+//     struct fat32dent short_entry;
+//     struct fat32LongName long_entry;
+// } fat32dir;
+
 
 struct BmpHeader {
     u16 bfType; // "BM"
@@ -95,3 +101,5 @@ struct BmpInfoHeader {
 #define ATTR_DIRECTORY 0x10
 #define ATTR_ARCHIVE   0x20
 #define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
+#define LAST_LONG_ENTRY 0x40
+#define ATTR_NULL 0x00
