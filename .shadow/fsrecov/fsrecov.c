@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
   debug("Number of FATs: %u\n", hdr->BPB_NumFATs);
   debug("Root entries: %u\n", hdr->BPB_RootEntCnt);
   debug("Root cluster: %u\n", hdr->BPB_RootClus);
+  debug("FAT size: %u\n", hdr->BPB_FATSz32);
 
   // 接下来就是遍历每个cluster，找到目录项，然后把可能的bmp文件恢复出来（加上文件名）
   return 0;
