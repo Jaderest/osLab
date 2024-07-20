@@ -4,7 +4,7 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-struct fat32hdr {
+struct fat32hdr { //fat32 header
     u8  BS_jmpBoot[3];
     u8  BS_OEMName[8];
     u16 BPB_BytsPerSec;
@@ -37,19 +37,66 @@ struct fat32hdr {
 } __attribute__((packed));
 
 struct fat32dent {
-    u8  DIR_Name[11];
-    u8  DIR_Attr;
-    u8  DIR_NTRes;
+    u8  DIR_Name[11]; // 11个ascii字符，看看怎么读（8+3）
+    u8  DIR_Attr;   // ATTR_READ_ONLY,
+                    // ATTR_HIDDEN, 
+                    // ATTR_SYSTEM, 
+                    // ATTR_VOLUME_ID, 
+                    // ATTR_DIRECTORY, 
+                    // ATTR_ARCHIVE,
+                    // ATTR_LONG_NAME
+    u8  DIR_NTRes; // Reserved 0
     u8  DIR_CrtTimeTenth;
     u16 DIR_CrtTime;
     u16 DIR_CrtDate;
-    u16 DIR_LastAccDate;
-    u16 DIR_FstClusHI;
+    u16 DIR_LastAccDate; // Last access date, must be updated on 
+    u16 DIR_FstClusHI; // High 2 bytes of cluster number，和LO一起存储文件或目录的第一个数据簇号
     u16 DIR_WrtTime;
     u16 DIR_WrtDate;
-    u16 DIR_FstClusLO;
-    u32 DIR_FileSize;
+    u16 DIR_FstClusLO; // Low 2 bytes of cluster number
+    u32 DIR_FileSize; // 文件大小, size in bytes of file/directory described by entry
+} __attribute__((packed)); // 防止对齐 
+
+struct fat32LongName {
+    u8  LDIR_Ord;
+    u16  LDIR_Name1[5]; // 1-5 这是unicode编码，所以占用2字节
+    u8  LDIR_Attr;
+    u8  LDIR_Type; // 0x0F
+    u8  LDIR_Chksum; // Checksum of name in the
+    u16  LDIR_Name2[6]; // 6-11
+    u16 LDIR_FstClusLO;
+    u16  LDIR_Name3[2]; // 12-13
 } __attribute__((packed));
+
+typedef union {
+    struct fat32dent short_entry;
+    struct fat32LongName long_entry;
+} fat32dir;
+
+
+struct BmpHeader {
+    u16 bfType; // "BM"
+    u32 bfSize; // File size
+    u16 bfReserved1;
+    u16 bfReserved2;
+    u32 bfOffBits; // Offset to image data
+} __attribute__((packed));
+
+struct BmpInfoHeader {
+    u32 biSize; // Size of this header, 40
+    u32 biWidth; // Width of image
+    u32 biHeight; // Height of image
+    u16 biPlanes; // Number of color planes, 1
+    u16 biBitCount; // Number of bits per pixel
+    u32 biCompression; // Compression type
+    u32 biSizeImage; // Size of image data
+    u32 biXPelsPerMeter; // Horizontal resolution（分辨率）
+    u32 biYPelsPerMeter; // Vertical resolution
+    u32 biClrUsed; // Number of colors used
+    u32 biClrImportant; // Number of important colors
+} __attribute__((packed));
+
+
 
 #define CLUS_INVALID   0xffffff7
 
@@ -59,3 +106,6 @@ struct fat32dent {
 #define ATTR_VOLUME_ID 0x08
 #define ATTR_DIRECTORY 0x10
 #define ATTR_ARCHIVE   0x20
+#define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
+#define LAST_LONG_ENTRY 0x40
+#define ATTR_NULL 0x00
