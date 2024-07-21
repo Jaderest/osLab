@@ -53,7 +53,9 @@ int main(int argc, char *argv[]) {
   int start_time = time(NULL);
   for (int i = 0; i < num_lines; i++) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
-      printf("line %d\n", i);
+      if (line->blank2[0] == 0x20) {
+        printf("BMP file at line: %d\n", i);
+      }
     }
     line++;
   }
