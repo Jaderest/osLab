@@ -44,8 +44,7 @@ static int is_bmp(const struct BmpHeader *hdr, size_t size) {
 static void parse_bmp(const char *name, const u8 *addr, size_t size,
                       const char *dir, size_t clus) {
   // 在dir目录创建文件，然后写入
-  debug("name: %s, addr: %p, size: %zu, dir: %s, clus: %zu\n", name, addr,
-        size, dir, clus);
+  debug("Into parse_bmp\n");
   char filename[512];
   snprintf(filename, sizeof(filename), "%s/%s.bmp", dir, name);
   debug("filename: %s\n", filename);
