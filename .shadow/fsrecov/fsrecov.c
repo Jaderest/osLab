@@ -73,6 +73,7 @@ void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
     FILE *fp = popen(cmd, "r");
     char buf[256] = "123";
     fscanf(fp, "%s", buf);
+    printf("%s %s\n", buf, name);
     pclose(fp);
   }
 }
@@ -150,8 +151,8 @@ int main(int argc, char *argv[]) {
         struct fat32dent *entry = (struct fat32dent *)line;
         u32 cluster = entry->DIR_FstClusLO | (entry->DIR_FstClusHI << 16);
         cluster += 34; // 真懒得抄手册偏移量了
-        debug("name: %s  ", name);
-        debug("Cluster: %d\n", cluster); // cluster少了34？因为是从2开始的
+        // debug("name: %s  ", name);
+        // debug("Cluster: %d\n", cluster); // cluster少了34？因为是从2开始的
         void *cluster_ptr = (u8 *)disk_img + cluster * cluster_size;
         struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
         parse_bmp(hdr, name, tmp_path);
