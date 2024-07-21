@@ -54,7 +54,18 @@ int is_bmpentry(struct line *line, char *name) {
         && long_entry->LDIR_Chksum == checksum && long_entry->LDIR_Type == 0x00) {
       size++;
     }
-    debug("size: %d\n", size);
+    int len = 0;
+    char buf[256];
+    for (int i = 0; i < sizeof(entry->DIR_Name); i++) {
+      if (entry->DIR_Name[i] != ' ') {
+        if (i == 8) {
+          buf[len++] = '.';
+        }
+      }
+      buf[len++] = entry->DIR_Name[i];
+    }
+    buf[len] = '\0';
+    debug("name: %s, size: %d\n", buf, size);
   }
   return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
 }
