@@ -30,6 +30,23 @@ struct line {
 
 void *map_disk_image(const char *path, size_t *size);
 // void scan_clusters(void *disk_img, size_t img_size, size_t cluster_size);
+unsigned char ChkSum (unsigned char *pFcbName) { 
+  short FcbNameLen; 
+  unsigned char Sum; 
+  Sum = 0; 
+  for (FcbNameLen=11; FcbNameLen!=0; FcbNameLen--) { 
+  // NOTE: The operation is an unsigned char rotate right 
+    Sum = ((Sum & 1) ? 0x80 : 0) + (Sum >> 1) + *pFcbName++; 
+  } 
+  return (Sum); 
+}
+int is_bmpentry(struct line *line, char *name) {
+  //TODO：判断是否是bmp文件，即往上继续检测long entry
+  struct fat32dent *entry = (struct fat32dent *)((void *)line - LINE_SIZE);
+  unsigned char checksum = ChkSum(entry->DIR_Name);
+  debug("check sum = %c\n", checksum);
+  return 1;
+}
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -50,17 +67,15 @@ int main(int argc, char *argv[]) {
   struct line *line = (struct line *)disk_img;
   size_t line_size = LINE_SIZE;
   size_t num_lines = img_size / line_size;
-  time_t start_time = time(NULL);
   for (int i = 0; i < num_lines; i++) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
-      if (line->blank2[0] == 0x20) {
-        printf("BMP file at line: %d\n", i);
+      char name[256]; // 如果是bmp文件，那么就是文件名，这里我顺便处理了，然后如果可以的话就if内把bmp恢复出来，然后sha1sum
+      if(is_bmpentry(line, name)) {
+        // printf("%s\n", name);
       }
     }
     line++;
   }
-  time_t end_time = time(NULL);
-  printf("time: %ld\n", end_time - start_time);
 
   return 0;
 }
@@ -80,6 +95,7 @@ void *map_disk_image(const char *path, size_t *size) {
   close(fd);
   return disk_image;
 }
+ 
 
 // 两个选择，创造数据结构存储名字(这里存储)，或者根据目录项恢复文件并且输出sha1sum
 
