@@ -35,6 +35,6 @@
 //   return disk_image;
 // }
 
-int main(int argc, char argv[]) {
+int main(int argc, char *argv[]) {
   return 0;
 }
