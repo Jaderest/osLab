@@ -49,9 +49,9 @@ int main(int argc, char *argv[]) {
   struct line *line = (struct line *)disk_img;
   size_t line_size = LINE_SIZE;
   size_t num_lines = img_size / line_size;
-  for (size_t i = 0; i < num_lines; i++) {
+  for (int i = 0; i < num_lines; i++) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
-      printf("line %u\n", i);
+      printf("line %d\n", i);
     }
     line++;
   }
