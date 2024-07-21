@@ -35,7 +35,8 @@ void *map_disk_image(const char *path, size_t *size) {
   return disk_image;
 }
 
-static int is_dir_entry(const fat32dir *entry) { //正确性一般，少数几个出错的好像
+static int
+is_dir_entry(const fat32dir *entry) { // 正确性一般，少数几个出错的好像
   int entry_size = CLUSTER_SIZE / DIR_SIZE;
   // 未使用过
   if (entry->short_entry.DIR_Name[0] == 0x00) {
@@ -62,7 +63,9 @@ static int is_dir_entry(const fat32dir *entry) { //正确性一般，少数几�
           entry[i].long_entry.LDIR_FstClusLO != 0x0) {
         return 0;
       }
-      if (i + size < entry_size && (entry[size].short_entry.DIR_NTRes != 0x0 || entry[size].short_entry.DIR_Name[0] != 0x0)) {
+      if (i + size < entry_size &&
+          (entry[size].short_entry.DIR_NTRes != 0x0 ||
+           entry[size].short_entry.DIR_Name[0] != 0x0)) {
         return 0;
       }
       i += size + 1;
@@ -80,9 +83,107 @@ static int is_dir_entry(const fat32dir *entry) { //正确性一般，少数几�
   return 1;
 }
 
-//TODO: 从目录项中提取文件名
-//TODO：根据clusterid找到文件内容，然后写入文件
-//TODO：需要验证这个算出来的clusterid是否正确（readfat已经验证过了）
+// TODO: 从目录项中提取文件名
+// TODO：根据clusterid找到文件内容，然后写入文件
+// TODO：需要验证这个算出来的clusterid是否正确（readfat已经验证过了）
+static const fat32dir *parse_dir_entry(const fat32dir *entry, char *name,
+                                       u8 *attr, uint64_t *clus, size_t *size) {
+  assert(entry != NULL && name != NULL && attr != NULL && clus != NULL &&
+         size != NULL);
+  if (entry->short_entry.DIR_Name[0] == 0xe5) {
+    *attr = ATTR_NULL;
+    return &entry[1];
+  } else if (entry->short_entry.DIR_Name[0] == 0x00) {
+    *attr = ATTR_NULL;
+    return NULL;
+  } else if (entry->short_entry.DIR_Attr == ATTR_LONG_NAME) { // 长目录项
+    if (entry->long_entry.LDIR_Ord < 0x40) {                  // 说明它跨簇
+      attr = ATTR_NULL;
+      return &entry[entry->long_entry.LDIR_Ord + 1];
+    }
+
+    int size = entry->long_entry.LDIR_Ord & ~LAST_LONG_ENTRY; // 恢复size
+    for (int i = 1; i < size; ++i) {
+      if (entry[i].long_entry.LDIR_Ord != size - i ||
+          entry[i].long_entry.LDIR_Type != ATTR_LONG_NAME ||
+          entry[i].long_entry.LDIR_FstClusLO != 0x0 ||
+          entry[i].long_entry.LDIR_Type != 0x0f) {
+        attr = ATTR_NULL;
+        return NULL;
+      }
+    }
+    if (entry[size].short_entry.DIR_Name[0] == LAST_LONG_ENTRY ||
+        entry[size].short_entry.DIR_NTRes != 0x0) {
+      attr = ATTR_NULL;
+      return NULL;
+    }
+
+    // TODO: 拼接长目录项的名称(unicode)，小心0xffff的填充
+    int len = 0;
+    for (int i = 0; i < size; ++i) {
+      int flag = 1;
+      for (int j = 0; j < 10 && flag; j += 2) {
+        if (entry[size - 1 - i].long_entry.LDIR_Name1[j] == 0xffff) {
+          flag = 0;
+          break;
+        }
+        name[len++] = entry[size - 1 - i].long_entry.LDIR_Name1[j];
+      }
+      for (int j = 0; j < 12 && flag; j += 2) {
+        if (entry[size - 1 - i].long_entry.LDIR_Name2[j] == 0xffff) {
+          flag = 0;
+          break;
+        }
+        name[len++] = entry[size - 1 - i].long_entry.LDIR_Name2[j];
+      }
+      for (int j = 0; j < 4 && flag; j += 2) {
+        if (entry[size - 1 - i].long_entry.LDIR_Name3[j] == 0xffff) {
+          break;
+        }
+        name[len++] = entry[size - 1 - i].long_entry.LDIR_Name3[j];
+      }
+    }
+    name[len] = '\0';
+
+    if (entry[size].short_entry.DIR_Attr == ATTR_DIRECTORY) {
+      *attr = ATTR_DIRECTORY;
+    } else {
+      *attr = ATTR_ARCHIVE;
+    }
+    *clus = entry[size].short_entry.DIR_FstClusLO |
+            (((u_int64_t)entry[size].short_entry.DIR_FstClusHI) << 16);
+    *size = entry->short_entry.DIR_FileSize;
+
+    if (entry[size + 1].short_entry.DIR_Name[0] == 0)
+      return NULL;
+
+    return &entry[size + 1];
+
+  } else { // 短目录项
+    int len = 0;
+    for (int i = 0; i < sizeof(entry->short_entry.DIR_Name); i++) {
+      if (entry->short_entry.DIR_Name[i] == ' ') {
+        break;
+      }
+      name[len++] = entry->short_entry.DIR_Name[i];
+    }
+    name[len] = '\0';
+    if (entry->short_entry.DIR_Attr == ATTR_DIRECTORY) {
+      *attr = ATTR_DIRECTORY;
+    } else {
+      *attr = ATTR_ARCHIVE;
+    }
+    *clus = entry->short_entry.DIR_FstClusLO |
+            (entry->short_entry.DIR_FstClusHI << 16);
+    *size = entry->short_entry.DIR_FileSize;
+
+    if (entry[1].short_entry.DIR_Name[0] == 0x00) {
+      return NULL;
+    } else {
+      return &entry[1];
+    }
+  }
+}
 
 int main(int argc, char *argv[]) {
   size_t image_size;
@@ -100,7 +201,9 @@ int main(int argc, char *argv[]) {
   printf("Root cluster: %u\n", hdr->BPB_RootClus);
   printf("FAT size: %u\n", hdr->BPB_FATSz32);
 
-  u32 firstDataSecOff = (hdr->BPB_RsvdSecCnt + (hdr->BPB_NumFATs * hdr->BPB_FATSz32)) * hdr->BPB_BytsPerSec;
+  u32 firstDataSecOff =
+      (hdr->BPB_RsvdSecCnt + (hdr->BPB_NumFATs * hdr->BPB_FATSz32)) *
+      hdr->BPB_BytsPerSec;
   u8 *firstDataSec = (u8 *)disk_image + firstDataSecOff;
   u8 *endDataSec = (u8 *)disk_image + image_size;
 
@@ -110,11 +213,37 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
   debug("directory: %s\n", dir_tmp);
-
+  // TODO: 担心这个遍历有点问题
   for (u8 *clus = firstDataSec; clus < endDataSec; clus += CLUSTER_SIZE) {
     if (is_dir_entry((const fat32dir *)clus)) {
       const fat32dir *entry = (const fat32dir *)clus;
       debug("cluster: %p\n", clus);
+      while (((uintptr_t)entry - (uintptr_t)clus) < CLUSTER_SIZE) {
+        char name[256] = "";
+        u8 attr = ATTR_NULL;
+        uint64_t clus = 0;
+        size_t size = 0;
+
+        entry = parse_dir_entry(entry, name, &attr, &clus,
+                                &size); // 要计算clus然后赋值给它
+        // u8 *addr =
+        //     (u8 *)disk_image + firstDataSecOff + (clus - 2) * CLUSTER_SIZE;
+        // debug("name: %s, attr: %x, clus: %lu, size: %lu\n", name, attr, clus,
+        //       size);
+        // if (attr == ATTR_FILE && is_bmp((const struct bmp_hdr *)addr, size))
+        // {
+        //   // char path[256];
+        //   // snprintf(path, sizeof(path), "%s/%s.bmp", dir_tmp, name);
+        //   // FILE *fp = fopen(path, "wb");
+        //   // if (fp == NULL) {
+        //   //   perror("fopen");
+        //   //   exit(EXIT_FAILURE);
+        //   // }
+        //   // fwrite(addr, size, 1, fp);
+        //   // fclose(fp);
+        //   parse_bmp(name, addr, size, dir_tmp);
+        // }
+      }
     }
   }
 
