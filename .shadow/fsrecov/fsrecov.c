@@ -48,13 +48,20 @@ int is_bmpentry(struct line *line, char *name) {
     unsigned char checksum = ChkSum(entry->DIR_Name);
     void *ptr = (void *)entry; // 这里是短目录，所以我要向上寻找
     u8 size = 0;               // 几组长目录
-    ptr -= DIR_SIZE;
-    struct fat32LongName *long_entry = (struct fat32LongName *)ptr; // 只往前一格看看
-    if (long_entry->LDIR_Ord == 0x01 && long_entry->LDIR_Attr == ATTR_LONG_NAME
-        && long_entry->LDIR_Chksum == checksum && long_entry->LDIR_Type == 0x00) {
+    while (1) {
       size++;
+      ptr -= DIR_SIZE;
+      struct fat32LongName *long_entry = (struct fat32LongName *)ptr;
+      if ((long_entry->LDIR_Ord != (size | 0x40)) 
+          || (long_entry->LDIR_Chksum != checksum)
+          || (long_entry->LDIR_Attr != ATTR_LONG_NAME)
+          || (long_entry->LDIR_Type != 0)) {
+        size--;
+        break;
+      }
     }
     int len = 0;
+
     char buf[256];
     for (int i = 0; i < sizeof(entry->DIR_Name); i++) {
       if (entry->DIR_Name[i] != ' ') {
