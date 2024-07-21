@@ -44,22 +44,23 @@ int is_bmpentry(struct line *line, char *name) {
   // TODO：判断是否是bmp文件，即往上继续检测long entry
   struct fat32dent *entry = (struct fat32dent *)line;
   if (entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024) {
-    int len = 0;
-    char buf[32];
-    for (int i = 0; i < sizeof(entry->DIR_Name); i++) {
-      if (entry->DIR_Name[i] != ' ') {
-        if (i == 8)
-          buf[len++] = '.';
-        buf[len++] = entry->DIR_Name[i];
+    //TODO：检测long entry
+    unsigned char checksum = ChkSum(entry->DIR_Name);
+    void *ptr = (void *)entry; // 这里是短目录，所以我要向上寻找
+    u8 size = 0; // 几组长目录
+    while(1) {
+      ptr -= DIR_SIZE;
+      struct fat32LongName *long_entry = (struct fat32LongName *)ptr; // 假设它是长目录
+      size++;
+      if (long_entry->LDIR_Ord != 0x01 || (long_entry->LDIR_Ord != (size | 0x40))) {
+        break;
       }
     }
-    buf[len] = '\0';
-    printf("[%-12s] %6.1lf KiB    ", buf, entry->DIR_FileSize / 1024.0);
-    unsigned char checksum = ChkSum(entry->DIR_Name);
-    debug("check sum = %c\n", checksum);
+    debug("size: %d\n", size);
+
+
+    return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
   }
-  // int long_size = 0;
-  return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
 }
 
 int main(int argc, char *argv[]) {
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
       char name[256];
       if (is_bmpentry(line, name)) {
-        // printf("%s\n", name);
+        printf("%s\n", name);
       }
     }
     line++;
@@ -109,21 +110,3 @@ void *map_disk_image(const char *path, size_t *size) {
   close(fd);
   return disk_image;
 }
-
-// 两个选择，创造数据结构存储名字(这里存储)，或者根据目录项恢复文件并且输出sha1sum
-
-// void scan(void *firstDataSec, size_t img_size) {
-//   struct line *line = (struct line *)firstDataSec;
-//   int line_size = LINE_SIZE;
-
-// }
-
-// void scan_clusters(void *disk_img, size_t img_size, size_t cluster_size) {
-//   size_t num_clusters = img_size / cluster_size; //
-//   fat文件的总簇数，这样的话我的first是不是可以不要了
-
-//   for (size_t i = 0; i < num_clusters; i++) {
-//     void *cluster = disk_img + i * cluster_size;
-
-//   }
-// }
