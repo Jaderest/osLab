@@ -42,7 +42,7 @@ unsigned char ChkSum(unsigned char *pFcbName) {
 }
 int is_bmpentry(struct line *line, char *name) {
   // TODO：判断是否是bmp文件，即往上继续检测long entry
-  struct fat32dent *entry = (struct fat32dent *)((void *)line - LINE_SIZE);
+  struct fat32dent *entry = (struct fat32dent *)line;
   int len = 0;
   char buf[32];
   for (int i = 0; i < sizeof(entry->DIR_Name); i++) {
