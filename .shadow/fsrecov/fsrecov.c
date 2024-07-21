@@ -52,7 +52,7 @@ int is_bmpentry(struct line *line, char *name) {
       size++;
       ptr -= DIR_SIZE;
       struct fat32LongName *long_entry = (struct fat32LongName *)ptr;
-      if ((long_entry->LDIR_Ord != (size | 0x40)) 
+      if (((long_entry->LDIR_Ord != (size | 0x40)) || (long_entry->LDIR_Ord == size))
           || (long_entry->LDIR_Chksum != checksum)
           || (long_entry->LDIR_Attr != ATTR_LONG_NAME)
           || (long_entry->LDIR_Type != 0)) {
