@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
   struct line *line = (struct line *)disk_img;
   size_t line_size = LINE_SIZE;
   size_t num_lines = img_size / line_size;
-  int start_time = time(NULL);
+  time_t start_time = time(NULL);
   for (int i = 0; i < num_lines; i++) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
       if (line->blank2[0] == 0x20) {
@@ -59,8 +59,8 @@ int main(int argc, char *argv[]) {
     }
     line++;
   }
-  int end_time = time(NULL);
-  printf("time: %d\n", end_time - start_time);
+  time_t end_time = time(NULL);
+  printf("time: %ld\n", end_time - start_time);
 
   return 0;
 }
