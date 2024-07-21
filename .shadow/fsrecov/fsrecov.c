@@ -59,15 +59,15 @@ void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
     char file_name[512];
     snprintf(file_name, 512, "%s/%s", tmp_path, name);
     debug("%s\n", file_name);
-    FILE *bmp = fopen(name, "wb");
-    debug("File: %s\n", name);
-    if (bmp == NULL) {
-      perror("fopen");
-      exit(EXIT_FAILURE);
-    } else {
-      fwrite(hdr, 1, hdr->bfSize, bmp);
-      fclose(bmp);
-    }
+    // FILE *bmp = fopen(file_name, "wb");
+    // debug("File: %s\n", name);
+    // if (bmp == NULL) {
+    //   perror("fopen");
+    //   exit(EXIT_FAILURE);
+    // } else {
+    //   fwrite(hdr, 1, hdr->bfSize, bmp);
+    //   fclose(bmp);
+    // }
   }
 }
 
