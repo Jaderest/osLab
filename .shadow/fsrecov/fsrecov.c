@@ -57,8 +57,8 @@ void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
     // debug("BMP file: %s\t", name);
     // debug("File size: %u\n", hdr->bfSize);
     char file_name[512];
-    debug("tmp_path: %s\n", tmp_path);
-    // snprintf(file_name, sizeof(file_name), "%s%s.bmp", name);
+    // debug("tmp_path: %s\n", tmp_path);
+    snprintf(file_name, sizeof(file_name), "%s/%s.bmp", tmp_path, name);
   }
 }
 
