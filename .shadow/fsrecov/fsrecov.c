@@ -19,7 +19,16 @@
 #define debug(fmt, ...)
 #endif
 
+struct line {
+  u8 blank[8];
+  char bmp[3];
+  u8 blank2[5];
+} __attribute__((packed));
+
+#define LINE_SIZE (sizeof(struct line))
+
 void *map_disk_image(const char *path, size_t *size);
+// void scan_clusters(void *disk_img, size_t img_size, size_t cluster_size);
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -36,6 +45,17 @@ int main(int argc, char *argv[]) {
   debug("BPB_RsvdSecCnt: %d\n", hdr->BPB_RsvdSecCnt);
   debug("BPB_NumFATs: %d\n", hdr->BPB_NumFATs);
   debug("BPB_FATSz32: %d\n", hdr->BPB_FATSz32);
+
+  struct line *line = (struct line *)disk_img;
+  size_t line_size = LINE_SIZE;
+  size_t num_lines = img_size / line_size;
+  for (size_t i = 0; i < num_lines; i++) {
+    if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
+      printf("line %lu\n", i);
+    }
+    line++;
+  }
+
   return 0;
 }
 
@@ -54,3 +74,22 @@ void *map_disk_image(const char *path, size_t *size) {
   close(fd);
   return disk_image;
 }
+
+// 两个选择，创造数据结构存储名字(这里存储)，或者根据目录项恢复文件并且输出sha1sum
+
+
+
+// void scan(void *firstDataSec, size_t img_size) {
+//   struct line *line = (struct line *)firstDataSec;
+//   int line_size = LINE_SIZE;
+
+// }
+
+// void scan_clusters(void *disk_img, size_t img_size, size_t cluster_size) {
+//   size_t num_clusters = img_size / cluster_size; // fat文件的总簇数，这样的话我的first是不是可以不要了
+
+//   for (size_t i = 0; i < num_clusters; i++) {
+//     void *cluster = disk_img + i * cluster_size;
+    
+//   }
+// }

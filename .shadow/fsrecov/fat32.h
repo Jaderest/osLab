@@ -61,7 +61,7 @@ struct fat32LongName {
     u8  LDIR_Ord;
     u16  LDIR_Name1[5]; // 1-5 这是unicode编码，所以占用2字节
     u8  LDIR_Attr;
-    u8  LDIR_Type; // 0x0F
+    u8  LDIR_Type; 
     u8  LDIR_Chksum; // Checksum of name in the
     u16  LDIR_Name2[6]; // 6-11
     u16 LDIR_FstClusLO;
