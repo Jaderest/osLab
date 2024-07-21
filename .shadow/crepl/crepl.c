@@ -48,6 +48,7 @@ void *compile(char *src, int id) { // 可以返回新创建文件的句柄，用
     char so_name[4096];
     snprintf(file_name, 4096, "%s/crepl%d.c", dir, handle_len);
     snprintf(so_name, 4096, "%s/lib%d.so", dir, handle_len);
+    printf("file_name: %s\n", file_name);
 
     FILE *fp = fopen(file_name, "w");
     if (fp == NULL) {
