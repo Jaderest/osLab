@@ -40,6 +40,15 @@ unsigned char ChkSum(unsigned char *pFcbName) {
   }
   return (Sum);
 }
+
+char uni2ascii(const u32 uni) {
+  if (uni <= 0x7f) {
+    return uni;
+  } else {
+    return '_';
+  }
+}
+
 int is_bmpentry(struct line *line, char *name) {
   // TODO：判断是否是bmp文件，即往上继续检测long entry
   struct fat32dent *entry = (struct fat32dent *)line;
@@ -75,19 +84,32 @@ int is_bmpentry(struct line *line, char *name) {
         return 0;
       }
     }
-    int len = 0;
+    // int len = 0;
 
-    char buf[256];
-    for (int i = 0; i < sizeof(entry->DIR_Name); i++) {
-      if (entry->DIR_Name[i] != ' ') {
-        if (i == 8) {
-          buf[len++] = '.';
-        }
+    // char buf[256];
+    // for (int i = 0; i < sizeof(entry->DIR_Name); i++) {
+    //   if (entry->DIR_Name[i] != ' ') {
+    //     if (i == 8) {
+    //       buf[len++] = '.';
+    //     }
+    //   }
+    //   buf[len++] = entry->DIR_Name[i];
+    // }
+    // buf[len] = '\0';
+    // debug("name: [%s], size: %d\n", buf, size);
+    int len = 0;
+    struct fat32LongName *long_entry = (struct fat32LongName *)ptr; // 这是得到目录开始的地方
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < 5; j++) {
+        name[len++] = uni2ascii(long_entry[size-i-1].LDIR_Name1[j]);
       }
-      buf[len++] = entry->DIR_Name[i];
+      for (int j = 0; j < 6; j++) {
+        name[len++] = uni2ascii(long_entry[size-i-1].LDIR_Name2[j]);
+      }
+      for (int j = 0; j < 2; j++) {
+        name[len++] = uni2ascii(long_entry[size-i-1].LDIR_Name3[j]);
+      }
     }
-    buf[len] = '\0';
-    debug("name: [%s], size: %d\n", buf, size);
   }
   return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
 }
@@ -110,7 +132,7 @@ int main(int argc, char *argv[]) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
       char name[256];
       if (is_bmpentry(line, name)) {
-        // printf("%s\n", name);
+        printf("%s\n", name);
       }
     }
     line++;
