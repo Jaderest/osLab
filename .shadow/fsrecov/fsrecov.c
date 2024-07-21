@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
             (u8 *)disk_image + firstDataSecOff + (clus - 2) * CLUSTER_SIZE;
 
         if (attr == ATTR_FILE && is_bmp((const struct bmp_hdr *)addr, size)) {
-          parse_bmp(name, addr, size, dir_tmp);
+          parse_bmp(name, addr, size, dir_tmp, clus);
         }
       }
     }
