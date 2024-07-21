@@ -71,13 +71,15 @@ int is_bmpentry(struct line *line, char *name) {
       ptr -= DIR_SIZE;
       struct fat32LongName *long_entry = (struct fat32LongName *)ptr;
       if (long_entry->LDIR_Ord == size) { // 有继续的情况
-        if (long_entry->LDIR_Chksum != checksum || long_entry->LDIR_Attr != ATTR_LONG_NAME ||
+        if (long_entry->LDIR_Chksum != checksum ||
+            long_entry->LDIR_Attr != ATTR_LONG_NAME ||
             long_entry->LDIR_Type != 0) {
           return 0;
         }
         continue;
       } else if (long_entry->LDIR_Ord == (size | 0x40)) { // 结束
-        if (long_entry->LDIR_Chksum != checksum || long_entry->LDIR_Attr != ATTR_LONG_NAME ||
+        if (long_entry->LDIR_Chksum != checksum ||
+            long_entry->LDIR_Attr != ATTR_LONG_NAME ||
             long_entry->LDIR_Type != 0) {
           return 0;
         }
@@ -87,16 +89,17 @@ int is_bmpentry(struct line *line, char *name) {
       }
     }
     int len = 0;
-    struct fat32LongName *long_entry = (struct fat32LongName *)ptr; // 这是得到目录开始的地方
+    struct fat32LongName *long_entry =
+        (struct fat32LongName *)ptr; // 这是得到目录开始的地方
     for (int i = 0; i < size; i++) {
       for (int j = 0; j < 5; j++) {
-        name[len++] = uni2ascii(long_entry[size-i-1].LDIR_Name1[j]);
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
       }
       for (int j = 0; j < 6; j++) {
-        name[len++] = uni2ascii(long_entry[size-i-1].LDIR_Name2[j]);
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name2[j]);
       }
       for (int j = 0; j < 2; j++) {
-        name[len++] = uni2ascii(long_entry[size-i-1].LDIR_Name3[j]);
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name3[j]);
       }
     }
     name[len] = '\0';
@@ -125,16 +128,16 @@ int main(int argc, char *argv[]) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
       char name[256];
       if (is_bmpentry(line, name)) {
-        printf("%s\n", name); //name ok!
+        // printf("%s\n", name); //name ok!
+        // 此处line是dir entry的起始地址(短目录)
+        struct fat32dent *entry = (struct fat32dent *)line;
+        u32 cluster = entry->DIR_FstClusLO | (entry->DIR_FstClusHI << 16);
+        debug("name: %s  ", name);
+        debug("Cluster: %d\n", cluster);
+        // void *cluster_ptr = (u8 *)disk_img + (cluster - 2) * cluster_size;
+        // struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
+        // parse_bmp(hdr, name, tmp_path);
       }
-      // 此处line是dir entry的起始地址(短目录)
-      struct fat32dent *entry = (struct fat32dent *)line;
-      u32 cluster = entry->DIR_FstClusLO | (entry->DIR_FstClusHI << 16);
-      debug("name: %s  ", name);
-      debug("Cluster: %d\n", cluster);
-      // void *cluster_ptr = (u8 *)disk_img + (cluster - 2) * cluster_size;
-      // struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
-      // parse_bmp(hdr, name, tmp_path);
     }
     line++;
   }
