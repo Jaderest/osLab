@@ -53,13 +53,29 @@ int is_bmpentry(struct line *line, char *name) {
       struct fat32LongName *long_entry =
           (struct fat32LongName *)ptr; // 假设它是长目录
       size++;
-      if ((long_entry->LDIR_Ord != 0x01 &&
-          (long_entry->LDIR_Ord != (size | 0x40))) ||//TODO:增加更多的判断条件
-          (long_entry->LDIR_Chksum != checksum) ||
-          (long_entry->LDIR_Attr != ATTR_LONG_NAME) ||
-          (long_entry->LDIR_Type != 0x00) ||
-          (long_entry->LDIR_FstClusLO != 0x00)) {
-        break;
+      // if ((long_entry->LDIR_Ord != 0x01 &&
+      //     (long_entry->LDIR_Ord != (size | 0x40))) ||//TODO:增加更多的判断条件
+      //     (long_entry->LDIR_Chksum != checksum) ||
+      //     (long_entry->LDIR_Attr != ATTR_LONG_NAME) ||
+      //     (long_entry->LDIR_Type != 0x00) ||
+      //     (long_entry->LDIR_FstClusLO != 0x00)) {
+      //   break;
+      // }
+      if (size == 1) {
+        if (long_entry->LDIR_Ord != 0x01 || long_entry->LDIR_Chksum != checksum ||
+            long_entry->LDIR_Attr != ATTR_LONG_NAME || long_entry->LDIR_Type != 0x00 ||
+            long_entry->LDIR_FstClusLO != 0x00) {
+          size--;
+          break;
+        }
+      } else {
+        // 后续的长目录
+        if (long_entry->LDIR_Ord != (size | 0x40) || long_entry->LDIR_Chksum != checksum ||
+            long_entry->LDIR_Attr != ATTR_LONG_NAME || long_entry->LDIR_Type != 0x00 ||
+            long_entry->LDIR_FstClusLO != 0x00) {
+          size--;
+          break;
+        }
       }
     }
     debug("size: %d\n", size);
@@ -77,11 +93,6 @@ int main(int argc, char *argv[]) {
   size_t cluster_size = CLUSTER_SIZE;
 
   struct fat32hdr *hdr = (struct fat32hdr *)disk_img;
-  debug("BPB_BytsPerSec: %d\n", hdr->BPB_BytsPerSec);
-  debug("BPB_SecPerClus: %d\n", hdr->BPB_SecPerClus);
-  debug("BPB_RsvdSecCnt: %d\n", hdr->BPB_RsvdSecCnt);
-  debug("BPB_NumFATs: %d\n", hdr->BPB_NumFATs);
-  debug("BPB_FATSz32: %d\n", hdr->BPB_FATSz32);
 
   struct line *line = (struct line *)disk_img;
   size_t line_size = LINE_SIZE;
@@ -90,7 +101,7 @@ int main(int argc, char *argv[]) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
       char name[256];
       if (is_bmpentry(line, name)) {
-        printf("%s\n", name);
+        // printf("%s\n", name);
       }
     }
     line++;
