@@ -152,7 +152,7 @@ static const fat32dir *parse_dir_entry(const fat32dir *entry, char *name,
     }
     *clus = entry[size].short_entry.DIR_FstClusLO |
             (((u_int64_t)entry[size].short_entry.DIR_FstClusHI) << 16);
-    *size = entry->short_entry.DIR_FileSize;
+    size = entry->short_entry.DIR_FileSize;
 
     if (entry[size + 1].short_entry.DIR_Name[0] == 0)
       return NULL;
