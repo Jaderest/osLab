@@ -65,7 +65,7 @@ int is_bmpentry(struct line *line, char *name) {
       buf[len++] = entry->DIR_Name[i];
     }
     buf[len] = '\0';
-    debug("name: %s, size: %d\n", buf, size);
+    debug("name: [%s], size: %d\n", buf, size);
   }
   return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
 }
