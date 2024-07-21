@@ -53,8 +53,12 @@ int is_bmpentry(struct line *line, char *name) {
       struct fat32LongName *long_entry =
           (struct fat32LongName *)ptr; // 假设它是长目录
       size++;
-      if (long_entry->LDIR_Ord != 0x01 &&
-          (long_entry->LDIR_Ord != (size | 0x40))) {
+      if ((long_entry->LDIR_Ord != 0x01 &&
+          (long_entry->LDIR_Ord != (size | 0x40))) ||//TODO:增加更多的判断条件
+          (long_entry->LDIR_Chksum != checksum) ||
+          (long_entry->LDIR_Attr != ATTR_LONG_NAME) ||
+          (long_entry->LDIR_Type != 0x00) ||
+          (long_entry->LDIR_FstClusLO != 0x00)) {
         break;
       }
     }
