@@ -48,35 +48,11 @@ int is_bmpentry(struct line *line, char *name) {
     unsigned char checksum = ChkSum(entry->DIR_Name);
     void *ptr = (void *)entry; // 这里是短目录，所以我要向上寻找
     u8 size = 0;               // 几组长目录
-    while (1) {
-      ptr -= DIR_SIZE;
-      struct fat32LongName *long_entry =
-          (struct fat32LongName *)ptr; // 假设它是长目录
+    ptr -= DIR_SIZE;
+    struct fat32LongName *long_entry = (struct fat32LongName *)ptr; // 只往前一格看看
+    if (long_entry->LDIR_Ord == 0x01 && long_entry->LDIR_Attr == ATTR_LONG_NAME
+        && long_entry->LDIR_Chksum == checksum && long_entry->LDIR_Type == 0x00) {
       size++;
-      // if ((long_entry->LDIR_Ord != 0x01 &&
-      //     (long_entry->LDIR_Ord != (size | 0x40))) ||//TODO:增加更多的判断条件
-      //     (long_entry->LDIR_Chksum != checksum) ||
-      //     (long_entry->LDIR_Attr != ATTR_LONG_NAME) ||
-      //     (long_entry->LDIR_Type != 0x00) ||
-      //     (long_entry->LDIR_FstClusLO != 0x00)) {
-      //   break;
-      // }
-      if (size == 1) {
-        if (long_entry->LDIR_Ord != 0x01 || long_entry->LDIR_Chksum != checksum ||
-            long_entry->LDIR_Attr != ATTR_LONG_NAME || long_entry->LDIR_Type != 0x00 ||
-            long_entry->LDIR_FstClusLO != 0x00) {
-          size--;
-          break;
-        }
-      } else {
-        // 后续的长目录
-        if (long_entry->LDIR_Ord != (size | 0x40) || long_entry->LDIR_Chksum != checksum ||
-            long_entry->LDIR_Attr != ATTR_LONG_NAME || long_entry->LDIR_Type != 0x00 ||
-            long_entry->LDIR_FstClusLO != 0x00) {
-          size--;
-          break;
-        }
-      }
     }
     debug("size: %d\n", size);
   }
