@@ -59,6 +59,14 @@ void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
     char file_name[512];
     // debug("tmp_path: %s\n", tmp_path);
     snprintf(file_name, sizeof(file_name), "%s/%s.bmp", tmp_path, name);
+    FILE *bmp = fopen(file_name, "wb");
+    if (bmp == NULL) {
+      perror("fopen");
+      exit(EXIT_FAILURE);
+    } else {
+      fwrite(hdr, hdr->bfSize, 1, bmp);
+      fclose(bmp);
+    }
   }
 }
 
