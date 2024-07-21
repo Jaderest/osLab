@@ -43,7 +43,7 @@ unsigned char ChkSum(unsigned char *pFcbName) {
 int is_bmpentry(struct line *line, char *name) {
   // TODO：判断是否是bmp文件，即往上继续检测long entry
   struct fat32dent *entry = (struct fat32dent *)line;
-  if (entry->DIR_FileSize > 0) {
+  if (entry->DIR_FileSize > 0 && entry->DIR_FileSize < 1500 * 1024) {
     int len = 0;
     char buf[32];
     for (int i = 0; i < sizeof(entry->DIR_Name); i++) {
@@ -58,7 +58,8 @@ int is_bmpentry(struct line *line, char *name) {
     unsigned char checksum = ChkSum(entry->DIR_Name);
     debug("check sum = %c\n", checksum);
   }
-  return entry->DIR_FileSize > 0;
+  // int long_size = 0;
+  return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 1500 * 1024;
 }
 
 int main(int argc, char *argv[]) {
@@ -81,10 +82,8 @@ int main(int argc, char *argv[]) {
   size_t line_size = LINE_SIZE;
   size_t num_lines = img_size / line_size;
   for (int i = 0; i < num_lines; i++) {
-    // if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P' && line->blank[7] == '1' && line->blank[6] == '~') {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
-      char name
-          [256]; // 如果是bmp文件，那么就是文件名，这里我顺便处理了，然后如果可以的话就if内把bmp恢复出来，然后sha1sum
+      char name[256];
       if (is_bmpentry(line, name)) {
         // printf("%s\n", name);
         printf("line %d\n", i);
