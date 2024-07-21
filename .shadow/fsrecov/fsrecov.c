@@ -51,7 +51,7 @@ char uni2ascii(const u32 uni) {
 void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
   if (hdr->bfType != 0x4d42) {
     fprintf(stderr, "Invalid BMP magic\n");
-    exit(EXIT_FAILURE);
+    // exit(EXIT_FAILURE);
   }
   if (hdr->bfType == 0x4d42) {
     debug("BMP file: %s\n", name);
