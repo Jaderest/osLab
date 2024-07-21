@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
                                 &size); // 要计算clus然后赋值给它
         u8 *addr =
             (u8 *)disk_image + firstDataSecOff + (clus - 2) * CLUSTER_SIZE;
-
+        debug("before parse_bmp\n");
         if (attr == ATTR_FILE && is_bmp((const struct BmpHeader *)addr, size)) {
           parse_bmp(name, addr, size, dir_tmp, clus);
         }
