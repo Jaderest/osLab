@@ -110,6 +110,7 @@ int is_bmpentry(struct line *line, char *name) {
         name[len++] = uni2ascii(long_entry[size-i-1].LDIR_Name3[j]);
       }
     }
+    name[len] = '\0';
   }
   return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
 }
@@ -132,7 +133,7 @@ int main(int argc, char *argv[]) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
       char name[256];
       if (is_bmpentry(line, name)) {
-        printf("%s\n", name);
+        printf("%s\n", name); //name ok!
       }
     }
     line++;
