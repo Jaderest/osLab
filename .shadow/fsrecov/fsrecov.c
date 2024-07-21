@@ -226,6 +226,10 @@ int main(int argc, char *argv[]) {
 
         entry = parse_dir_entry(entry, name, &attr, &clus,
                                 &size); // 要计算clus然后赋值给它
+        debug("entry: %p\n", entry);
+        assert(entry != NULL);
+        debug("name: %s, attr: %x, clus: %lu, size: %lu\n", name, attr, clus,
+              size);
         // u8 *addr =
         //     (u8 *)disk_image + firstDataSecOff + (clus - 2) * CLUSTER_SIZE;
         // debug("name: %s, attr: %x, clus: %lu, size: %lu\n", name, attr, clus,
