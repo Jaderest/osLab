@@ -132,8 +132,9 @@ int main(int argc, char *argv[]) {
         // 此处line是dir entry的起始地址(短目录)
         struct fat32dent *entry = (struct fat32dent *)line;
         u32 cluster = entry->DIR_FstClusLO | (entry->DIR_FstClusHI << 16);
+        cluster += 34; // 真懒得抄手册偏移量了
         debug("name: %s  ", name);
-        debug("Cluster: %d\n", cluster);
+        debug("Cluster: %d\n", cluster); // cluster少了34？因为是从2开始的
         // void *cluster_ptr = (u8 *)disk_img + (cluster - 2) * cluster_size;
         // struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
         // parse_bmp(hdr, name, tmp_path);
