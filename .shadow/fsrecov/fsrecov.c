@@ -56,18 +56,24 @@ void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
   if (hdr->bfType == 0x4d42) {
     // debug("BMP file: %s\t", name);
     // debug("File size: %u\n", hdr->bfSize);
-    char file_name[512];
-    snprintf(file_name, 512, "%s/%s", tmp_path, name);
-    debug("%s\n", file_name);
-    // FILE *bmp = fopen(file_name, "wb");
-    // debug("File: %s\n", name);
-    // if (bmp == NULL) {
-    //   perror("fopen");
-    //   exit(EXIT_FAILURE);
-    // } else {
-    //   fwrite(hdr, 1, hdr->bfSize, bmp);
-    //   fclose(bmp);
-    // }
+    // char file_name[512];
+    // snprintf(file_name, 512, "%s/%s", tmp_path, name);
+    // debug("%s\n", file_name);
+    FILE *bmp = fopen(name, "wb");
+    debug("File: %s\n", name);
+    if (bmp == NULL) {
+      perror("fopen");
+      exit(EXIT_FAILURE);
+    } else {
+      fwrite(hdr, 1, hdr->bfSize, bmp);
+      fclose(bmp);
+    }
+    char cmd[256];
+    snprintf(cmd, 256, "sha1sum %s", name);
+    FILE *fp = popen(cmd, "r");
+    char buf[256] = "123";
+    fscanf(fp, "%s", buf);
+    pclose(fp);
   }
 }
 
