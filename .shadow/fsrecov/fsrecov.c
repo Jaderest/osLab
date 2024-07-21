@@ -51,12 +51,11 @@ char uni2ascii(const u32 uni) {
 void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
   if (hdr->bfType != 0x4d42) {
     fprintf(stderr, "Invalid BMP magic\n");
-    // exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
   if (hdr->bfType == 0x4d42) {
-    debug("BMP file: %s\n", name);
+    debug("BMP file: %s\t", name);
     debug("File size: %u\n", hdr->bfSize);
-    debug("Offset to image data: %u\n", hdr->bfOffBits);
   }
 }
 
@@ -135,9 +134,9 @@ int main(int argc, char *argv[]) {
         cluster += 34; // 真懒得抄手册偏移量了
         debug("name: %s  ", name);
         debug("Cluster: %d\n", cluster); // cluster少了34？因为是从2开始的
-        // void *cluster_ptr = (u8 *)disk_img + (cluster - 2) * cluster_size;
-        // struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
-        // parse_bmp(hdr, name, tmp_path);
+        void *cluster_ptr = (u8 *)disk_img + cluster * cluster_size;
+        struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
+        parse_bmp(hdr, name, tmp_path);
       }
     }
     line++;
