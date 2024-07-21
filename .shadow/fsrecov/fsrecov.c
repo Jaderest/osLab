@@ -130,9 +130,11 @@ int main(int argc, char *argv[]) {
       // 此处line是dir entry的起始地址(短目录)
       struct fat32dent *entry = (struct fat32dent *)line;
       size_t cluster = entry->DIR_FstClusLO | (entry->DIR_FstClusHI << 16);
-      void *cluster_ptr = (u8 *)disk_img + (cluster - 2) * cluster_size;
-      struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
-      parse_bmp(hdr, name, tmp_path);
+      debug("name: %s  ", name);
+      debug("Cluster: %lu\n", cluster);
+      // void *cluster_ptr = (u8 *)disk_img + (cluster - 2) * cluster_size;
+      // struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
+      // parse_bmp(hdr, name, tmp_path);
     }
     line++;
   }
