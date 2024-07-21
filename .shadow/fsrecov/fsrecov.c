@@ -113,6 +113,7 @@ int main(int argc, char *argv[]) {
 
   for (u8 *clus = firstDataSec; clus < endDataSec; clus += CLUSTER_SIZE) {
     if (is_dir_entry((const fat32dir *)clus)) {
+      debug("before cout cluster\n");
       debug("cluster%hhn is a directory\n", clus);
     }
   }
