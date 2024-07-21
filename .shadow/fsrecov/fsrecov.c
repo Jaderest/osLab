@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
   size_t num_lines = img_size / line_size;
   for (size_t i = 0; i < num_lines; i++) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
-      printf("line %lu\n", i);
+      printf("line %u\n", i);
     }
     line++;
   }
