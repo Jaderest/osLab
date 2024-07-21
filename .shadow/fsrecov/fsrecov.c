@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
   size_t line_size = LINE_SIZE;
   size_t num_lines = img_size / line_size;
   for (int i = 0; i < num_lines; i++) {
-    if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
+    if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P' && line->blank[7] == '1' && line->blank[6] == '~') {
       char name
           [256]; // 如果是bmp文件，那么就是文件名，这里我顺便处理了，然后如果可以的话就if内把bmp恢复出来，然后sha1sum
       if (is_bmpentry(line, name)) {
