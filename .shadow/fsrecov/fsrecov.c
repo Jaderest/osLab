@@ -35,8 +35,76 @@ void *map_disk_image(const char *path, size_t *size) {
   return disk_image;
 }
 
-static int
-is_dir_entry(const fat32dir *entry) { // 正确性一般，少数几个出错的好像
+static int is_dir_entry(const fat32dir *entry);
+static const fat32dir *parse_dir_entry(const fat32dir *entry, char *name,
+                                       u8 *attr, uint64_t *clus, size_t *size);
+static int is_bmp(const struct BmpHeader *hdr, size_t size) {
+  return hdr->bfType == 0x4d42 && hdr->bfSize == size;
+}
+static void parse_bmp(const char *name, const u8 *addr, size_t size,
+                      const char *dir, size_t clus) {
+  // 在dir目录创建文件，然后写入
+  char filename[256];
+  snprintf(filename, sizeof(filename), "%s/%s.bmp", dir, name);
+  debug("filename: %s\n", filename);
+}
+
+int main(int argc, char *argv[]) {
+  size_t image_size;
+  void *disk_image =
+      map_disk_image(argv[1], &image_size); // 映射文件+获取文件大小
+  struct fat32hdr *hdr = (struct fat32hdr *)disk_image;
+  assert(hdr->Signature_word == 0xaa55);
+  printf("Volume ID: %u\n", hdr->BS_VolID);
+  printf("img size: %zu\n", image_size);
+  printf("Bytes per sector: %u\n", hdr->BPB_BytsPerSec);
+  printf("Sectors per cluster: %u\n", hdr->BPB_SecPerClus);
+  printf("Reserved sectors: %u\n", hdr->BPB_RsvdSecCnt);
+  printf("Number of FATs: %u\n", hdr->BPB_NumFATs);
+  printf("Root entries: %u\n", hdr->BPB_RootEntCnt);
+  printf("Root cluster: %u\n", hdr->BPB_RootClus);
+  printf("FAT size: %u\n", hdr->BPB_FATSz32);
+
+  u32 firstDataSecOff =
+      (hdr->BPB_RsvdSecCnt + (hdr->BPB_NumFATs * hdr->BPB_FATSz32)) *
+      hdr->BPB_BytsPerSec;
+  u8 *firstDataSec = (u8 *)disk_image + firstDataSecOff;
+  u8 *endDataSec = (u8 *)disk_image + image_size;
+
+  char dir_tmp[] = "/tmp/fsrecov_XXXXXX";
+  if (mkdtemp(dir_tmp) == NULL) {
+    perror("mkdtemp");
+    exit(EXIT_FAILURE);
+  }
+  debug("directory: %s\n", dir_tmp);
+  // TODO: 担心这个遍历有点问题
+  for (u8 *clus = firstDataSec; clus < endDataSec; clus += CLUSTER_SIZE) {
+    if (is_dir_entry((const fat32dir *)clus)) {
+      const fat32dir *entry = (const fat32dir *)clus;
+      debug("cluster: %p\n", clus);
+      while (((uintptr_t)entry - (uintptr_t)clus) < CLUSTER_SIZE) {
+        char name[256] = "";
+        u8 attr = ATTR_NULL;
+        uint64_t clus = 0;
+        size_t size = 0;
+
+        entry = parse_dir_entry(entry, name, &attr, &clus,
+                                &size); // 要计算clus然后赋值给它
+        u8 *addr =
+            (u8 *)disk_image + firstDataSecOff + (clus - 2) * CLUSTER_SIZE;
+
+        if (attr == ATTR_FILE && is_bmp((const struct bmp_hdr *)addr, size)) {
+          parse_bmp(name, addr, size, dir_tmp);
+        }
+      }
+    }
+  }
+
+  // 接下来就是遍历每个cluster，找到目录项，然后把可能的bmp文件恢复出来（加上文件名）
+  return 0;
+}
+
+static int is_dir_entry(const fat32dir *entry) { // 正确性一般，少数几个出错的好像
   int entry_size = CLUSTER_SIZE / DIR_SIZE;
   // 未使用过
   if (entry->short_entry.DIR_Name[0] == 0x00) {
@@ -83,9 +151,6 @@ is_dir_entry(const fat32dir *entry) { // 正确性一般，少数几个出错的
   return 1;
 }
 
-// TODO: 从目录项中提取文件名
-// TODO：根据clusterid找到文件内容，然后写入文件
-// TODO：需要验证这个算出来的clusterid是否正确（readfat已经验证过了）
 static const fat32dir *parse_dir_entry(const fat32dir *entry, char *name,
                                        u8 *attr, uint64_t *clus, size_t *size) {
   assert(entry != NULL && name != NULL && attr != NULL && clus != NULL &&
@@ -183,73 +248,4 @@ static const fat32dir *parse_dir_entry(const fat32dir *entry, char *name,
       return &entry[1];
     }
   }
-}
-
-int main(int argc, char *argv[]) {
-  size_t image_size;
-  void *disk_image =
-      map_disk_image(argv[1], &image_size); // 映射文件+获取文件大小
-  struct fat32hdr *hdr = (struct fat32hdr *)disk_image;
-  assert(hdr->Signature_word == 0xaa55);
-  printf("Volume ID: %u\n", hdr->BS_VolID);
-  printf("img size: %zu\n", image_size);
-  printf("Bytes per sector: %u\n", hdr->BPB_BytsPerSec);
-  printf("Sectors per cluster: %u\n", hdr->BPB_SecPerClus);
-  printf("Reserved sectors: %u\n", hdr->BPB_RsvdSecCnt);
-  printf("Number of FATs: %u\n", hdr->BPB_NumFATs);
-  printf("Root entries: %u\n", hdr->BPB_RootEntCnt);
-  printf("Root cluster: %u\n", hdr->BPB_RootClus);
-  printf("FAT size: %u\n", hdr->BPB_FATSz32);
-
-  u32 firstDataSecOff =
-      (hdr->BPB_RsvdSecCnt + (hdr->BPB_NumFATs * hdr->BPB_FATSz32)) *
-      hdr->BPB_BytsPerSec;
-  u8 *firstDataSec = (u8 *)disk_image + firstDataSecOff;
-  u8 *endDataSec = (u8 *)disk_image + image_size;
-
-  char dir_tmp[] = "/tmp/fsrecov_XXXXXX";
-  if (mkdtemp(dir_tmp) == NULL) {
-    perror("mkdtemp");
-    exit(EXIT_FAILURE);
-  }
-  debug("directory: %s\n", dir_tmp);
-  // TODO: 担心这个遍历有点问题
-  for (u8 *clus = firstDataSec; clus < endDataSec; clus += CLUSTER_SIZE) {
-    if (is_dir_entry((const fat32dir *)clus)) {
-      const fat32dir *entry = (const fat32dir *)clus;
-      debug("cluster: %p\n", clus);
-      while (((uintptr_t)entry - (uintptr_t)clus) < CLUSTER_SIZE) {
-        char name[256] = "";
-        u8 attr = ATTR_NULL;
-        uint64_t clus = 0;
-        size_t size = 0;
-
-        entry = parse_dir_entry(entry, name, &attr, &clus,
-                                &size); // 要计算clus然后赋值给它
-        debug("entry: %p\n", entry);
-        // assert(entry != NULL);
-        printf("name: %s, attr: %x, size: %zu\n", name, attr, size);
-        // u8 *addr =
-        //     (u8 *)disk_image + firstDataSecOff + (clus - 2) * CLUSTER_SIZE;
-        // debug("name: %s, attr: %x, clus: %lu, size: %lu\n", name, attr, clus,
-        //       size);
-        // if (attr == ATTR_FILE && is_bmp((const struct bmp_hdr *)addr, size))
-        // {
-        //   // char path[256];
-        //   // snprintf(path, sizeof(path), "%s/%s.bmp", dir_tmp, name);
-        //   // FILE *fp = fopen(path, "wb");
-        //   // if (fp == NULL) {
-        //   //   perror("fopen");
-        //   //   exit(EXIT_FAILURE);
-        //   // }
-        //   // fwrite(addr, size, 1, fp);
-        //   // fclose(fp);
-        //   parse_bmp(name, addr, size, dir_tmp);
-        // }
-      }
-    }
-  }
-
-  // 接下来就是遍历每个cluster，找到目录项，然后把可能的bmp文件恢复出来（加上文件名）
-  return 0;
 }
