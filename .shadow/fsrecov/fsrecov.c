@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <time.h>
 
 #define SECTOR_SIZE 512
 #define CLUSTER_SIZE 4096 // 8 sectors
@@ -49,12 +50,15 @@ int main(int argc, char *argv[]) {
   struct line *line = (struct line *)disk_img;
   size_t line_size = LINE_SIZE;
   size_t num_lines = img_size / line_size;
+  int start_time = time(NULL);
   for (int i = 0; i < num_lines; i++) {
     if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
       printf("line %d\n", i);
     }
     line++;
   }
+  int end_time = time(NULL);
+  printf("time: %d\n", end_time - start_time);
 
   return 0;
 }
