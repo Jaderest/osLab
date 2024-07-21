@@ -44,23 +44,23 @@ int is_bmpentry(struct line *line, char *name) {
   // TODO：判断是否是bmp文件，即往上继续检测long entry
   struct fat32dent *entry = (struct fat32dent *)line;
   if (entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024) {
-    //TODO：检测long entry
+    // TODO：检测long entry
     unsigned char checksum = ChkSum(entry->DIR_Name);
     void *ptr = (void *)entry; // 这里是短目录，所以我要向上寻找
-    u8 size = 0; // 几组长目录
-    while(1) {
+    u8 size = 0;               // 几组长目录
+    while (1) {
       ptr -= DIR_SIZE;
-      struct fat32LongName *long_entry = (struct fat32LongName *)ptr; // 假设它是长目录
+      struct fat32LongName *long_entry =
+          (struct fat32LongName *)ptr; // 假设它是长目录
       size++;
-      if (long_entry->LDIR_Ord != 0x01 || (long_entry->LDIR_Ord != (size | 0x40))) {
+      if (long_entry->LDIR_Ord != 0x01 ||
+          (long_entry->LDIR_Ord != (size | 0x40))) {
         break;
       }
     }
     debug("size: %d\n", size);
-
-
-    return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
   }
+  return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
 }
 
 int main(int argc, char *argv[]) {
