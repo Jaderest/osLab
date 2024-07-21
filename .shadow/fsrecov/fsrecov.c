@@ -86,7 +86,6 @@ int main(int argc, char *argv[]) {
       char name[256];
       if (is_bmpentry(line, name)) {
         // printf("%s\n", name);
-        printf("line %d\n", i);
       }
     }
     line++;
