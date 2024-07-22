@@ -36,7 +36,9 @@ void slab_init() {
         caches[i].object_size = size;
         caches[i].cache_lock = LOCK_INIT();
         size <<= 1;
+        debug("caches[%d].object_size = %d\n", i, caches[i].object_size);
     }
+    debug("slab_init done\n");
 }
 
 static void *kalloc(size_t size) {
