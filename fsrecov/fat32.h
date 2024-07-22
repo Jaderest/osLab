@@ -61,7 +61,7 @@ struct fat32LongName {
     u8  LDIR_Ord;
     u16  LDIR_Name1[5]; // 1-5 这是unicode编码，所以占用2字节
     u8  LDIR_Attr;
-    u8  LDIR_Type; // 0x0F
+    u8  LDIR_Type; 
     u8  LDIR_Chksum; // Checksum of name in the
     u16  LDIR_Name2[6]; // 6-11
     u16 LDIR_FstClusLO;
@@ -80,9 +80,7 @@ struct BmpHeader {
     u16 bfReserved1;
     u16 bfReserved2;
     u32 bfOffBits; // Offset to image data
-} __attribute__((packed));
 
-struct BmpInfoHeader {
     u32 biSize; // Size of this header, 40
     u32 biWidth; // Width of image
     u32 biHeight; // Height of image
@@ -109,3 +107,4 @@ struct BmpInfoHeader {
 #define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
 #define LAST_LONG_ENTRY 0x40
 #define ATTR_NULL 0x00
+#define ATTR_FILE (ATTR_ARCHIVE)

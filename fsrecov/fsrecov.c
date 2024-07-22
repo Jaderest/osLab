@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #define SECTOR_SIZE 512
@@ -18,6 +19,150 @@
 #else
 #define debug(fmt, ...)
 #endif
+
+struct line {
+  u8 blank[8];
+  char bmp[3];
+  u8 blank2[5];
+} __attribute__((packed));
+
+#define LINE_SIZE (sizeof(struct line))
+
+void *map_disk_image(const char *path, size_t *size);
+unsigned char ChkSum(unsigned char *pFcbName) {
+  short FcbNameLen;
+  unsigned char Sum;
+  Sum = 0;
+  for (FcbNameLen = 11; FcbNameLen != 0; FcbNameLen--) {
+    // NOTE: The operation is an unsigned char rotate right
+    Sum = ((Sum & 1) ? 0x80 : 0) + (Sum >> 1) + *pFcbName++;
+  }
+  return (Sum);
+}
+
+char uni2ascii(const u32 uni) { //TODO: 需要修改
+  if (uni <= 0x7f) {
+    return uni;
+  } else {
+    return '_';
+  }
+}
+
+void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
+  if (hdr->bfType != 0x4d42) {
+    // fprintf(stderr, "Invalid BMP magic\n");
+    // exit(EXIT_FAILURE);
+  }
+  if (hdr->bfType == 0x4d42) {
+    // debug("BMP file: %s\t", name);
+    // debug("File size: %u\n", hdr->bfSize);
+    // char file_name[512];
+    // snprintf(file_name, 512, "%s/%s", tmp_path, name);
+    // debug("%s\n", file_name);
+    FILE *bmp = fopen(name, "wb");
+    // debug("File: %s\n", name);
+    if (bmp == NULL) {
+      perror("fopen");
+      exit(EXIT_FAILURE);
+    } else {
+      fwrite(hdr, 1, hdr->bfSize, bmp);
+      fclose(bmp);
+    }
+    char cmd[256];
+    snprintf(cmd, 256, "sha1sum %s", name);
+    FILE *fp = popen(cmd, "r");
+    char buf[256] = "123";
+    fscanf(fp, "%s", buf);
+    printf("%s %s\n", buf, name);
+    pclose(fp);
+  }
+}
+
+int is_bmpentry(struct line *line, char *name) {
+  struct fat32dent *entry = (struct fat32dent *)line;
+  if (entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024) {
+    unsigned char checksum = ChkSum(entry->DIR_Name);
+    void *ptr = (void *)entry; // 这里是短目录，所以我要向上寻找
+    u8 size = 0;               // 几组长目录
+    while (1) {
+      size++;
+      ptr -= DIR_SIZE;
+      struct fat32LongName *long_entry = (struct fat32LongName *)ptr;
+      if (long_entry->LDIR_Ord == size) { // 有继续的情况
+        if (long_entry->LDIR_Chksum != checksum ||
+            long_entry->LDIR_Attr != ATTR_LONG_NAME ||
+            long_entry->LDIR_Type != 0) {
+          return 0;
+        }
+        continue;
+      } else if (long_entry->LDIR_Ord == (size | 0x40)) { // 结束
+        if (long_entry->LDIR_Chksum != checksum ||
+            long_entry->LDIR_Attr != ATTR_LONG_NAME ||
+            long_entry->LDIR_Type != 0) {
+          return 0;
+        }
+        break;
+      } else {
+        return 0;
+      }
+    }
+    int len = 0;
+    struct fat32LongName *long_entry =
+        (struct fat32LongName *)ptr; // 这是得到目录开始的地方
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < 5; j++) {
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
+      }
+      for (int j = 0; j < 6; j++) {
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name2[j]);
+      }
+      for (int j = 0; j < 2; j++) {
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name3[j]);
+      }
+    }
+    name[len] = '\0';
+  }
+  return entry->DIR_FileSize > 0 && entry->DIR_FileSize < 2000 * 1024;
+}
+
+int main(int argc, char *argv[]) {
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s <disk_image>\n", argv[0]);
+    exit(EXIT_FAILURE);
+  }
+  size_t img_size;
+  void *disk_img = map_disk_image(argv[1], &img_size);
+  size_t cluster_size = CLUSTER_SIZE;
+
+  struct fat32hdr *hdr = (struct fat32hdr *)disk_img;
+
+  char tmp_path[256] = "/tmp/fsrecov_XXXXXX";
+  int fd = mkstemp(tmp_path);
+
+  struct line *line = (struct line *)disk_img;
+  size_t line_size = LINE_SIZE;
+  size_t num_lines = img_size / line_size;
+  for (int i = 0; i < num_lines; i++) {
+    if (line->bmp[0] == 'B' && line->bmp[1] == 'M' && line->bmp[2] == 'P') {
+      char name[256];
+      if (is_bmpentry(line, name)) {
+        // printf("%s\n", name); //name ok!
+        // 此处line是dir entry的起始地址(短目录)
+        struct fat32dent *entry = (struct fat32dent *)line;
+        u32 cluster = entry->DIR_FstClusLO | (entry->DIR_FstClusHI << 16);
+        cluster += 34; // 真懒得抄手册偏移量了
+        // debug("name: %s  ", name);
+        // debug("Cluster: %d\n", cluster); // cluster少了34？因为是从2开始的
+        void *cluster_ptr = (u8 *)disk_img + cluster * cluster_size;
+        struct BmpHeader *hdr = (struct BmpHeader *)cluster_ptr;
+        parse_bmp(hdr, name, tmp_path);
+      }
+    }
+    line++;
+  }
+
+  return 0;
+}
 
 void *map_disk_image(const char *path, size_t *size) {
   int fd = open(path, O_RDONLY);
@@ -33,72 +178,4 @@ void *map_disk_image(const char *path, size_t *size) {
   }
   close(fd);
   return disk_image;
-}
-
-static int is_dir_entry(const fat32dir *entry) { //正确性一般，少数几个出错的好像
-  int entry_size = CLUSTER_SIZE / DIR_SIZE;
-  // 未使用过
-  if (entry->short_entry.DIR_Name[0] == 0x00) {
-    return 0;
-  }
-  // 这里entry[i]自动计算了偏移量
-  for (int i = 0; i < entry_size;) {
-    if (entry[i].short_entry.DIR_Name[0] == 0xe5) {
-      i++; // deleted entry
-      continue;
-    } else if (entry[i].short_entry.DIR_Name[0]) {
-      if (entry[i].short_entry.DIR_NTRes != 0x0 ||
-          entry[i].short_entry.DIR_Attr == 0x0) {
-        return 0; // 非目录项了
-      }
-      i++; // 不退出的情况就继续扫
-    } else if (entry[i].long_entry.LDIR_Type == ATTR_LONG_NAME) {
-      int size = entry[i].long_entry.LDIR_Ord; // 这是长目录项的序号
-      if (size & LAST_LONG_ENTRY) {
-        size &= ~LAST_LONG_ENTRY;
-      }
-      // 检查长名目录项是否合规
-      if (entry[i].long_entry.LDIR_Type != 0x0f ||
-          entry[i].long_entry.LDIR_FstClusLO != 0x0) {
-        return 0;
-      }
-      if (i + size < entry_size && (entry[size].short_entry.DIR_NTRes != 0x0 || entry[size].short_entry.DIR_Name[0] != 0x0)) {
-        return 0;
-      }
-      i += size + 1;
-    } else {
-      u8 *begin = (u8 *)&entry[i];
-      u8 *end = (u8 *)&entry[entry_size];
-      for (u8 *p = begin; p < end; p++) {
-        if (*p != 0x0) {
-          return 0;
-        }
-      }
-      break;
-    }
-  }
-  return 1;
-}
-
-//TODO: 从目录项中提取文件名
-//TODO：根据clusterid找到文件内容，然后写入文件
-
-int main(int argc, char *argv[]) {
-  size_t image_size;
-  void *disk_image =
-      map_disk_image(argv[1], &image_size); // 映射文件+获取文件大小
-  struct fat32hdr *hdr = (struct fat32hdr *)disk_image;
-  assert(hdr->Signature_word == 0xaa55);
-  printf("Volume ID: %u\n", hdr->BS_VolID);
-  printf("img size: %zu\n", image_size);
-  printf("Bytes per sector: %u\n", hdr->BPB_BytsPerSec);
-  printf("Sectors per cluster: %u\n", hdr->BPB_SecPerClus);
-  printf("Reserved sectors: %u\n", hdr->BPB_RsvdSecCnt);
-  printf("Number of FATs: %u\n", hdr->BPB_NumFATs);
-  printf("Root entries: %u\n", hdr->BPB_RootEntCnt);
-  printf("Root cluster: %u\n", hdr->BPB_RootClus);
-  printf("FAT size: %u\n", hdr->BPB_FATSz32);
-
-  // 接下来就是遍历每个cluster，找到目录项，然后把可能的bmp文件恢复出来（加上文件名）
-  return 0;
 }
