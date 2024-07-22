@@ -40,11 +40,11 @@ unsigned char ChkSum(unsigned char *pFcbName) {
   return (Sum);
 }
 
-char uni2ascii(const u32 uni) {
+char uni2ascii(const u32 uni) { //TODO: 需要修改，不在范围里的字符就不保留了
   if (uni <= 0x7f) {
     return uni;
   } else {
-    return '_';
+    return 1;
   }
 }
 
@@ -111,13 +111,22 @@ int is_bmpentry(struct line *line, char *name) {
         (struct fat32LongName *)ptr; // 这是得到目录开始的地方
     for (int i = 0; i < size; i++) {
       for (int j = 0; j < 5; j++) {
-        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
+        char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
+        if (c != 1) {
+          name[len++] = c;
+        }
       }
       for (int j = 0; j < 6; j++) {
-        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name2[j]);
+        char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
+        if (c != 1) {
+          name[len++] = c;
+        }
       }
       for (int j = 0; j < 2; j++) {
-        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name3[j]);
+        char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
+        if (c != 1) {
+          name[len++] = c;
+        }
       }
     }
     name[len] = '\0';
