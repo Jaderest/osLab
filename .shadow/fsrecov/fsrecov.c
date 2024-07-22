@@ -40,11 +40,11 @@ unsigned char ChkSum(unsigned char *pFcbName) {
   return (Sum);
 }
 
-char uni2ascii(const u32 uni) { //TODO: 需要修改，不在范围里的字符就不保留了
+char uni2ascii(const u32 uni) { //TODO: 需要修改
   if (uni <= 0x7f) {
     return uni;
   } else {
-    return '\0';
+    return '_';
   }
 }
 
@@ -58,23 +58,23 @@ void parse_bmp(struct BmpHeader *hdr, const char *name, const char *tmp_path) {
     // debug("File size: %u\n", hdr->bfSize);
     // char file_name[512];
     // snprintf(file_name, 512, "%s/%s", tmp_path, name);
-    debug("%s\n", name);
-    // FILE *bmp = fopen(name, "wb");
-    // // debug("File: %s\n", name);
-    // if (bmp == NULL) {
-    //   perror("fopen");
-    //   exit(EXIT_FAILURE);
-    // } else {
-    //   fwrite(hdr, 1, hdr->bfSize, bmp);
-    //   fclose(bmp);
-    // }
-    // char cmd[256];
-    // snprintf(cmd, 256, "sha1sum %s", name);
-    // FILE *fp = popen(cmd, "r");
-    // char buf[256] = "123";
-    // fscanf(fp, "%s", buf);
-    // printf("%s %s\n", buf, name);
-    // pclose(fp);
+    // debug("%s\n", file_name);
+    FILE *bmp = fopen(name, "wb");
+    // debug("File: %s\n", name);
+    if (bmp == NULL) {
+      perror("fopen");
+      exit(EXIT_FAILURE);
+    } else {
+      fwrite(hdr, 1, hdr->bfSize, bmp);
+      fclose(bmp);
+    }
+    char cmd[256];
+    snprintf(cmd, 256, "sha1sum %s", name);
+    FILE *fp = popen(cmd, "r");
+    char buf[256] = "123";
+    fscanf(fp, "%s", buf);
+    printf("%s %s\n", buf, name);
+    pclose(fp);
   }
 }
 
@@ -111,22 +111,13 @@ int is_bmpentry(struct line *line, char *name) {
         (struct fat32LongName *)ptr; // 这是得到目录开始的地方
     for (int i = 0; i < size; i++) {
       for (int j = 0; j < 5; j++) {
-        char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
-        // if (c != '\0') {
-          name[len++] = c;
-        // }
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
       }
       for (int j = 0; j < 6; j++) {
-        char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
-        // if (c != '\0') {
-          name[len++] = c;
-        // }
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name2[j]);
       }
       for (int j = 0; j < 2; j++) {
-        char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
-        // if (c != '\0') {
-          name[len++] = c;
-        // }
+        name[len++] = uni2ascii(long_entry[size - i - 1].LDIR_Name3[j]);
       }
     }
     name[len] = '\0';
