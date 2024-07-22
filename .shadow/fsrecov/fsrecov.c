@@ -112,21 +112,21 @@ int is_bmpentry(struct line *line, char *name) {
     for (int i = 0; i < size; i++) {
       for (int j = 0; j < 5; j++) {
         char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
-        if (c != '\0') {
+        // if (c != '\0') {
           name[len++] = c;
-        }
+        // }
       }
       for (int j = 0; j < 6; j++) {
         char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
-        if (c != '\0') {
+        // if (c != '\0') {
           name[len++] = c;
-        }
+        // }
       }
       for (int j = 0; j < 2; j++) {
         char c = uni2ascii(long_entry[size - i - 1].LDIR_Name1[j]);
-        if (c != '\0') {
+        // if (c != '\0') {
           name[len++] = c;
-        }
+        // }
       }
     }
     name[len] = '\0';
