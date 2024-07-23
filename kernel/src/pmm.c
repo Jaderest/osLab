@@ -1,32 +1,81 @@
 #include <common.h>
 #include "pmm.h"
 
-
 // static void *pmm_end = NULL;
 // static *pmm_start = NULL;
 
 // align
 static size_t align_size(size_t size) {
-    size_t ret = 16;
+    size_t ret = 8;
     while (ret < size) {
         ret <<= 1;
     }
-    ret = (ret > 16) ? ret : 16;
+    ret = (ret > 8) ? ret : 8;
     return ret;
 }
 
+// ----------------- buddy system -----------------
+
+
+
+
+
+
+
+// ---------------- slab allocator ----------------
+// typedef struct slab {
+//     struct slab *next;       // 指向下一个slab
+//     object_t *free_objects; // 指向空闲对象链表
+//     size_t num_free; // 空闲对象数量
+//     lock_t lock; // 用于保护该slab的锁
+//     size_t size; // 每个对象的大小
+// } slab_t;
+// typedef struct cache {
+//     slab_t *slabs; // 指向slab链表
+//     size_t object_size; // 每个对象的大小
+//     lock_t cache_lock; // 用于保护该cache的锁
+// } cache_t;
+
+static cache_t caches[MAX_CACHES]; // slab分配器数组
+void slab_init() {
+    size_t size = 8;
+    for (int i = 0; i < MAX_CACHES; i++) {
+        caches[i].slabs = NULL;
+        caches[i].object_size = size;
+        caches[i].cache_lock = LOCK_INIT();
+        size <<= 1;
+        // debug("caches[%d].object_size = %d\n", i, caches[i].object_size);
+    } // 8 16 32 64 128 256 512 1024 2048
+    debug("slab_init done\n");
+}
+
+// static cache_t *find_cache(size_t size) {
+//     for (int i = 0; i < MAX_CACHES; i++) { // 找到最适合的cache页面
+//         if (caches[i].object_size >= size) {
+//             return &caches[i];
+//         }
+//     }
+//     return NULL;
+// }
+
+// static slab_t *slab_alloc_in_cache(cache_t *cache) {
+//     /**
+//      * 从 buddy system中分配一个 page 作为 slab 起始点
+//      * 将 slab 用元数据填充， 并将剩余部分分割成 object
+//      * obj 被链接为一个链表
+//      * 将 slab 加入 cache 的 slab 链表
+//      */
+//     return NULL;
+// }
 
 static void *kalloc(size_t size) {
     void *ret = NULL;
     size = align_size(size);
     if (size > (1 << MAX_ORDER) * PAGE_SIZE) {
         return NULL;
-    } else if (size >= PAGE_SIZE) { // buddy system
-        // ret = buddy_alloc(&g_buddy_pool, size);
-        // panic_on(((uintptr_t)ret >= (uintptr_t)g_buddy_pool.pool_end_addr),
-        //     "buddy_alloc: out of memory");
-    } else { // slab allocator
-        // ret = slab_alloc(size);
+    } else if (size >= PAGE_SIZE) { 
+        // TODO buddy system
+    } else {
     }
     return ret;
 }
@@ -45,6 +94,7 @@ static void pmm_init() {
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
     );
+    slab_init();
     debug("test\n");
 }
 

@@ -5,7 +5,7 @@
 #include "list.h"
 #include "thread.h"
 
-#define MAX_CACHES 10
+#define MAX_CACHES 9
 #define PAGE_SIZE 4096
 #define ALIGN(_A, _B) (((_A + _B - 1) / _B) * _B)
 #define MIB (1024 * 1024)
@@ -44,6 +44,7 @@ typedef struct buddy_block {
     int slab;  // slab分配器，不为空时，表示页面为slab分配器的一部分
 } buddy_block_t;
 
+// buddy系统
 typedef struct buddy_pool {
 #define MIN_ORDER 0 // 2^0 * 4KiB = 4 KiB
 #define MAX_ORDER 12 // 2^12 * 4KiB = 16 MiB

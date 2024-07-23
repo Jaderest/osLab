@@ -14,14 +14,20 @@ include $(AM_HOME)/Makefile
 include ../oslabs.mk
 image: git
 
+.PHONY: test
 
-test: git
-	@gcc $(shell find src/ -name "*.c") \
-		$(shell find test/ -name "*.c") \
-		-Iframework -Itest -I../abstract-machine/klib/include -lpthread -DTEST -g\
-		-o build/test
-	@build/test
+test:
+	@gcc -g $(shell find src/ -name "*.c") \
+	$(shell find test/ -name "*.c") \
+	-Iframework -Itest -DTEST -lpthread \
+	-o build/test
+
+test0: test
+	build/test 0
 
 commit:
 	git add .
 	git commit
+
+
+all: image, test
