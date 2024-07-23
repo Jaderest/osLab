@@ -1,5 +1,5 @@
 #include <common.h>
-#include "pmm.h"
+#include <pmm.h>
 
 static void *pmm_end = NULL;
 static void *pmm_start = NULL;
@@ -107,7 +107,6 @@ static void pmm_init() {
 Area heap = {};
 static void pmm_init() {
     char *ptr = malloc(PMM_SIZE);
-    PANIC_ON(ptr == NULL, "Failed to malloc");
     heap.start = ptr;
     heap.end = ptr + PMM_SIZE;
     heap.start = (void *)ALIGN((uintptr_t)heap.start, PAGE_SIZE);
@@ -115,7 +114,7 @@ static void pmm_init() {
     uintptr_t pmsize = (uintptr_t)heap.end - (uintptr_t)heap.start;
     pmm_start = heap.start;
     pmm_end = heap.end;
-    printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
+    printf("Got %ld MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
 }
 #endif
 

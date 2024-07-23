@@ -20,11 +20,11 @@
 // 使用可变参数的方式定义debug宏
 #define debug(...) printf(__VA_ARGS__)
 
-// PANIC宏
+//TODO PANIC宏，记得改改
 #define PANIC(fmt, ...)                                                                                 \
     do {                                                                                                \
         fprintf(stderr, "\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__); \
-        _exit(1);                                                                                       \
+        exit(1);                                                                                       \
     } while (0)
 
 // PANIC_ON宏

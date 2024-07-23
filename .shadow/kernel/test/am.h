@@ -1,5 +1,5 @@
 #include <stddef.h>
 
-typedef struct {
-  void *start, *end;
-} Area;
+// typedef struct {
+//   void *start, *end;
+// } Area;
