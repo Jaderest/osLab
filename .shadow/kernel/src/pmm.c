@@ -1,5 +1,8 @@
 #include <common.h>
 #include <pmm.h>
+#ifdef TEST
+#include <stdio.h>
+#endif
 
 static void *pmm_end = NULL;
 static void *pmm_start = NULL;
@@ -77,7 +80,7 @@ static void *kalloc(size_t size) {
         // TODO buddy system
     } else {
     }
-    PANIC_ON(ret == NULL, "Failed to allocate bytes");
+    // PANIC_ON(ret == NULL, "Failed to allocate bytes");
     return ret;
 }
 
@@ -109,7 +112,7 @@ Area heap = {};
 static void pmm_init() {
     char *ptr = malloc(PMM_SIZE);
     if (ptr == NULL) {
-        PANIC("Failed to allocate %d MiB heap", PMM_SIZE >> 20);
+        // PANIC("Failed to allocate %d MiB heap", PMM_SIZE >> 20);
     }
     heap.start = ptr;
     heap.end = ptr + PMM_SIZE;
