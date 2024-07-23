@@ -38,13 +38,14 @@ static inline size_t buddy_block_order(size_t size) {
 void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化buddy_pool
     //初始化自由列表，标记每个页的状态
     size_t page_num = (end - start) >> PAGE_SHIFT;
-    //? pool->pool_start_addr = start;
     debug("page_num = %d\n", page_num);
     for (int i = 0; i <= MAX_ORDER; i++) {
         init_list_head(&pool->free_lists[i].free_list);
     }
     pool->pool_meta_data = start;
     debug("meta data of buddy pool: [%p, %p)\n", pool->pool_meta_data, pool->pool_meta_data + page_num * sizeof(buddy_block_t));
+    memset(pool->pool_meta_data, 0, page_num * sizeof(buddy_block_t));
+    debug("memset done\n");
 }
 
 // 2^12 = 4096
