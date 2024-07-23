@@ -18,8 +18,30 @@ static size_t align_size(size_t size) {
 }
 
 // ----------------- buddy system -----------------
+#define PAGE_SHIFT 12
+// static size_t buddy_mem_sz = 0;
+static buddy_pool_t g_buddy_pool = {};
+static lock_t global_lock = LOCK_INIT();
 
+// size is at least 1 page, return the order of size of the size, order is at least 0
+static inline size_t buddy_block_order(size_t size) {
+    size_t order = 0;
+    while ((1 << order) < size) {
+        order++;
+    }
+    debug("size = %d, order = %d\n", size, order);
+    return order;
+}
 
+// 2^12 = 4096
+void *buddy_alloc(buddy_pool_t *pool, size_t size) {
+    lock(&global_lock);
+    size = align_size(size);
+    buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
+
+    unlock(&global_lock);
+    return NULL;
+}
 
 
 
@@ -74,12 +96,13 @@ void slab_init() {
 static void *kalloc(size_t size) {
     void *ret = NULL;
     size = align_size(size);
-    if (size > (1 << MAX_ORDER) * PAGE_SIZE) {
-        return NULL;
-    } else if (size >= PAGE_SIZE) { 
-        // TODO buddy system
-    } else {
-    }
+    // if (size > (1 << MAX_ORDER) * PAGE_SIZE) {
+    //     return NULL;
+    // } else if (size >= PAGE_SIZE) { 
+    //     // TODO buddy system
+    // } else {
+    // }
+    ret = buddy_alloc(&g_buddy_pool, size);
     PANIC_ON(ret == NULL, "Failed to allocate %d bytes", size);
     return ret;
 }
