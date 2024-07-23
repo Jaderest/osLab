@@ -22,6 +22,24 @@ static size_t align_size(size_t size) {
     return ret;
 }
 
+void print_pool(buddy_pool_t *pool) {
+    for (int i = 0; i <= MAX_ORDER; i++) {
+        struct list_head *list = &(pool->free_lists[i].free_list);
+        if (list_empty(list)) {
+            continue;
+        }
+        debug("order %d:\n", i);
+        buddy_block_t *block = (buddy_block_t *)list->next;
+        while (&block->node != list) {
+            debug("%p: [%d, %d)\n", block,
+                (uintptr_t)block2addr(pool, block),
+                (uintptr_t)block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
+            block = (buddy_block_t *)block->node.next;
+        }
+        debug("\n");
+    }
+}
+
 // ----------------- buddy system -----------------
 #define PAGE_SHIFT 12 // 2^12 = 4096
 // static size_t buddy_mem_sz = 0;
@@ -146,7 +164,7 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
 void buddy_free(buddy_pool_t *pool, void *ptr) {
     lock(&global_lock);
     buddy_block_t *block = addr2block(pool, ptr);
-    debug("block = %p\n", block);
+    // debug("block = %p\n", block);
     buddy_system_merge(pool, block);
     unlock(&global_lock);
 }
@@ -234,6 +252,7 @@ static void pmm_init() {
     pmm_end = heap.end;
 
     buddy_pool_init(&g_buddy_pool, pmm_start, pmm_end);
+    print_pool(&g_buddy_pool);
     slab_init();
     debug("test\n");
 }
