@@ -34,7 +34,6 @@ void alignTest2() {
 
 int main() {
     os->init();
-    printf("Hello from NEMU\n");
     mpe_init(os->run);
     // mpe_init(alignTest1);
     // mpe_init(alignTest2);
