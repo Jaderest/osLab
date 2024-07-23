@@ -34,7 +34,16 @@ static inline size_t buddy_block_order(size_t size) {
     return order;
 } // order = log_2(size（页数）)
 
+// 初始化buddy内存池，包括设置元数据、初始化自由列表、标记每个页状态，并将整个内存空间分为一个一个Page
+void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化buddy_pool
+    //初始化自由列表，标记每个页的状态
+    size_t page_num = (end - start) >> PAGE_SHIFT;
+    debug("page_num = %d\n", page_num);
+    // pool->pool_meta_data = start;
+}
+
 // 2^12 = 4096
+// TODO: 继续完善
 void *buddy_alloc(buddy_pool_t *pool, size_t size) {
     lock(&global_lock);
     size = align_size(size);
@@ -131,6 +140,7 @@ static void pmm_init() {
     pmm_start = heap.start;
     pmm_end = heap.end;
 
+    buddy_pool_init(&g_buddy_pool, pmm_start, pmm_end);
     slab_init();
     debug("test\n");
 }
