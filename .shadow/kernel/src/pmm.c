@@ -7,6 +7,11 @@
 static void *pmm_end = NULL;
 static void *pmm_start = NULL;
 
+#define BUDDY_FREE 1
+#define BUDDY_ALLOCATED 0
+#define BLOCK_FREE 1
+#define BLOCK_ALLOCATED 0
+
 // align
 static size_t align_size(size_t size) {
     size_t ret = 8;
@@ -64,24 +69,62 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     for (page_idx = 0; page_idx < page_num; page_idx++) {
         buddy_block_t *block = (buddy_block_t *)(pool->pool_meta_data + page_idx * sizeof(buddy_block_t));
         block->order = 0;
-        block->free = 0;
+        block->free = BLOCK_ALLOCATED;
     }
     // 初始化后，将所有页标记为可用
     for (page_idx = 0; page_idx < page_num; page_idx++) {
         buddy_block_t *block = (buddy_block_t *)(pool->pool_meta_data + page_idx * sizeof(buddy_block_t));
         void *addr = block2addr(pool, block);
-        debug("addr = %p\n", addr);
-        // buddy_free(pool, addr);
+        buddy_free(pool, addr);
     }
 }
 
 // 将block转换为地址
 void *block2addr(buddy_pool_t *pool, buddy_block_t *block) {
     int index = block - (buddy_block_t *)pool->pool_meta_data;
-    int index2 = ((void *)block - pool->pool_meta_data) / sizeof(buddy_block_t);
-    debug("index = %d, index2 = %d\n", index, index2);
     void *addr = index * PAGE_SIZE + pool->pool_start_addr;
     return addr;
+}
+
+// 将地址转换为block
+buddy_block_t *addr2block(buddy_pool_t *pool, void *addr) {
+    PANIC_ON(((uintptr_t)addr % PAGE_SIZE), "addr is not aligned");
+    int index = (uintptr_t)(addr - pool->pool_start_addr) >> PAGE_SHIFT;
+    buddy_block_t *block = (buddy_block_t *)(pool->pool_meta_data + index * sizeof(buddy_block_t));
+    return block;
+}
+
+// 获取buddy块的伙伴
+buddy_block_t *get_buddy_chunk(buddy_pool_t *pool, buddy_block_t *block) {
+    uintptr_t addr = (uintptr_t)block2addr(pool, block);
+    // 获取伙伴块的地址，具有相同大小，取异或可以得到
+    uintptr_t buddy_addr = addr ^ (1 << (block->order + PAGE_SHIFT));
+    if (buddy_addr < (uintptr_t)pool->pool_start_addr || buddy_addr >= (uintptr_t)pool->pool_end_addr) {
+        return NULL;
+    }
+    return addr2block(pool, (void *)buddy_addr);
+}
+
+// merge the block with its buddy until the order is MAX_ORDER(equal to its buddy)
+void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
+    int order = block->order; // 当前块的阶数
+    while (order < MAX_ORDER) {
+        buddy_block_t *buddy = get_buddy_chunk(pool, block); //是把block合成
+        if (buddy == NULL || buddy->free == BUDDY_ALLOCATED || buddy->order != order) {
+            // NULL || buddy 被占用 || order 不对
+            break;
+        }
+        list_del(&(buddy->node)); // 将buddy所在list删除
+        pool->free_lists[order].nr_free--;
+        if ((uintptr_t)block > (uintptr_t)buddy) block = buddy; // 这句话是block指向右半块，然后指向统领的buddy起始地址
+        order++;
+        block->order = order;
+        block->free = BLOCK_FREE;
+    }
+    block->order = order;
+    block->free = BLOCK_FREE;
+    list_add(&(block->node), &(pool->free_lists[order].free_list));
+    pool->free_lists[order].nr_free++;
 }
 
 // 2^12 = 4096
@@ -98,6 +141,14 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
 
     unlock(&global_lock);
     return NULL;
+}
+
+void buddy_free(buddy_pool_t *pool, void *ptr) {
+    lock(&global_lock);
+    buddy_block_t *block = addr2block(pool, ptr);
+    debug("block = %p\n", block);
+    buddy_system_merge(pool, block);
+    unlock(&global_lock);
 }
 
 
