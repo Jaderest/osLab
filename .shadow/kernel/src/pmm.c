@@ -30,7 +30,7 @@ static inline size_t buddy_block_order(size_t size) {
         order++;
     }
     // debug("size = %d, order = %d\n", size, order);
-    PANIC_ON(size >= 1 && order >= 0, "size = %d, order = %d", size, order);
+    PANIC_ON(size < 1 || order < 0, "size = %d, order = %d", size, order);
     return order;
 } // order = log_2(size（页数）)
 
