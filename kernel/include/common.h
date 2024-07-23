@@ -14,10 +14,10 @@
 #define debug(...) printf(__VA_ARGS__)
 
 // PANIC宏
-#define PANIC(fmt, ...)                                                                                 \
-    do {                                                                                                \
-        fprintf(stderr, "\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__); \
-        _exit(1);                                                                                       \
+#define PANIC(fmt, ...)  \
+    do {  \
+        printf("\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
+        while(1) asm volatile ("hlt");  \
     } while (0)
 
 // PANIC_ON宏
