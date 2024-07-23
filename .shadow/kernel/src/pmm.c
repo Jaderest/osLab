@@ -49,11 +49,11 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     debug("memset done\n");
 
     start += page_num * sizeof(buddy_block_t); // 从元数据后开始分配
-    page_num -= page_num * sizeof(buddy_block_t) >> PAGE_SHIFT;
-    debug("page_num = %d\n", page_num);
     page_num = (end - start) >> PAGE_SHIFT;
     debug("page_num = %d\n", page_num);
-
+    pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
+    pool->pool_end_addr = (void *)ALIGN((uintptr_t)end, PAGE_SIZE);
+    debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
 }
 
 // 2^12 = 4096
