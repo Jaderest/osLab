@@ -40,7 +40,7 @@ struct free_list {
 typedef struct buddy_block {
     struct list_head node; // 用于空闲链表的节点
     size_t order;  // 2^order pages(页的阶数)
-    int free;  // 1: free, 0: allocated
+    int free;  // block是否空闲
     int slab;  // slab分配器，不为空时，表示页面为slab分配器的一部分
 } buddy_block_t;
 

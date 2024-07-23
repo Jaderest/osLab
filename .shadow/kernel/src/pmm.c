@@ -54,8 +54,34 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
     pool->pool_end_addr = (void *)ALIGN((uintptr_t)end, PAGE_SIZE);
     page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
-    debug("page_num = %d\n", page_num);
+    debug("page_num = %d\n", page_num); // 这里不能assert，因为可能会有一些空洞
     debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
+
+    // 整个空间分为一个page，每个page绑定一个buddy_block_t
+    // -----------meta_data-----------
+    int page_idx;
+    // 初始化每一个buddy_block_t
+    for (page_idx = 0; page_idx < page_num; page_idx++) {
+        buddy_block_t *block = (buddy_block_t *)(pool->pool_meta_data + page_idx * sizeof(buddy_block_t));
+        block->order = 0;
+        block->free = 0;
+    }
+    // 初始化后，将所有页标记为可用
+    for (page_idx = 0; page_idx < page_num; page_idx++) {
+        buddy_block_t *block = (buddy_block_t *)(pool->pool_meta_data + page_idx * sizeof(buddy_block_t));
+        void *addr = block2addr(pool, block);
+        debug("addr = %p\n", addr);
+        // buddy_free(pool, addr);
+    }
+}
+
+// 将block转换为地址
+void *block2addr(buddy_pool_t *pool, buddy_block_t *block) {
+    int index = block - (buddy_block_t *)pool->pool_meta_data;
+    int index2 = ((void *)block - pool->pool_meta_data) / sizeof(buddy_block_t);
+    debug("index = %d, index2 = %d\n", index, index2);
+    void *addr = index * PAGE_SIZE + pool->pool_start_addr;
+    return addr;
 }
 
 // 2^12 = 4096

@@ -13,6 +13,11 @@
 // 使用可变参数的方式定义debug宏
 #define debug(...) printf(__VA_ARGS__)
 
+#endif
+
+#define ASSERT
+#ifdef ASSERT
+
 // PANIC宏
 #define PANIC(fmt, ...)  \
     do {  \
