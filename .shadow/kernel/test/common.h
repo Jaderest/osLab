@@ -1,7 +1,6 @@
 #ifndef _COMMON_H__
 #define _COMMON_H__
 
-
 // #include <kernel.h>
 // #include <klib.h>
 // #include <klib-macros.h>
@@ -13,32 +12,33 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 #define DEBUG
 #ifdef DEBUG
 
 // 使用可变参数的方式定义debug宏
 #define debug(...) printf(__VA_ARGS__)
 
-//TODO PANIC宏，记得改改
-#define PANIC(fmt, ...)                                                                                 \
-    do {                                                                                                \
-        fprintf(stderr, "\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__); \
-        exit(1);                                                                                       \
-    } while (0)
+// TODO PANIC宏，记得改改
+#define PANIC_ON(condition, s)                                                 \
+    ({
+if (condition) {
+  putstr("Panic: ");
+  putstr(s);
+  putstr(" @ " __FILE__ ":" TOSTRING(__LINE__) "  \n");
+  halt(1);
+}
+})
 
-// PANIC_ON宏
-#define PANIC_ON(condition, message, ...)         \
-    do {                                          \
-        if (condition) {                          \
-            PANIC(message, ##__VA_ARGS__);        \
-        }                                         \
-    } while (0)
+#define PANIC(s) PANIC_ON(1, s)
 
 #else
 #define debug(fmt, ...)
-#define PANIC(fmt, ...)
-#define PANIC_ON(condition, message, ...)
+#define PANIC_ON(condition, s)
+#define PANIC(s)
 #endif
+
+typedef struct {
+  void *start, *end;
+} Area;
 
 #endif

@@ -25,10 +25,10 @@ typedef struct slab {
     size_t size;              // slab中对象的大小
 } slab_t;
 
-// a cache is a collection of slabs with fixed object size, all the obj is aligned to 2^(obj_size)
+// a cache is a collection of slabs with fixed object size, all the obj is aligned to 2^(object_size)
 typedef struct cache {
     slab_t *slabs;      // 指向slab链表
-    size_t obj_size;    // 对象大小
+    size_t object_size;    // 对象大小
     lock_t cache_lock;  // 保护cache的锁
 } cache_t;
 

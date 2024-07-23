@@ -77,6 +77,7 @@ static void *kalloc(size_t size) {
         // TODO buddy system
     } else {
     }
+    PANIC_ON(ret == NULL, "Failed to allocate bytes");
     return ret;
 }
 
@@ -107,6 +108,9 @@ static void pmm_init() {
 Area heap = {};
 static void pmm_init() {
     char *ptr = malloc(PMM_SIZE);
+    if (ptr == NULL) {
+        PANIC("Failed to allocate %d MiB heap", PMM_SIZE >> 20);
+    }
     heap.start = ptr;
     heap.end = ptr + PMM_SIZE;
     heap.start = (void *)ALIGN((uintptr_t)heap.start, PAGE_SIZE);
