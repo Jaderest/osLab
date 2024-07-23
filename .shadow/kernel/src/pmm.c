@@ -53,6 +53,8 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     debug("page_num = %d\n", page_num);
     pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
     pool->pool_end_addr = (void *)ALIGN((uintptr_t)end, PAGE_SIZE);
+    page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
+    debug("page_num = %d\n", page_num);
     debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
 }
 
