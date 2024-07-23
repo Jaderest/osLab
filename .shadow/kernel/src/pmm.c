@@ -46,6 +46,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     debug("meta data of buddy pool: [%p, %p)\n", pool->pool_meta_data, pool->pool_meta_data + page_num * sizeof(buddy_block_t));
     memset(pool->pool_meta_data, 0, page_num * sizeof(buddy_block_t));
     PANIC_ON((uintptr_t)pool->pool_meta_data % PAGE_SIZE != 0, "pool_meta_data is not aligned");
+    PANIC_ON((buddy_pool_t *)pool->pool_meta_data, "pool_meta_data not initialized");
     debug("memset done\n");
 
 }
