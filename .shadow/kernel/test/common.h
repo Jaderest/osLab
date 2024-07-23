@@ -23,7 +23,7 @@
   do {                                                                         \
     fprintf(stderr, "\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__,      \
             __LINE__, ##__VA_ARGS__);                                          \
-    exit(1);                                                                   \
+    _exit(1);                                                                   \
   } while (0)
 
 // PANIC_ON宏

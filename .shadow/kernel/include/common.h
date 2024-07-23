@@ -17,7 +17,7 @@
 #define PANIC(fmt, ...)  \
     do {  \
         printf("\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
-        exit(1);  \
+        asm volatile ("hlt");  \
     } while (0)
 
 // PANIC_ON宏
