@@ -97,23 +97,25 @@ static void pmm_init() {
     );
     pmm_start = heap.start;
     pmm_end = heap.end;
-    
+
     slab_init();
     debug("test\n");
 }
 #else
 // 测试框架中的pmm_init
-#define PMM_SIZE (128 * MIB)
+#define PMM_SIZE (128 << 20)
 Area heap = {};
 static void pmm_init() {
     char *ptr = malloc(PMM_SIZE);
-    panic_on(ptr == NULL, "Failed to malloc");
+    PANIC_ON(ptr == NULL, "Failed to malloc");
     heap.start = ptr;
     heap.end = ptr + PMM_SIZE;
     heap.start = (void *)ALIGN((uintptr_t)heap.start, PAGE_SIZE);
     heap.end = (void *)ALIGN((uintptr_t)heap.end, PAGE_SIZE);
     uintptr_t pmsize = (uintptr_t)heap.end - (uintptr_t)heap.start;
     pmm_start = heap.start;
+    pmm_end = heap.end;
+    printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
 }
 #endif
 
