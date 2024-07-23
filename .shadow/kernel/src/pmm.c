@@ -7,8 +7,6 @@
 static void *pmm_end = NULL;
 static void *pmm_start = NULL;
 
-#define BUDDY_FREE 1
-#define BUDDY_ALLOCATED 0
 #define BLOCK_FREE 1
 #define BLOCK_ALLOCATED 0
 
@@ -95,6 +93,8 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
         void *addr = block2addr(pool, block);
         buddy_free(pool, addr);
     }
+
+    print_pool(pool);
 }
 
 // 将block转换为地址
@@ -128,7 +128,7 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     int order = block->order; // 当前块的阶数
     while (order < MAX_ORDER) {
         buddy_block_t *buddy = get_buddy_chunk(pool, block); //是把block合成
-        if (buddy == NULL || buddy->free == BUDDY_ALLOCATED || buddy->order != order) {
+        if (buddy == NULL || buddy->free == BLOCK_ALLOCATED || buddy->order != order) {
             // NULL || buddy 被占用 || order 不对
             break;
         }
@@ -252,7 +252,7 @@ static void pmm_init() {
     pmm_end = heap.end;
 
     buddy_pool_init(&g_buddy_pool, pmm_start, pmm_end);
-    print_pool(&g_buddy_pool);
+    // print_pool(&g_buddy_pool);
     slab_init();
     debug("test\n");
 }
