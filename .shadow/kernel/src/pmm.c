@@ -18,7 +18,7 @@ static size_t align_size(size_t size) {
 }
 
 // ----------------- buddy system -----------------
-#define PAGE_SHIFT 12
+#define PAGE_SHIFT 12 // 2^12 = 4096
 // static size_t buddy_mem_sz = 0;
 static buddy_pool_t g_buddy_pool = {};
 static lock_t global_lock = LOCK_INIT();
@@ -49,6 +49,8 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     debug("memset done\n");
 
     start += page_num * sizeof(buddy_block_t); // 从元数据后开始分配
+    page_num -= page_num * sizeof(buddy_block_t) >> PAGE_SHIFT;
+    debug("page_num = %d\n", page_num);
     page_num = (end - start) >> PAGE_SHIFT;
     debug("page_num = %d\n", page_num);
 
