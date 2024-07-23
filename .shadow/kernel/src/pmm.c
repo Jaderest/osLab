@@ -1,8 +1,8 @@
 #include <common.h>
 #include "pmm.h"
 
-// static void *pmm_end = NULL;
-// static *pmm_start = NULL;
+static void *pmm_end = NULL;
+static void *pmm_start = NULL;
 
 // align
 static size_t align_size(size_t size) {
@@ -85,6 +85,7 @@ static void kfree(void *ptr) {
     // You can add more .c files to the repo.
 }
 
+#ifndef TEST
 static void pmm_init() {
     uintptr_t pmsize = (
         (uintptr_t)heap.end
@@ -94,9 +95,27 @@ static void pmm_init() {
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
     );
+    pmm_start = heap.start;
+    pmm_end = heap.end;
+    
     slab_init();
     debug("test\n");
 }
+#else
+// 测试框架中的pmm_init
+#define PMM_SIZE (128 * MIB)
+Area heap = {};
+static void pmm_init() {
+    char *ptr = malloc(PMM_SIZE);
+    panic_on(ptr == NULL, "Failed to malloc");
+    heap.start = ptr;
+    heap.end = ptr + PMM_SIZE;
+    heap.start = (void *)ALIGN((uintptr_t)heap.start, PAGE_SIZE);
+    heap.end = (void *)ALIGN((uintptr_t)heap.end, PAGE_SIZE);
+    uintptr_t pmsize = (uintptr_t)heap.end - (uintptr_t)heap.start;
+    pmm_start = heap.start;
+}
+#endif
 
 MODULE_DEF(pmm) = {
     .init  = pmm_init,
