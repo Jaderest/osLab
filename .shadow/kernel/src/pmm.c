@@ -80,7 +80,7 @@ static void *kalloc(size_t size) {
         // TODO buddy system
     } else {
     }
-    PANIC_ON(ret == NULL, "Failed to allocate %d bytes\n", size);
+    PANIC_ON(ret == NULL, "Failed to allocate %d bytes", size);
     return ret;
 }
 
