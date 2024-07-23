@@ -29,15 +29,21 @@ static inline size_t buddy_block_order(size_t size) {
     while ((1 << order) < size) {
         order++;
     }
-    debug("size = %d, order = %d\n", size, order);
+    // debug("size = %d, order = %d\n", size, order);
+    PANIC_ON(size >= 1 && order >= 0, "size = %d, order = %d", size, order);
     return order;
-}
+} // order = log_2(size（页数）)
 
 // 2^12 = 4096
 void *buddy_alloc(buddy_pool_t *pool, size_t size) {
     lock(&global_lock);
     size = align_size(size);
-    buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
+    debug("get buddy order\n");
+    int order = buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
+    // buddy_block_t *block = NULL;
+    for (int i = order; i <= MAX_ORDER; i++) { // 从order查找可以使用的块
+
+    }
 
     unlock(&global_lock);
     return NULL;
