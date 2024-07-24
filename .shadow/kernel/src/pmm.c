@@ -29,9 +29,10 @@ void print_pool(buddy_pool_t *pool) {
         debug("order %d:\n", i); // 即这个链表中的block的order都是i
         buddy_block_t *block = (buddy_block_t *)list->next;
         while (&block->node != list) {
-            debug("%p: [%d, %d)\n", block,
-                (uintptr_t)block2addr(pool, block),
-                (uintptr_t)block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
+            // debug("%p: [%d, %d)\n", block,
+            //     (uintptr_t)block2addr(pool, block),
+            //     (uintptr_t)block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
+            debug("order = %d, block = %p, addr = %p, size = %d\n", block->order, block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
             block = (buddy_block_t *)block->node.next;
         }
         debug("\n");
@@ -133,7 +134,7 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
             // NULL || buddy 被占用 || order 不对
             break;
         }
-        debug("del block = %p\n", block);
+        // debug("del block = %p\n", block);
         list_del(&(buddy->node)); // 将buddy所在list删除
         pool->free_lists[order].nr_free--;
         if ((uintptr_t)block > (uintptr_t)buddy) block = buddy; // 这句话是block指向右半块，然后指向统领的buddy起始地址
@@ -144,7 +145,7 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     block->order = order;
     block->free = BLOCK_FREE;
     //TODO: 研究一下list的add和del呢
-    debug("add block = %p\n", block);
+    // debug("add block = %p\n", block);
     list_add(&(block->node), &(pool->free_lists[order].free_list)); // 最后merge留下了那些碎片
     pool->free_lists[order].nr_free++;
 }
