@@ -231,56 +231,148 @@ void buddy_free(buddy_pool_t *pool, void *ptr) {
 //     size_t object_size; // 每个对象的大小
 //     lock_t cache_lock; // 用于保护该cache的锁
 // } cache_t;
+//! 小内存高速分配，所以需要scalability
 
-static cache_t caches[MAX_CACHES]; // slab分配器数组
+static cache_t g_caches[MAX_CACHES]; // 全局slab分配器数组
 void slab_init() {
     size_t size = 8;
     for (int i = 0; i < MAX_CACHES; i++) {
-        caches[i].slabs = NULL;
-        caches[i].object_size = size;
-        caches[i].cache_lock = LOCK_INIT();
+        g_caches[i].slabs = NULL;
+        g_caches[i].object_size = size;
+        g_caches[i].cache_lock = LOCK_INIT();
         size <<= 1;
         // debug("caches[%d].object_size = %d\n", i, caches[i].object_size);
-    } // 8 16 32 64 128 256 512 1024 2048
+    } // 每个缓存对应一个固定对象大小8 16 32 64 128 256 512 1024 2048（一直到PAGE_SIZE/2）
     debug("slab_init done\n");
 }
 
-// static cache_t *find_cache(size_t size) {
-//     for (int i = 0; i < MAX_CACHES; i++) { // 找到最适合的cache页面
-//         if (caches[i].object_size >= size) {
-//             return &caches[i];
-//         }
-//     }
-//     return NULL;
-// }
+// 寻找可以分配给object的cache（object_size >= size)
+static cache_t *find_cache(size_t size) {
+    for (int i = 0; i < MAX_CACHES; i++) { // 找到最适合的cache页面
+        if (g_caches[i].object_size >= size) {
+            return &g_caches[i];
+        }
+    }
+    return NULL;
+}
 
-// static slab_t *slab_alloc_in_cache(cache_t *cache) {
-//     /**
-//      * 从 buddy system中分配一个 page 作为 slab 起始点
-//      * 将 slab 用元数据填充， 并将剩余部分分割成 object
-//      * obj 被链接为一个链表
-//      * 将 slab 加入 cache 的 slab 链表
-//      */
-//     return NULL;
-// }
+static slab_t *allocate_slab(cache_t *cache) {
+    // 从 buddy system 申请一个page
+    // 将 slab 用元数据填满，然后填 objects
+    // 将 slab 加入 cache（它是一个可增长的链表
+    uintptr_t slab_addr = (uintptr_t)buddy_alloc(&g_buddy_pool, PAGE_SIZE); // 作为起始指针
+    buddy_block_t *block = addr2block(&g_buddy_pool, (void *)slab_addr);
+    block->slab = 1;
+    PANIC_ON(slab_addr % PAGE_SIZE != 0, "slab align error");
+
+    slab_t *new_slab = (slab_t *)slab_addr;
+    // 对齐对象区域起始地址
+    slab_addr += sizeof(slab_t);
+    slab_addr = ALIGN(slab_addr, cache->object_size);
+    // 初始化 slab 元数据
+    size_t num_objects = (PAGE_SIZE - (slab_addr - (uintptr_t)block2addr(&g_buddy_pool, block))) / cache->object_size;
+    PANIC_ON(num_objects == 0, "num_objects = 0");
+    // 初始化对象链表
+    object_t *obj = (object_t *)slab_addr;
+    new_slab->free_objects = obj;
+    new_slab->num_free = num_objects;
+    new_slab->size = cache->object_size;
+    new_slab->lock = LOCK_INIT();
+    // 填充对象并链接链表
+    for (int i = 0; i < num_objects - 1; i++) {
+        obj->next = (object_t *)((uintptr_t)obj + cache->object_size);
+        obj = obj->next; //obj 一个一个往后推
+        PANIC_ON((uintptr_t)obj % cache->object_size != 0, "obj align error");
+        PANIC_ON((uintptr_t)obj + new_slab->size > (uintptr_t)new_slab + PAGE_SIZE, "obj out of range");
+    }
+    obj->next = NULL;
+
+    return new_slab;
+}
+
+void *slab_alloc(size_t size) {
+    if (size == 0 || size >= PAGE_SIZE) { //用户的非法请求
+        return NULL;
+    }
+
+    cache_t *cache = find_cache(size); //得到相应的一个cache
+    if (cache == NULL) {
+        PANIC("slab alloc"); // 这里应该panic吗
+        return NULL;
+    }
+
+    slab_t *slab = cache->slabs;
+    while (slab != NULL) {
+        lock(&slab->lock);
+        if (slab->free_objects > 0) {
+            object_t *obj = slab->free_objects;
+            slab->free_objects = obj->next; // 一个一个往后推
+            slab->free_objects--;
+            unlock(&slab->lock);
+            return obj;
+        } else {
+            unlock(&slab->lock);
+            slab = slab->next;
+        }
+    }
+    // 此时当前slab没有空闲位置
+    PANIC_ON(slab != NULL, "Find slab Error!");
+    slab = allocate_slab(cache); // 申请一个新的slab
+    lock(&slab->lock);
+    object_t *obj = slab->free_objects;
+    slab->free_objects = obj->next;
+    unlock(&slab->lock);
+    lock(&cache->cache_lock);
+    slab->next = cache->slabs; // 头插
+    cache->slabs = slab;
+    unlock(&cache->cache_lock);
+
+    return obj;
+}
+
+void slab_free(void *ptr) {
+    if (ptr == NULL) {
+        return;
+    }
+    // 通过指针找到slab
+    object_t *obj = (object_t *)ptr;
+    uintptr_t slab_addr = (uintptr_t)ptr & ~(PAGE_SIZE - 1);
+    slab_t *slab = (slab_t *)slab_addr;
+
+    lock(&slab->lock);
+    obj->next = slab->free_objects;
+    slab->free_objects = obj;
+    slab->free_objects++;
+    unlock(&slab->lock);
+}
 
 static void *kalloc(size_t size) {
     void *ret = NULL;
     size = align_size(size);
-    // if (size > (1 << MAX_ORDER) * PAGE_SIZE) {
-    //     return NULL;
-    // } else if (size >= PAGE_SIZE) { 
-    //     // TODO buddy system
-    // } else {
-    // }
-    ret = buddy_alloc(&g_buddy_pool, size);
-    PANIC_ON(ret == NULL, "Failed to allocate %d bytes", size);
+    if (size > (1 << MAX_ORDER) * PAGE_SIZE) {
+        return NULL;
+    } else if (size >= PAGE_SIZE) { 
+        ret = buddy_alloc(&g_buddy_pool, size);
+    } else if (size > 0) {
+        ret = slab_alloc(size);
+    } else {
+        return NULL;
+    }
+    // ret = buddy_alloc(&g_buddy_pool, size);
+    // PANIC_ON(ret == NULL, "Failed to allocate %d bytes", size);
     return ret;
 }
 
 static void kfree(void *ptr) {
     // TODO
     // You can add more .c files to the repo.
+    void *page = (void *)((uintptr_t)ptr & ~(PAGE_SIZE - 1));
+    buddy_block_t *block = addr2block(&g_buddy_pool, page);
+    if (block->slab) {
+        slab_free(ptr);
+    } else {
+        buddy_free(&g_buddy_pool, ptr);
+    }
 }
 
 #ifndef TEST
