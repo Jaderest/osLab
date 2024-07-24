@@ -32,7 +32,8 @@ void print_pool(buddy_pool_t *pool) {
             // debug("%p: [%d, %d)\n", block,
             //     (uintptr_t)block2addr(pool, block),
             //     (uintptr_t)block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
-            debug("order = %d, block = %p, addr = %p, size = %d\n", block->order, block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
+            debug("order = %d, block = %p, addr = %p, size = %d\t", block->order, block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
+            debug("block->free: %d\n", block->free);
             block = (buddy_block_t *)block->node.next;
         }
         debug("\n");
@@ -98,7 +99,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     print_pool(pool);
 }
 
-// 将block转换为地址
+// 将block转换为地址(映射到分配区里面)
 void *block2addr(buddy_pool_t *pool, buddy_block_t *block) {
     int index = block - (buddy_block_t *)pool->pool_meta_data;
     void *addr = index * PAGE_SIZE + pool->pool_start_addr;
@@ -127,7 +128,7 @@ buddy_block_t *get_buddy_chunk(buddy_pool_t *pool, buddy_block_t *block) {
 // merge the block with its buddy until the order is MAX_ORDER(equal to its buddy)
 void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     int order = block->order; // 当前块的阶数
-    debug("order = %d\n", order);
+    // debug("order = %d\n", order);
     while (order < MAX_ORDER) {
         buddy_block_t *buddy = get_buddy_chunk(pool, block); //是把block合成
         if (buddy == NULL || buddy->free == BLOCK_ALLOCATED || buddy->order != order) {
