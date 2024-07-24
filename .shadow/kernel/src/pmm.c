@@ -12,7 +12,7 @@ static void *pmm_start = NULL;
 
 // align
 static size_t align_size(size_t size) {
-    size_t ret = 8;
+    size_t ret = 1;
     while (ret < size) {
         ret <<= 1;
     }
@@ -42,7 +42,7 @@ void print_pool(buddy_pool_t *pool) {
 
 // ----------------- buddy system -----------------
 #define PAGE_SHIFT 12 // 2^12 = 4096
-// static size_t buddy_mem_sz = 0;
+static size_t buddy_mem_sz = 0;
 static buddy_pool_t g_buddy_pool = {};
 static lock_t global_lock = LOCK_INIT();
 
@@ -378,16 +378,21 @@ static void kfree(void *ptr) {
 
 #ifndef TEST
 static void pmm_init() {
+    heap.start = (void *)ALIGN((uintptr_t)heap.start, PAGE_SIZE);
+    heap.end = (void *)ALIGN((uintptr_t)heap.end, PAGE_SIZE);
     uintptr_t pmsize = (
         (uintptr_t)heap.end
         - (uintptr_t)heap.start
     ); // Area heap = {}; 然后Area里面有两个指针
+    pmm_start = heap.start;
+    pmm_end = heap.end;
+    buddy_mem_sz = pmsize;
+    debug("pmm_start = %p, pmm_end = %p, buddy_mem_sz = %d\n", pmm_start, pmm_end,
+        buddy_mem_sz);
     printf(
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
     );
-    pmm_start = heap.start;
-    pmm_end = heap.end;
 
     buddy_pool_init(&g_buddy_pool, pmm_start, pmm_end);
     // print_pool(&g_buddy_pool);
@@ -409,6 +414,9 @@ static void pmm_init() {
     uintptr_t pmsize = (uintptr_t)heap.end - (uintptr_t)heap.start;
     pmm_start = heap.start;
     pmm_end = heap.end;
+    buddy_mem_sz = pmsize;
+    buddy_pool_init(&g_buddy_pool, pmm_start, pmm_end);
+    slab_init();
     printf("Got %ld MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
 }
 #endif
