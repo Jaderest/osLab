@@ -8,7 +8,7 @@ void alignTest1() {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
 
-    for (int i = 0; i < 1; i ++) {
+    for (int i = 0; i < 10; i ++) {
         void *p = pmm->alloc(4096);
         printf("p: %x\n", p);
     }

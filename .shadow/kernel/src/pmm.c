@@ -101,14 +101,13 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
 
 buddy_block_t *buddy_system_split(buddy_pool_t *pool, buddy_block_t *block, int target_order) {
     buddy_block_t *ret = block;
-    // PANIC_ON(block->free == BLOCK_ALLOCATED, "block is not free"); 传进来前设置的就是free
+    // PANIC_ON(block->free == BLOCK_ALLOCATED, "block is not free"); 传进来前设置的就是ALLOCATED
     int order = block->order;
     while (order > 0 && order >= target_order + 1) {
         order--;
         ret = split2buddies(pool, ret, order); //还没有达到target的时候就不断再分，然后交给这个函数处理链表关系
     }
     PANIC_ON(ret->order != target_order, "ret->order = %d, target_order = %d", ret->order, target_order);
-    
     return ret;
 }
 
@@ -173,7 +172,7 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     }
     block->order = order;
     block->free = BLOCK_FREE;
-    //TODO: 研究一下list的add和del呢
+    //TODO: 研究一下list的add和del呢，注意函数前后的关系，或许我可以整理一下这里，让它放在同一个地方
     // debug("add block = %p\n", block);
     list_add(&(block->node), &(pool->free_lists[order].free_list)); // 最后merge留下了那些碎片
     pool->free_lists[order].nr_free++;

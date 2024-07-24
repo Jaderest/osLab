@@ -12,11 +12,15 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define DEBUG
+// #define DEBUG
 #ifdef DEBUG
+  #define debug(...) printf(__VA_ARGS__)
+#else
+  #define debug(fmt, ...)
+#endif
 
-// 使用可变参数的方式定义debug宏
-#define debug(...) printf(__VA_ARGS__)
+// #define ASSERT
+#ifdef ASSERT
 
 // TODO PANIC宏，记得改改
 #define PANIC(fmt, ...)                                                        \
@@ -35,7 +39,6 @@
   } while (0)
 
 #else
-#define debug(fmt, ...)
 #define PANIC(fmt, ...)
 #define PANIC_ON(condition, message, ...)
 #endif
