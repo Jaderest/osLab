@@ -26,13 +26,13 @@ void print_pool(buddy_pool_t *pool) {
         if (list_empty(list)) {
             continue;
         }
-        debug("order %d:\n", i); // 即这个链表中的block的order都是i
+        debug("\n------------------\norder %d:\n", i); // 即这个链表中的block的order都是i
         buddy_block_t *block = (buddy_block_t *)list->next;
         while (&block->node != list) {
             // debug("%p: [%d, %d)\n", block,
             //     (uintptr_t)block2addr(pool, block),
             //     (uintptr_t)block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
-            debug("order = %d, block = %p, addr = %p, size = %d\t", block->order, block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
+            debug("  order = %d, block = %p, addr = %p, size = %d\t", block->order, block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
             debug("block->free: %d\n", block->free);
             block = (buddy_block_t *)block->node.next;
         }
@@ -101,12 +101,14 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
 
 buddy_block_t *buddy_system_split(buddy_pool_t *pool, buddy_block_t *block, int target_order) {
     buddy_block_t *ret = block;
-    // PANIC_ON(block->free == BLOCK_ALLOCATED, "block is not free");
+    // PANIC_ON(block->free == BLOCK_ALLOCATED, "block is not free"); 传进来前设置的就是free
     int order = block->order;
     while (order > 0 && order >= target_order + 1) {
         order--;
         ret = split2buddies(pool, ret, order); //还没有达到target的时候就不断再分，然后交给这个函数处理链表关系
     }
+    PANIC_ON(ret->order != target_order, "ret->order = %d, target_order = %d", ret->order, target_order);
+    
     return ret;
 }
 
@@ -122,7 +124,7 @@ buddy_block_t *split2buddies(buddy_pool_t *pool, buddy_block_t *old, int new_ord
     right->free = BLOCK_FREE;
     list_add(&(right->node), &(pool->free_lists[new_order].free_list)); // 将右半块加入到空闲链表
     pool->free_lists[new_order].nr_free++;
-    return left; //! 那原来的block呢，在buddy_system_split中已经处理了
+    return left; //! 那原来的block呢，在buddy_alloc中已经处理了
 }
 
 // 将block转换为地址(映射到分配区里面)
@@ -191,11 +193,12 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
             // list_del((struct list_head *)block);
             list_del(&(block->node)); // 此处已经移除了
             pool->free_lists[i].nr_free--;
-            block->free = BLOCK_ALLOCATED;
-            block = buddy_system_split(pool, block, order);
+            block->free = BLOCK_ALLOCATED; // 标记为已经分配
+            block = buddy_system_split(pool, block, order); 
             break;
         }
     }
+    print_pool(pool);
     debug("block = %p\n", block);
     debug("block addr = %p\n", block2addr(pool, block));
     if (block == NULL) {
