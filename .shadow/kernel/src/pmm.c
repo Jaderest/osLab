@@ -180,9 +180,9 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
 
 // 2^12 = 4096
 void *buddy_alloc(buddy_pool_t *pool, size_t size) {
+    debug("buddy_alloc\n");
     lock(&global_lock);
     size = align_size(size);
-    debug("get buddy order\n");
     int order = buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
     buddy_block_t *block = NULL;
     for (int i = order; i <= MAX_ORDER; i++) { // 从order查找可以使用的块
@@ -291,6 +291,7 @@ static slab_t *allocate_slab(cache_t *cache) {
 }
 
 void *slab_alloc(size_t size) {
+    debug("slab_alloc\n");
     if (size == 0 || size >= PAGE_SIZE) { //用户的非法请求
         return NULL;
     }

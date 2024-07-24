@@ -19,7 +19,7 @@
   #define debug(fmt, ...)
 #endif
 
-// #define ASSERT
+#define ASSERT
 #ifdef ASSERT
 
 // TODO PANIC宏，记得改改
