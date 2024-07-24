@@ -96,7 +96,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
         buddy_free(pool, addr); // 通过这个创建链表
     }
 
-    print_pool(pool);
+    // print_pool(pool);
 }
 
 buddy_block_t *buddy_system_split(buddy_pool_t *pool, buddy_block_t *block, int target_order) {
@@ -197,7 +197,7 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
             break;
         }
     }
-    print_pool(pool);
+    // print_pool(pool);
     debug("block = %p\n", block);
     debug("block addr = %p, block size = %d\n", block2addr(pool, block), 1 << (block->order + PAGE_SHIFT));
     if (block == NULL) {
