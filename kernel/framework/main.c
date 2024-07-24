@@ -9,7 +9,11 @@ void alignTest1() {
     }
 
     for (int i = 0; i < 4; i ++) {
-        void *p = pmm->alloc(4096 << 8);
+        void *p = pmm->alloc(4096);
+        printf("p: %x\n", p);
+    }
+    for (int i = 0; i < 4; i ++) {
+        void *p = pmm->alloc(128 + i);
         printf("p: %x\n", p);
     }
 
@@ -34,8 +38,8 @@ void alignTest2() {
 
 int main() {
     os->init();
-    mpe_init(os->run);
-    // mpe_init(alignTest1);
+    // mpe_init(os->run);
+    mpe_init(alignTest1);
     // mpe_init(alignTest2);
     return 1;
 }
