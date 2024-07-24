@@ -42,7 +42,7 @@ struct free_list {
 /* 每一个block都是内存中连续的页面的集合 ：页面数量为2^order个 */
 typedef struct buddy_block {
     struct list_head node;  // 用于空闲链表的节点
-    size_t order;           // 页的阶数
+    size_t order;           // 页的阶数（也代表了block的大小）
     int free;               // block是否空闲
     int slab;               // slab分配器，不为空时，表示页面为slab分配器的一部分
 } buddy_block_t;
