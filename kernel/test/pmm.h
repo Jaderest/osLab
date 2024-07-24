@@ -16,13 +16,12 @@ typedef struct object {
     struct object *next;
 } object_t;
 
-// a slab(!!Exactly a Page Size 4096B) is a collection of objects with fixed size, objects are linked by a list
 typedef struct slab {
-    struct slab *next;        // 指向下一个slab
-    object_t *free_objects;   // 指向空闲对象链表
-    size_t num_free_objects;  // 空闲对象数
-    lock_t slb_lock;          // 保护slab的锁
-    size_t size;              // slab中对象的大小
+    struct slab *next;       // 指向下一个slab
+    object_t *free_objects; // 指向空闲对象链表
+    size_t num_free; // 空闲对象数量
+    lock_t lock; // 用于保护该slab的锁
+    size_t size; // 每个对象的大小
 } slab_t;
 
 // a cache is a collection of slabs with fixed object size, all the obj is aligned to 2^(object_size)
@@ -42,9 +41,9 @@ struct free_list {
 /* 每一个block都是内存中连续的页面的集合 ：页面数量为2^order个 */
 typedef struct buddy_block {
     struct list_head node;  // 用于空闲链表的节点
-    size_t order;           // 页的阶数
+    size_t order;           // 页的阶数（也代表了block的大小）
     int free;               // block是否空闲
-    int slab;               // slab分配器，不为空时，表示页面为slab分配器的一部分
+    int slab;               // slab分配器，不为0，表示页面为slab分配器的一部分
 } buddy_block_t;
 
 // 伙伴系统的元数据

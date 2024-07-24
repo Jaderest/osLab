@@ -8,8 +8,8 @@ void alignTest1() {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
 
-    for (int i = 0; i < 1; i ++) {
-        void *p = pmm->alloc(4096);
+    for (int i = 0; i < 4; i ++) {
+        void *p = pmm->alloc(4096 << 8);
         printf("p: %x\n", p);
     }
 
@@ -34,8 +34,8 @@ void alignTest2() {
 
 int main() {
     os->init();
-    // mpe_init(os->run);
-    mpe_init(alignTest1);
+    mpe_init(os->run);
+    // mpe_init(alignTest1);
     // mpe_init(alignTest2);
     return 1;
 }
