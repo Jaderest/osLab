@@ -180,7 +180,7 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
 
 // 2^12 = 4096
 void *buddy_alloc(buddy_pool_t *pool, size_t size) {
-    debug("buddy_alloc\n");
+    debug("buddy_alloc%d\n", size);
     lock(&global_lock);
     size = align_size(size);
     int order = buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
@@ -291,7 +291,7 @@ static slab_t *allocate_slab(cache_t *cache) {
 }
 
 void *slab_alloc(size_t size) {
-    debug("slab_alloc\n");
+    debug("slab_alloc: %d\n", size);
     if (size == 0 || size >= PAGE_SIZE) { //用户的非法请求
         return NULL;
     }
