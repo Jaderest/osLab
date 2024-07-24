@@ -61,7 +61,7 @@ static inline size_t buddy_block_order(size_t size) {
 void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化buddy_pool
     //初始化自由列表，标记每个页的状态
     size_t page_num = (end - start) >> PAGE_SHIFT;
-    debug("page_num = %d\n", page_num);
+    debug("page_num = %ld\n", page_num);
     for (int i = 0; i <= MAX_ORDER; i++) {
         init_list_head(&pool->free_lists[i].free_list); // 初始化链表，每个order（也即层数）放一个freelist来存放空闲的block
     }
