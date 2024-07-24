@@ -26,17 +26,17 @@ void print_pool(buddy_pool_t *pool) {
         if (list_empty(list)) {
             continue;
         }
-        debug("\n------------------\norder %d:\n", i); // 即这个链表中的block的order都是i
+        debug("  ------------------order %d:\n", i); // 即这个链表中的block的order都是i
         buddy_block_t *block = (buddy_block_t *)list->next;
         while (&block->node != list) {
             // debug("%p: [%d, %d)\n", block,
             //     (uintptr_t)block2addr(pool, block),
             //     (uintptr_t)block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
-            debug("  order = %d, block = %p, addr = %p, size = %d\t", block->order, block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
-            debug("block->free: %d\n", block->free);
+            debug("  oblock = %p, addr = %p, size = %d\t", block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
+            debug("block->free: %d\n", block->free); // 这个肯定都是free的
             block = (buddy_block_t *)block->node.next;
         }
-        debug("\n");
+        // debug("\n");
     }
 }
 
