@@ -198,8 +198,8 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
         }
     }
     // print_pool(pool);
-    debug("block = %p\n", block);
-    debug("block addr = %p, block size = %d\n", block2addr(pool, block), 1 << (block->order + PAGE_SHIFT));
+    // debug("block = %p\n", block);
+    // debug("block addr = %p, block size = %d\n", block2addr(pool, block), 1 << (block->order + PAGE_SHIFT));
     if (block == NULL) {
         unlock(&global_lock);
         return NULL;
