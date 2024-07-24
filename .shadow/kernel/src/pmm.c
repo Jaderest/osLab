@@ -73,7 +73,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
 
     start += page_num * sizeof(buddy_block_t); // 从元数据后开始分配
     page_num = (end - start) >> PAGE_SHIFT;
-    debug("page_num = %d\n", page_num);
+    // debug("page_num = %d\n", page_num);
     pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
     pool->pool_end_addr = (void *)ALIGN((uintptr_t)end, PAGE_SIZE);
     page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
@@ -123,7 +123,7 @@ buddy_block_t *split2buddies(buddy_pool_t *pool, buddy_block_t *old, int new_ord
     right->free = BLOCK_FREE;
     list_add(&(right->node), &(pool->free_lists[new_order].free_list)); // 将右半块加入到空闲链表
     pool->free_lists[new_order].nr_free++;
-    return left; //! 那原来的block呢，在buddy_alloc中已经处理了
+    return left; //! 那原来的block呢，在buddy_alloc中已经处理了，free list已经放好了
 }
 
 // 将block转换为地址(映射到分配区里面)
@@ -199,7 +199,7 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
     }
     print_pool(pool);
     debug("block = %p\n", block);
-    debug("block addr = %p\n", block2addr(pool, block));
+    debug("block addr = %p, block size = %d\n", block2addr(pool, block), 1<<block->order);
     if (block == NULL) {
         unlock(&global_lock);
         return NULL;
@@ -216,9 +216,6 @@ void buddy_free(buddy_pool_t *pool, void *ptr) {
     buddy_system_merge(pool, block);
     unlock(&global_lock);
 }
-
-
-
 
 
 // ---------------- slab allocator ----------------
