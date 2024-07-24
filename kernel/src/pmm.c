@@ -206,6 +206,7 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
     }
 
     unlock(&global_lock);
+    PANIC_ON(block2addr(pool, block)%size != 0, "1align error");
     return block2addr(pool, block);
 }
 
@@ -309,6 +310,7 @@ void *slab_alloc(size_t size) {
             slab->free_objects = obj->next; // 一个一个往后推
             slab->free_objects--;
             unlock(&slab->lock);
+            PANIC_ON(obj % size != 0, "2align error");
             return obj;
         } else {
             unlock(&slab->lock);
@@ -326,7 +328,7 @@ void *slab_alloc(size_t size) {
     slab->next = cache->slabs; // 头插
     cache->slabs = slab;
     unlock(&cache->cache_lock);
-
+    PANIC_ON(obj % size != 0, "3align error");
     return obj;
 }
 

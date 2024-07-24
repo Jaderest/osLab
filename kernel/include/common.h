@@ -7,15 +7,16 @@
 #include <klib-macros.h>
 
 
-// #define DEBUG
+#define DEBUG
 #ifdef DEBUG
 
 // 使用可变参数的方式定义debug宏
 #define debug(...) printf(__VA_ARGS__)
-
+#else
+#define debug(fmt, ...)
 #endif
 
-// #define ASSERT
+#define ASSERT
 #ifdef ASSERT
 
 // PANIC宏
@@ -34,7 +35,6 @@
     } while (0)
 
 #else
-#define debug(fmt, ...)
 #define PANIC(fmt, ...)
 #define PANIC_ON(condition, message, ...)
 #endif
