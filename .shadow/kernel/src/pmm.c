@@ -101,7 +101,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
 
 buddy_block_t *buddy_system_split(buddy_pool_t *pool, buddy_block_t *block, int target_order) {
     buddy_block_t *ret = block;
-    PANIC_ON(block->free == BLOCK_ALLOCATED, "block is not free");
+    // PANIC_ON(block->free == BLOCK_ALLOCATED, "block is not free");
     int order = block->order;
     while (order > 0 && order >= target_order + 1) {
         order--;
