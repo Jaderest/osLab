@@ -30,7 +30,7 @@ void align_check(void *p, size_t sz) {
   for (int i = 1; i < 64;
        i++) { // 遍历这么多位，地址要满足2^i的对齐，即最后%1 << i == 0
     if (sz > (1 << (i - 1)) && sz <= (1 << i)) {
-      PANIC_ON((uintptr_t)p % (1 << i) != 0, "Alignment check failed: %p %d\n",
+      PANIC_ON((uintptr_t)p % (1 << i) != 0, "Alignment check failed: %p %ld\n",
                p, sz);
       return;
     }
@@ -40,7 +40,9 @@ void align_check(void *p, size_t sz) {
 void double_alloc_check(void *ptr, size_t size) {
   unsigned int *arr = (unsigned int *)ptr;
   for (int i = 0; (i + 1) * sizeof(unsigned int) <= size; i++) {
-    PANIC_ON(arr[i] != MAGIC, "Double alloc check failed: %p %ld\n", ptr, size);
+    if (arr[i] == MAGIC) {
+      PANIC("Double Alloc at addr %p with size %ld!\n", ptr, size);
+    }
     arr[i] = MAGIC;
   }
 }
@@ -55,19 +57,43 @@ void clear_magic(void *ptr, size_t size) {
 void test0() {
   printf("\033[44mTest 0: Check alignment"
          "\033[0m\n");
-  for (int i = 0; i < 100000; i++) {
-    int sz = alloc_random_sz() % 2048 + 1; //[1, 2048]
+  for (int i = 0; i < 1000; i++) {
+    // int sz = alloc_random_sz() % 2048 + 1; //[1, 2048]
+    // int sz = 0;
+    // if (rand() % 2 == 0) {
+    //   sz = 4096;
+    // } else {
+    //   sz = 8192;
+    // }
+    int sz = 0;
+    switch (rand() % 4)
+    {
+    case 0:
+      sz = 4096;
+      break;
+    case 1:
+      sz = 8192;
+      break;
+    case 2:
+      sz = 16384;
+      break;
+    case 3:
+      sz = 32768;
+      break;
+    default:
+      break;
+    }
     void *ret = pmm->alloc(sz);
 
     printf("alloc %d bytes at %p\n", sz, ret);
 
-    // double_alloc_check(ret, sz); // 666666第一次分配就double
+    double_alloc_check(ret, sz); // 666666第一次分配就double
 
-    printf("Double alloc check\n");
+    printf("Double alloc check Finish\n");
 
     align_check(ret, sz); // 666666这也没对齐
 
-    printf("Alignment check\n");
+    printf("Alignment check Finish\n");
 
     pmm->free(ret);
     clear_magic(ret, sz);

@@ -53,7 +53,11 @@ static inline size_t buddy_block_order(size_t size) {
         order++;
     }
     // debug("size = %d, order = %d\n", size, order);
+#ifdef TEST
+    PANIC_ON(size < 1 || order < 0, "size = %ld, order = %ld", size, order);
+#else
     PANIC_ON(size < 1 || order < 0, "size = %d, order = %d", size, order);
+#endif
     return order;
 } // order = log_2(size（页数）)
 
@@ -77,7 +81,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
     pool->pool_end_addr = end;
     page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
-    debug("page_num = %d\n", page_num); // 这里不能assert，因为可能会有一些空洞
+    // debug("page_num = %d\n", page_num); // 这里不能assert，因为可能会有一些空洞
     debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
 
     // 整个空间分为一个page，每个page绑定一个buddy_block_t
@@ -107,7 +111,11 @@ buddy_block_t *buddy_system_split(buddy_pool_t *pool, buddy_block_t *block, int 
         order--;
         ret = split2buddies(pool, ret, order); //还没有达到target的时候就不断再分，然后交给这个函数处理链表关系
     }
+#ifdef TEST
+    PANIC_ON(ret->order != target_order, "ret->order = %ld, target_order = %d", ret->order, target_order);
+#else
     PANIC_ON(ret->order != target_order, "ret->order = %d, target_order = %d", ret->order, target_order);
+#endif
     return ret;
 }
 
@@ -181,7 +189,7 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
 
 // 2^12 = 4096
 void *buddy_alloc(buddy_pool_t *pool, size_t size) {
-    debug("buddy_alloc%d\n", size);
+    // debug("buddy_alloc%d\n", size);
     lock(&global_lock);
     size = align_size(size);
     int order = buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
@@ -292,7 +300,11 @@ static slab_t *allocate_slab(cache_t *cache) {
 }
 
 void *slab_alloc(size_t size) {
-    debug("slab_alloc: %d\n", size);
+#ifdef TEST
+    debug("slab_alloc: %ld\n", size);
+#else
+    debug("slab_alloc: %ld\n", size);
+#endif
     if (size == 0 || size >= PAGE_SIZE) { //用户的非法请求
         return NULL;
     }
