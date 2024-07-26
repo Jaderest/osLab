@@ -270,6 +270,7 @@ static slab_t *allocate_slab(cache_t *cache) {
     // 将 slab 用元数据填满，然后填 objects
     // 将 slab 加入 cache（它是一个可增长的链表
     uintptr_t slab_addr = (uintptr_t)buddy_alloc(&g_buddy_pool, PAGE_SIZE); // 作为起始指针
+    //TODO: 验证一下这里需要对齐的alloc
     buddy_block_t *block = addr2block(&g_buddy_pool, (void *)slab_addr);
     block->slab = 1;
     PANIC_ON(slab_addr % PAGE_SIZE != 0, "slab align error");
@@ -370,7 +371,10 @@ static void *kalloc(size_t size) {
     } else if (size >= PAGE_SIZE) { 
         ret = buddy_alloc(&g_buddy_pool, size);
     } else {
-        ret = slab_alloc(size);
+        //! TODO!!!!!!!!!!!!!
+        size = 4096;
+        ret = buddy_alloc(&g_buddy_pool ,size);
+        // ret = slab_alloc(size);
     }
     // ret = buddy_alloc(&g_buddy_pool, size);
     // PANIC_ON(ret == NULL, "Failed to allocate %d bytes", size);

@@ -57,32 +57,41 @@ void clear_magic(void *ptr, size_t size) {
 void test0() {
   printf("\033[44mTest 0: Check alignment"
          "\033[0m\n");
-  for (int i = 0; i < 1000; i++) {
-    // int sz = alloc_random_sz() % 2048 + 1; //[1, 2048]
+  for (int i = 0; i < 100000; i++) {
+    int sz = alloc_random_sz() % 2048 + 1; //[1, 2048]
     // int sz = 0;
     // if (rand() % 2 == 0) {
     //   sz = 4096;
     // } else {
     //   sz = 8192;
     // }
-    int sz = 0;
-    switch (rand() % 4)
-    {
-    case 0:
-      sz = 4096;
-      break;
-    case 1:
-      sz = 8192;
-      break;
-    case 2:
-      sz = 16384;
-      break;
-    case 3:
-      sz = 32768;
-      break;
-    default:
-      break;
-    }
+    // int sz = 0;
+    // switch (rand() % 7)
+    // {
+    // case 0:
+    //   sz = 4096;
+    //   break;
+    // case 1:
+    //   sz = 8192;
+    //   break;
+    // case 2:
+    //   sz = 16384;
+    //   break;
+    // case 3:
+    //   sz = 32768;
+    //   break;
+    // case 4:
+    //   sz = 65536;
+    //   break;
+    // case 5:
+    //   sz = 131072;
+    //   break;
+    // case 6:
+    //   sz = 262144;
+    //   break;
+    // default:
+    //   break;
+    // }
     void *ret = pmm->alloc(sz);
 
     printf("alloc %d bytes at %p\n", sz, ret);
