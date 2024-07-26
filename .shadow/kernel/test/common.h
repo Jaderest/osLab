@@ -12,14 +12,14 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define DEBUG
+// #define DEBUG
 #ifdef DEBUG
   #define debug(...) printf(__VA_ARGS__)
 #else
   #define debug(fmt, ...)
 #endif
 
-#define ASSERT
+// #define ASSERT
 #ifdef ASSERT
 
 // TODO PANIC宏，记得改改

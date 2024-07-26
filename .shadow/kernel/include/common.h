@@ -7,7 +7,7 @@
 #include <klib-macros.h>
 
 
-#define DEBUG
+// #define DEBUG
 #ifdef DEBUG
 
 // 使用可变参数的方式定义debug宏
@@ -16,7 +16,7 @@
 #define debug(fmt, ...)
 #endif
 
-#define ASSERT
+// #define ASSERT
 #ifdef ASSERT
 
 // PANIC宏
