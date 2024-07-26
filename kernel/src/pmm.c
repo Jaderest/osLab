@@ -240,7 +240,6 @@ void buddy_free(buddy_pool_t *pool, void *ptr) {
 //     size_t object_size; // 每个对象的大小
 //     lock_t cache_lock; // 用于保护该cache的锁
 // } cache_t;
-//! 小内存高速分配，所以需要scalability
 
 static cache_t g_caches[MAX_CACHES]; // 全局slab分配器数组
 void slab_init() {
@@ -304,7 +303,7 @@ void *slab_alloc(size_t size) {
 #ifdef TEST
     debug("slab_alloc: %ld\n", size);
 #else
-    debug("slab_alloc: %ld\n", size);
+    debug("slab_alloc: %d\n", size);
 #endif
     if (size == 0 || size >= PAGE_SIZE) { //用户的非法请求
         return NULL;
@@ -372,9 +371,9 @@ static void *kalloc(size_t size) {
         ret = buddy_alloc(&g_buddy_pool, size);
     } else {
         //! TODO!!!!!!!!!!!!!
-        size = 4096;
-        ret = buddy_alloc(&g_buddy_pool ,size);
-        // ret = slab_alloc(size);
+        // size = 4096;
+        // ret = buddy_alloc(&g_buddy_pool ,size);
+        ret = slab_alloc(size);
     }
     // ret = buddy_alloc(&g_buddy_pool, size);
     // PANIC_ON(ret == NULL, "Failed to allocate %d bytes", size);
