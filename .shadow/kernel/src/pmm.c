@@ -241,6 +241,7 @@ void buddy_free(buddy_pool_t *pool, void *ptr) {
 //     lock_t cache_lock; // 用于保护该cache的锁
 // } cache_t;
 
+// 从 2^3==8 到 2^11
 static cache_t g_caches[MAX_CACHES]; // 全局slab分配器数组
 void slab_init() {
     size_t size = 8;
@@ -252,6 +253,7 @@ void slab_init() {
         // debug("caches[%d].object_size = %d\n", i, caches[i].object_size);
     } // 每个缓存对应一个固定对象大小8 16 32 64 128 256 512 1024 2048（一直到PAGE_SIZE/2）
     debug("slab_init done\n");
+    debug("size of slab: %d\n", sizeof(slab_t));
 }
 
 // 寻找可以分配给object的cache（object_size >= size)
