@@ -257,46 +257,58 @@ void slab_init() {
 }
 
 // 寻找可以分配给object的cache（object_size >= size)
+// 这个是必存在的
 static cache_t *find_cache(size_t size) {
     for (int i = 0; i < MAX_CACHES; i++) { // 找到最适合的cache页面
         if (g_caches[i].object_size >= size) {
             return &g_caches[i];
         }
     }
+    //TODO 正式项目中需要删掉这个assert
+    assert(0);
     return NULL;
 }
 
-static slab_t *allocate_slab(cache_t *cache) {
+static slab_t *allocate_slab(cache_t *cache) { //TODO: 这里需要根据要分配的内存大小来调整元数据的宽度！
     // 从 buddy system 申请一个page
-    // 将 slab 用元数据填满，然后填 objects
+    // 前面一小段是给 slab 元数据占据的，然后计算出 object 区域的起始地址
     // 将 slab 加入 cache（它是一个可增长的链表
     uintptr_t slab_addr = (uintptr_t)buddy_alloc(&g_buddy_pool, PAGE_SIZE); // 作为起始指针
-    //TODO: 验证一下这里需要对齐的alloc
     buddy_block_t *block = addr2block(&g_buddy_pool, (void *)slab_addr);
-    block->slab = 1;
+    block->slab = 1; // 表明这个block是slab分配器的一部分
     PANIC_ON(slab_addr % PAGE_SIZE != 0, "slab align error");
 
     slab_t *new_slab = (slab_t *)slab_addr;
     // 对齐对象区域起始地址
     slab_addr += sizeof(slab_t);
-    slab_addr = ALIGN(slab_addr, cache->object_size);
+    slab_addr = ALIGN(slab_addr, cache->object_size); // 这里对齐靠不靠谱啊
+    PANIC_ON(slab_addr % cache->object_size != 0, "slab align error");
     // 初始化 slab 元数据
     size_t num_objects = (PAGE_SIZE - (slab_addr - (uintptr_t)new_slab)) / cache->object_size;
+    debug("num_objects = %d\n", num_objects);
+    debug("meta data1 %% object size = %d\n", (slab_addr - (uintptr_t)new_slab) % cache->object_size);
     PANIC_ON(num_objects == 0, "num_objects = 0");
     // 初始化对象链表
-    object_t *obj = (object_t *)slab_addr;
+    object_t *obj = (object_t *)slab_addr; // obj起始地址
     new_slab->free_objects = obj;
+    debug("111new_slab_free_objects at %p\n", new_slab->free_objects);
     new_slab->num_free = num_objects;
     new_slab->size = cache->object_size;
     new_slab->lock = LOCK_INIT();
     // 填充对象并链接链表
+    // 是不是这里链表没对齐
+    //TODO：显示一下这里的地址的日志
+    debug("--------link log--------\n");
     for (int i = 0; i < num_objects - 1; i++) {
         obj->next = (object_t *)((uintptr_t)obj + new_slab->size);
+        debug("obj at %p\n", obj);
+        debug("next = %p\n", obj->next);
         obj = obj->next; //obj 一个一个往后推
         PANIC_ON((uintptr_t)obj % cache->object_size != 0, "obj align error");
         PANIC_ON((uintptr_t)obj + new_slab->size > (uintptr_t)new_slab + PAGE_SIZE, "obj out of range");
     }
     obj->next = NULL;
+    debug("--------link log--------\n");
 
     return new_slab;
 }
@@ -320,12 +332,20 @@ void *slab_alloc(size_t size) {
     slab_t *slab = cache->slabs;
     while (slab != NULL) {
         lock(&slab->lock);
+        debug("slab at %p\n", slab);
         if (slab->free_objects > 0) {
-            object_t *obj = slab->free_objects;
+            object_t *obj = slab->free_objects; //就是这里内存出错了，这个obj
+            //上面才写的这里就立马不对了，好奇怪
+            debug("slaab->free_objects at %p\n", slab->free_objects);
+            debug("222free_objects at %p\n", obj);
+            debug("next = %p\n", obj->next);
             slab->free_objects = obj->next; // 一个一个往后推
+            // debug("obj size = %d\n", slab->size);
+            //! 是这里连接链表出的问题我感觉！
+            debug("free_objects %% obj size = %d\n", (uintptr_t)slab->free_objects % slab->size);
             slab->free_objects--;
             unlock(&slab->lock);
-            return obj;
+            return obj; //! 所以这里返回的是obj的指针，obj需要对齐
         } else {
             unlock(&slab->lock);
             slab = slab->next;
@@ -334,15 +354,21 @@ void *slab_alloc(size_t size) {
     // 此时当前slab没有空闲位置
     PANIC_ON(slab != NULL, "Find slab Error!");
 
+    // 这里的 cache 的 size 是对齐的
     slab = allocate_slab(cache); // 申请一个新的slab
+    debug("Init slab at %p\n", slab);
     lock(&slab->lock);
     object_t *obj = slab->free_objects;
-    slab->free_objects = obj->next;
+    slab->free_objects = obj->next; //! 是不是内存类型的问题啊cnm
+    debug("slab->free_objects at %p\n", slab->free_objects);
+    debug("free_objects at %p\n", obj);
+    debug("next = %p\n", obj->next); //! 这里next不是对的吗，为什么第二次分配的时候就不对了
     slab->num_free--;
     unlock(&slab->lock);
     lock(&cache->cache_lock);
     slab->next = cache->slabs; // 头插
     cache->slabs = slab;
+    debug("slab->free_objects = %p\n", slab->free_objects);
     unlock(&cache->cache_lock);
 
     return obj;
@@ -352,15 +378,17 @@ void slab_free(void *ptr) {
     if (ptr == NULL) {
         return;
     }
+    //TODO
     // 通过指针找到slab
     object_t *obj = (object_t *)ptr;
     uintptr_t slab_addr = (uintptr_t)ptr & ~(PAGE_SIZE - 1);
     slab_t *slab = (slab_t *)slab_addr;
 
     lock(&slab->lock);
-    obj->next = slab->free_objects;
+    obj->next = slab->free_objects; //嗷这里分配没重置它
     slab->free_objects = obj;
-    slab->free_objects++;
+    debug("slab free!!! free_objects at %p\n", obj);
+    slab->num_free++;
     unlock(&slab->lock);
 }
 
