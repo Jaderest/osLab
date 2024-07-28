@@ -26,17 +26,10 @@ void print_pool(buddy_pool_t *pool) {
         if (list_empty(list)) {
             continue;
         }
-        // debug("  ------------------order %d:\n", i); // 即这个链表中的block的order都是i
         buddy_block_t *block = (buddy_block_t *)list->next;
         while (&block->node != list) {
-            // debug("%p: [%d, %d)\n", block,
-            //     (uintptr_t)block2addr(pool, block),
-            //     (uintptr_t)block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
-            debug("  oblock = %p, addr = %p, size = %d\t", block, block2addr(pool, block), (1 << block->order) * PAGE_SIZE);
-            debug("block->free: %d\n", block->free); // 这个肯定都是free的
             block = (buddy_block_t *)block->node.next;
         }
-        // debug("\n");
     }
 }
 
@@ -81,7 +74,6 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
     pool->pool_end_addr = end;
     page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
-    // debug("page_num = %d\n", page_num); // 这里不能assert，因为可能会有一些空洞
     debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
 
     // 整个空间分为一个page，每个page绑定一个buddy_block_t
@@ -164,14 +156,12 @@ buddy_block_t *get_buddy_chunk(buddy_pool_t *pool, buddy_block_t *block) {
 // merge the block with its buddy until the order is MAX_ORDER(equal to its buddy)
 void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     int order = block->order; // 当前块的阶数
-    // debug("order = %d\n", order);
     while (order < MAX_ORDER) {
         buddy_block_t *buddy = get_buddy_chunk(pool, block); //是把block合成
         if (buddy == NULL || buddy->free == BLOCK_ALLOCATED || buddy->order != order) {
             // NULL || buddy 被占用 || order 不对
             break;
         }
-        // debug("del block = %p\n", block);
         list_del(&(buddy->node)); // 将buddy所在list删除
         pool->free_lists[order].nr_free--;
         if ((uintptr_t)block > (uintptr_t)buddy) block = buddy; // 这句话是block指向右半块，然后指向统领的buddy起始地址
@@ -182,14 +172,12 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     block->order = order;
     block->free = BLOCK_FREE;
     //TODO: 研究一下list的add和del呢，注意函数前后的关系，或许我可以整理一下这里，让它放在同一个地方
-    // debug("add block = %p\n", block);
     list_add(&(block->node), &(pool->free_lists[order].free_list)); // 最后merge留下了那些碎片
     pool->free_lists[order].nr_free++;
 }
 
 // 2^12 = 4096
 void *buddy_alloc(buddy_pool_t *pool, size_t size) {
-    // debug("buddy_alloc%d\n", size);
     lock(&global_lock);
     size = align_size(size);
     int order = buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
@@ -206,9 +194,6 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
             break;
         }
     }
-    // print_pool(pool);
-    // debug("block = %p\n", block);
-    // debug("block addr = %p, block size = %d\n", block2addr(pool, block), 1 << (block->order + PAGE_SHIFT));
     if (block == NULL) {
         unlock(&global_lock);
         return NULL;
@@ -221,7 +206,6 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
 void buddy_free(buddy_pool_t *pool, void *ptr) {
     lock(&global_lock);
     buddy_block_t *block = addr2block(pool, ptr);
-    // debug("free block = %p\n", block);
     buddy_system_merge(pool, block);
     unlock(&global_lock);
 }
@@ -250,9 +234,7 @@ void slab_init() {
         g_caches[i].object_size = size;
         g_caches[i].cache_lock = LOCK_INIT();
         size *= 2;
-        // debug("caches[%d].object_size = %d\n", i, caches[i].object_size);
     } // 每个缓存对应一个固定对象大小8 16 32 64 128 256 512 1024 2048（一直到PAGE_SIZE/2）
-    debug("slab_init done\n");
 }
 
 // 寻找可以分配给object的cache（object_size >= size)
@@ -288,24 +270,17 @@ static slab_t *allocate_slab(cache_t *cache) { //TODO: 这里需要根据要分�
     // 初始化对象链表
     object_t *obj = (object_t *)slab_addr; // obj起始地址
     new_slab->free_objects = obj;
-    debug("new_slab_free_objects at %p\n", new_slab->free_objects);
     new_slab->num_free = num_objects;
     new_slab->size = cache->object_size;
     new_slab->lock = LOCK_INIT();
     // 填充对象并链接链表
-    // 是不是这里链表没对齐
-    //TODO：显示一下这里的地址的日志
-    // debug("--------link log--------\n");
     for (int i = 0; i < num_objects - 1; i++) {
         obj->next = (object_t *)((uintptr_t)obj + new_slab->size);
-        // debug("obj at %p\n", obj);
-        // debug("next = %p\n", obj->next);
         obj = obj->next; //obj 一个一个往后推
         PANIC_ON((uintptr_t)obj % cache->object_size != 0, "obj align error");
         PANIC_ON((uintptr_t)obj + new_slab->size > (uintptr_t)new_slab + PAGE_SIZE, "obj out of range");
     }
     obj->next = NULL;
-    // debug("--------link log--------\n");
 
     return new_slab;
 }
@@ -314,7 +289,7 @@ void *slab_alloc(size_t size) {
 #ifdef TEST
     debug("slab_alloc: %ld\n", size);
 #else
-    debug("slab_alloc: %d\n", size);
+    // debug("slab_alloc: %d\n", size);
 #endif
     if (size == 0 || size >= PAGE_SIZE) { //用户的非法请求
         return NULL;
@@ -325,25 +300,14 @@ void *slab_alloc(size_t size) {
         PANIC("slab alloc"); // 这里应该panic吗
         return NULL;
     }
-    debug("cache->object_size = %d\n", cache->object_size);
 
     slab_t *slab = cache->slabs;
     while (slab != NULL) {
         lock(&slab->lock);
-        debug("slab at %p\n", slab);
         if (slab->free_objects > 0) {
-            debug("--------------------\n");
             object_t *obj = slab->free_objects;
-            debug("slab->size = %d\n", slab->size);
-            debug("slaab->free_objects at %p\n", slab->free_objects);
-            debug("222free_objects at %p\n", obj);
-            debug("next = %p\n", obj->next);
             slab->free_objects = obj->next; // 一个一个往后推
-            // debug("obj size = %d\n", slab->size);
-            debug("free_objects %% obj size = %d\n", (uintptr_t)slab->free_objects % slab->size);
             slab->num_free--;
-            debug("num_free = %d\n", slab->num_free);
-            // debug("--------------------\n");
             unlock(&slab->lock);
             return obj; //! 所以这里返回的是obj的指针，obj需要对齐
         } else {
@@ -356,20 +320,14 @@ void *slab_alloc(size_t size) {
 
     // 这里的 cache 的 size 是对齐的
     slab = allocate_slab(cache); // 申请一个新的slab
-    debug("--------------------\n");
-    debug("Init slab at %p\n", slab);
     lock(&slab->lock);
     object_t *obj = slab->free_objects;
     slab->free_objects = obj->next; 
-    debug("slab->free_objects at %p\n", slab->free_objects);
-    debug("free_objects at %p\n", obj);
-    debug("next = %p\n", obj->next);
     slab->num_free--;
     unlock(&slab->lock);
     lock(&cache->cache_lock);
     slab->next = cache->slabs; // 头插
     cache->slabs = slab;
-    debug("slab->free_objects = %p\n", slab->free_objects);
     unlock(&cache->cache_lock);
 
     return obj;
@@ -387,7 +345,6 @@ void slab_free(void *ptr) {
     lock(&slab->lock);
     obj->next = slab->free_objects; //嗷这里分配没重置它
     slab->free_objects = obj;
-    debug("slab free!!! free_objects at %p\n", obj);
     slab->num_free++;
     unlock(&slab->lock);
 }
@@ -429,8 +386,6 @@ static void pmm_init() {
     pmm_start = heap.start;
     pmm_end = heap.end;
     buddy_mem_sz = pmsize;
-    debug("pmm_start = %p, pmm_end = %p, buddy_mem_sz = %d\n", pmm_start, pmm_end,
-        buddy_mem_sz);
     printf(
         "Got %d MiB heap: [%p, %p)\n",
         pmsize >> 20, heap.start, heap.end
