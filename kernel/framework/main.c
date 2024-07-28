@@ -37,6 +37,8 @@ void alignTest2() {
 }
 
 int main() {
+    ioe_init();
+    cte_init(os->trap);
     os->init();
     // mpe_init(os->run);
     mpe_init(alignTest1);
