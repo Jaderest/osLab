@@ -326,9 +326,8 @@ void *slab_alloc(size_t size) {
         return NULL;
     }
 
-    lock(&cache->cache_lock);
+    // 这里应不应该上锁？不用上锁，只有写操作上锁就可以了
     slab_t *slab = cache->slabs;
-    unlock(&cache->cache_lock);
     while (slab != NULL) {
         lock(&slab->lock);
         debug("slab at %p\n", slab);
@@ -372,9 +371,8 @@ void slab_free(void *ptr) {
     slab_t *slab = (slab_t *)slab_addr;
 
     lock(&slab->lock);
-    obj->next = slab->free_objects; //嗷这里分配没重置它
+    obj->next = slab->free_objects;
     slab->free_objects = obj;
-    debug("slab free!!! free_objects at %p\n", obj);
     slab->num_free++;
     unlock(&slab->lock);
 }
