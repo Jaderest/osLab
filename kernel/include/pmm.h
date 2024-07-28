@@ -10,7 +10,8 @@
 #define ALIGN(_A, _B) (((_A + _B - 1) / _B) * _B)
 #define MIB (1024 * 1024)
 
-// slab allocator
+// slab
+// 空闲块链表
 typedef struct object {
     struct object *next;
 } object_t;
@@ -23,7 +24,6 @@ typedef struct slab {
     size_t size; // 每个对象的大小
 } slab_t;
 
-// slab分配器(链表数组)
 typedef struct cache {
     slab_t *slabs; // 指向slab链表
     size_t object_size; // 每个对象的大小
@@ -36,7 +36,6 @@ struct free_list {
     int nr_free;
 };
 
-// 每一个block都是内存中连续的页面的集合：页面数量为2^order
 typedef struct buddy_block {
     struct list_head node; // 用于空闲链表的节点
     size_t order;  // 2^order pages(页的阶数)
@@ -48,7 +47,7 @@ typedef struct buddy_block {
 typedef struct buddy_pool {
 #define MIN_ORDER 0 // 2^0 * 4KiB = 4 KiB
 #define MAX_ORDER 12 // 2^12 * 4KiB = 16 MiB
-    struct free_list free_lists[MAX_ORDER + 1]; // 空闲链表（每一个链表对应一种类型的block）
+    struct free_list free_lists[MAX_ORDER + 1]; // 空闲链表（每个对应相应order）
     lock_t pool_lock[MAX_ORDER + 1]; // 保护伙伴系统的锁
     void *pool_meta_data; // 伙伴系统的元数据
     void *pool_start_addr; // 伙伴系统的起始地址

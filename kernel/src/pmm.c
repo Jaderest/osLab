@@ -325,27 +325,18 @@ void *slab_alloc(size_t size) {
         PANIC("slab alloc"); // 这里应该panic吗
         return NULL;
     }
-    debug("cache->object_size = %d\n", cache->object_size);
 
+    // 这里应不应该上锁？不用上锁，只有写操作上锁就可以了
     slab_t *slab = cache->slabs;
     while (slab != NULL) {
         lock(&slab->lock);
         debug("slab at %p\n", slab);
         if (slab->free_objects > 0) {
-            debug("--------------------\n");
             object_t *obj = slab->free_objects;
-            debug("slab->size = %d\n", slab->size);
-            debug("slaab->free_objects at %p\n", slab->free_objects);
-            debug("222free_objects at %p\n", obj);
-            debug("next = %p\n", obj->next);
-            slab->free_objects = obj->next; // 一个一个往后推
-            // debug("obj size = %d\n", slab->size);
-            debug("free_objects %% obj size = %d\n", (uintptr_t)slab->free_objects % slab->size);
+            slab->free_objects = obj->next;
             slab->num_free--;
-            debug("num_free = %d\n", slab->num_free);
-            // debug("--------------------\n");
             unlock(&slab->lock);
-            return obj; //! 所以这里返回的是obj的指针，obj需要对齐
+            return obj;
         } else {
             unlock(&slab->lock);
             slab = slab->next;
@@ -356,20 +347,15 @@ void *slab_alloc(size_t size) {
 
     // 这里的 cache 的 size 是对齐的
     slab = allocate_slab(cache); // 申请一个新的slab
-    debug("--------------------\n");
-    debug("Init slab at %p\n", slab);
     lock(&slab->lock);
     object_t *obj = slab->free_objects;
     slab->free_objects = obj->next; 
-    debug("slab->free_objects at %p\n", slab->free_objects);
-    debug("free_objects at %p\n", obj);
-    debug("next = %p\n", obj->next);
     slab->num_free--;
     unlock(&slab->lock);
+
     lock(&cache->cache_lock);
     slab->next = cache->slabs; // 头插
     cache->slabs = slab;
-    debug("slab->free_objects = %p\n", slab->free_objects);
     unlock(&cache->cache_lock);
 
     return obj;
@@ -385,9 +371,8 @@ void slab_free(void *ptr) {
     slab_t *slab = (slab_t *)slab_addr;
 
     lock(&slab->lock);
-    obj->next = slab->free_objects; //嗷这里分配没重置它
+    obj->next = slab->free_objects;
     slab->free_objects = obj;
-    debug("slab free!!! free_objects at %p\n", obj);
     slab->num_free++;
     unlock(&slab->lock);
 }
