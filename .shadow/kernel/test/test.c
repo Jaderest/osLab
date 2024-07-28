@@ -96,11 +96,11 @@ void test0() {
 
     printf("alloc %d bytes at %p\n", sz, ret);
 
-    double_alloc_check(ret, sz); 
+    double_alloc_check(ret, sz); // 666666第一次分配就double
 
     printf("Double alloc check Finish\n");
 
-    align_check(ret, sz); 
+    align_check(ret, sz); // 666666这也没对齐
 
     printf("Alignment check Finish\n");
 
