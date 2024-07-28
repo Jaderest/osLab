@@ -7,6 +7,8 @@
 #include <klib-macros.h>
 
 
+#define MAX_CPU_NUM 8
+
 // #define DEBUG
 #ifdef DEBUG
 

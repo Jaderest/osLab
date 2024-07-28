@@ -104,7 +104,7 @@ void test0() {
 
     printf("Alignment check Finish\n");
 
-    pmm->free(ret);
+    // pmm->free(ret);
     clear_magic(ret, sz);
   }
 }
