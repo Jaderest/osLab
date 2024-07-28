@@ -40,8 +40,6 @@ int main() {
     ioe_init();
     cte_init(os->trap);
     os->init();
-    // mpe_init(os->run);
-    mpe_init(alignTest1);
-    // mpe_init(alignTest2);
+    mpe_init(os->run);
     return 1;
 }
