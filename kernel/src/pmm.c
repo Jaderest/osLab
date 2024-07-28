@@ -66,7 +66,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     debug("meta data of buddy pool: [%p, %p)\n", pool->pool_meta_data, pool->pool_meta_data + page_num * sizeof(buddy_block_t));
     memset(pool->pool_meta_data, 0, page_num * sizeof(buddy_block_t));
     PANIC_ON((uintptr_t)pool->pool_meta_data % PAGE_SIZE != 0, "pool_meta_data is not aligned");
-    debug("memset done\n");
+    // debug("memset done\n");
 
     start += page_num * sizeof(buddy_block_t); // 从元数据后开始分配
     page_num = (end - start) >> PAGE_SHIFT;
@@ -74,7 +74,7 @@ void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化b
     pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
     pool->pool_end_addr = end;
     page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
-    debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
+    // debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
 
     // 整个空间分为一个page，每个page绑定一个buddy_block_t
     // -----------meta_data-----------
