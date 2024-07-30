@@ -1,6 +1,7 @@
 #ifndef AM_H__
 #define AM_H__
 
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -56,10 +57,10 @@ void     ioe_write   (int reg, void *buf);
 
 // ---------- CTE: Interrupt Handling and Context Switching ----------
 bool     cte_init    (Context *(*handler)(Event ev, Context *ctx));
-void     yield       (void);
-bool     ienabled    (void);
-void     iset        (bool enable);
-Context *kcontext    (Area kstack, void (*entry)(void *), void *arg);
+void     yield       (void); // 主动让出CPU
+bool     ienabled    (void); // 检查当前中断是否被启用
+void     iset        (bool enable); // 启用或禁用中断
+Context *kcontext    (Area kstack, void (*entry)(void *), void *arg);  // 创建一个新的上下文，用于任务切换
 
 // ----------------------- VME: Virtual Memory -----------------------
 bool     vme_init    (void *(*pgalloc)(int), void (*pgfree)(void *));
