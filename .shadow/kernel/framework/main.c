@@ -2,6 +2,7 @@
 
 #include <kernel.h>
 #include <klib.h>
+#include <klib-macros.h>
 
 void alignTest1() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
@@ -16,6 +17,7 @@ void alignTest1() {
     //     void *p = pmm->alloc(128 + i);
     //     // printf("p: %x\n", p);
     // }
+    panic_on(1, "test");
 
     while (1) ;
 }
