@@ -7,11 +7,7 @@
 #define LOCKED    1
 
 // 这里在kernel.h中定义了spinlock_t
-struct spinlock {
-    const char *name;
-    int status;
-    struct cpu *cpu;
-};
+
 
 extern struct cpu cpus[];
 #define mycpu (&cpus[cpu_current()])

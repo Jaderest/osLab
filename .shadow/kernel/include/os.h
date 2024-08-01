@@ -21,6 +21,12 @@ struct cpu {
 extern struct cpu cpus[];
 #define mycpu (&cpus[cpu_current()])
 
+struct spinlock {
+    const char *name;
+    int status;
+    struct cpu *cpu;
+};
+
 struct task {
 
 };

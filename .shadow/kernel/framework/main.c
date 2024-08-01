@@ -36,11 +36,17 @@ void alignTest2() {
 
 }
 
+// static spinlock_t lk1, lk2, lk3, lk4;
+
 int main() {
     ioe_init();
     cte_init(os->trap);
     os->init();
     mpe_init(os->run);
+    // printf("lock addr: %x\n", &lk1);
+    // printf("lock addr: %x\n", &lk2);
+    // printf("lock addr: %x\n", &lk3);
+    // printf("lock addr: %x\n", &lk4);
     // mpe_init(alignTest1);
     // mpe_init(alignTest2);
     return 1;
