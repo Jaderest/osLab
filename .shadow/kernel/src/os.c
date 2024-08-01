@@ -28,7 +28,17 @@ static void os_run() {
 }
 #endif
 
+static Context *os_trap(Event ev, Context *context) {
+    return NULL;
+}
+
+static void os_on_irq(int seq, int event, handler_t handler) {
+    
+}
+
 MODULE_DEF(os) = {
     .init = os_init,
     .run  = os_run,
+    .trap = os_trap,
+    .on_irq = os_on_irq,
 };
