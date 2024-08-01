@@ -8,7 +8,6 @@
 
 // 这里在kernel.h中定义了spinlock_t
 
-
 extern struct cpu cpus[];
 #define mycpu (&cpus[cpu_current()])
 

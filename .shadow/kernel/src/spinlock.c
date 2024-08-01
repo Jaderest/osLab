@@ -1,4 +1,3 @@
-#include <am.h>
 #include <spinlock.h>
 
 // This is a ported version of spin-lock
