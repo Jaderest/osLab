@@ -1,7 +1,5 @@
 #ifndef __DEVICES_H__
 #define __DEVICES_H__
-#include "os.h"
-#include "spinlock.h"
 
 typedef struct devops {
     int (*init)(device_t *dev);
