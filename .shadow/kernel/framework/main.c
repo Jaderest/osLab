@@ -17,7 +17,6 @@ void alignTest1() {
     //     void *p = pmm->alloc(128 + i);
     //     // printf("p: %x\n", p);
     // }
-    panic_on(1, "test");
 
     while (1) ;
 }
