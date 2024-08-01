@@ -1,4 +1,4 @@
-#include <spinlock.h>
+#include <os.h>
 
 // This is a ported version of spin-lock
 // from xv6-riscv to AbstractMachine:

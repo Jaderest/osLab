@@ -1,6 +1,5 @@
 #include <os.h>
 #include <stdint.h>
-#include <spinlock.h>
 #include <klib.h>
 #include <klib-macros.h>
 

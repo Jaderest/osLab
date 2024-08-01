@@ -12,25 +12,6 @@
     mod_##mod##_t *mod = &__##mod##_obj; \
     mod_##mod##_t __##mod##_obj
 
-/*
-x86_64
-struct Context {
-  void    *cr3;
-  uint64_t rax, rbx, rcx, rdx,
-           rbp, rsi, rdi,
-           r8, r9, r10, r11,
-           r12, r13, r14, r15,
-           rip, cs, rflags,
-           rsp, ss, rsp0;
-};
-x86
-struct Context {
-  void    *cr3;
-  uint32_t ds, eax, ebx, ecx, edx,
-           esp0, esi, edi, ebp,
-           eip, cs, eflags, esp, ss3;
-};
-*/
 typedef Context *(*handler_t)(Event, Context *);
 MODULE(os) {
     void (*init)();
