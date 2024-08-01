@@ -2,6 +2,7 @@
 
 #include <kernel.h>
 #include <klib.h>
+#include <klib-macros.h>
 
 void alignTest1() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
