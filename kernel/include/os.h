@@ -7,3 +7,18 @@
 // not present in kernel.h. 
 
 // Include these definitions in os.h.
+
+#ifndef __OS_H__
+#define __OS_H__
+
+struct cpu {
+    int noff;
+    int intena;
+};
+
+extern struct cpu cpus[];
+#define mycpu (&cpus[cpu_current()])
+
+
+
+#endif // _OS_H__
