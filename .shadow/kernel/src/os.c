@@ -10,7 +10,7 @@ void putch(char ch) {
 
 static void os_init() {
     pmm->init();
-    // kmt->init();
+    kmt->init();
     
     // dev->init();
 }
