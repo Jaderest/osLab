@@ -16,14 +16,15 @@ IRQS(IRQHANDLE_DECL)
 void __am_irqall();
 void __am_kcontext_start();
 
-void __am_irq_handle(struct trap_frame *tf) {
+// 所有寄存器都塞到了栈上，有一个context
+void __am_irq_handle(struct trap_frame *tf) { // 直接得到了trap_frame，也就是trap里的rsp（rsp给rdi，rdi作为返回值）
   Context *saved_ctx = &tf->saved_context;
   Event ev = {
     .event = EVENT_NULL,
     .cause = 0, .ref = 0,
     .msg = "(no message)",
   };
-
+// 做一些腾挪，把处理器给我的这些的寄存器搬到context里面
 #if __x86_64
   saved_ctx->rip    = tf->rip;
   saved_ctx->cs     = tf->cs;
@@ -41,14 +42,14 @@ void __am_irq_handle(struct trap_frame *tf) {
   saved_ctx->esp = (tf->cs & DPL_USER ? tf->esp : (uint32_t)(tf + 1) - 8);
 #endif
   saved_ctx->cr3    = (void *)get_cr3();
-
+// 页面的基地址给得到
   #define IRQ    T_IRQ0 +
   #define MSG(m) ev.msg = m;
 
   if (IRQ 0 <= tf->irq && tf->irq < IRQ 32) {
     __am_lapic_eoi();
   }
-
+// switch刚刚保存的中断的编号
   switch (tf->irq) {
     case IRQ 0: MSG("timer interrupt (lapic)")
       ev.event = EVENT_IRQ_TIMER; break;
@@ -88,7 +89,8 @@ void __am_irq_handle(struct trap_frame *tf) {
       ev.cause = tf->errcode;
       break;
   }
-
+// user_handler 就是cte_init里面传进去的那个指针
+// 调试里面单步执行，就真的到了 thread-os 里传的那个on_interrupt里面
   Context *ret_ctx = user_handler(ev, saved_ctx);
   panic_on(!ret_ctx, "returning to NULL context");
 

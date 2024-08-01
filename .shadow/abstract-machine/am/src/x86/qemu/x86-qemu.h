@@ -55,9 +55,9 @@ struct cpu_local {
 
 #if __x86_64__
 struct trap_frame {
-  Context saved_context;
-  uint64_t irq, errcode;
-  uint64_t rip, cs, rflags, rsp, ss;
+  Context saved_context; // trap 程序执行前的上下文
+  uint64_t irq, errcode; // irq 代表是哪一个trap
+  uint64_t rip, cs, rflags, rsp, ss; // 是硬件帮忙保存的
 };
 #else
 struct trap_frame {

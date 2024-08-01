@@ -1,4 +1,4 @@
-#include <common.h>
+#include <os.h>
 
 #ifdef TEST
 #include <am.h>
@@ -10,6 +10,9 @@ void putch(char ch) {
 
 static void os_init() {
     pmm->init();
+    // kmt->init();
+    
+    // dev->init();
 }
 
 #ifndef TEST
