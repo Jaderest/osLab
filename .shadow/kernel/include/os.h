@@ -28,6 +28,13 @@ struct spinlock {
     struct cpu *cpu;
 };
 
+#define spinlock_init(name_) \
+    ((spinlock_t) { \
+        .name = name_, \
+        .status = UNLOCKED, \
+        .cpu = NULL, \
+    })
+
 struct task {
 
 };

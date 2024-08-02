@@ -37,7 +37,8 @@ void print_pool(buddy_pool_t *pool) {
 #define PAGE_SHIFT 12 // 2^12 = 4096
 static size_t buddy_mem_sz = 0;
 static buddy_pool_t g_buddy_pool = {};
-static lock_t global_lock = LOCK_INIT();
+// static lock_t global_lock = LOCK_INIT();
+static spinlock_t global_lock = spinlock_init("global_lock");
 
 // size is at least 1 page, return the order of size of the size, order is at least 0
 static inline size_t buddy_block_order(size_t size) {
@@ -177,7 +178,7 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
 
 // 2^12 = 4096
 void *buddy_alloc(buddy_pool_t *pool, size_t size) {
-    lock(&global_lock);
+    _spin_lock(&global_lock);
     size = align_size(size);
     int order = buddy_block_order(size >> PAGE_SHIFT); // 转换为页数
     buddy_block_t *block = NULL;
@@ -194,19 +195,19 @@ void *buddy_alloc(buddy_pool_t *pool, size_t size) {
         }
     }
     if (block == NULL) {
-        unlock(&global_lock);
+        _spin_unlock(&global_lock);
         return NULL;
     }
 
-    unlock(&global_lock);
+    _spin_unlock(&global_lock);
     return block2addr(pool, block);
 }
 
 void buddy_free(buddy_pool_t *pool, void *ptr) {
-    lock(&global_lock);
+    _spin_lock(&global_lock);
     buddy_block_t *block = addr2block(pool, ptr);
     buddy_system_merge(pool, block);
-    unlock(&global_lock);
+    _spin_unlock(&global_lock);
 }
 
 
@@ -231,7 +232,7 @@ void slab_init() {
     for (int i = 0; i < MAX_CACHES; i++) {
         g_caches[i].slabs = NULL;
         g_caches[i].object_size = size;
-        g_caches[i].cache_lock = LOCK_INIT();
+        g_caches[i].cache_lock = spinlock_init("cache_lock");
         size *= 2;
     } // 每个缓存对应一个固定对象大小8 16 32 64 128 256 512 1024 2048（一直到PAGE_SIZE/2）
 }
@@ -269,7 +270,7 @@ static slab_t *allocate_slab(cache_t *cache) {
     new_slab->free_objects = obj;
     new_slab->num_free = num_objects;
     new_slab->size = cache->object_size;
-    new_slab->lock = LOCK_INIT();
+    new_slab->lock = spinlock_init("slab_lock");
     // 填充对象并链接链表
     for (int i = 0; i < num_objects - 1; i++) {
         obj->next = (object_t *)((uintptr_t)obj + new_slab->size);
@@ -300,15 +301,15 @@ void *slab_alloc(size_t size) {
 
     slab_t *slab = cache->slabs;
     while (slab != NULL) {
-        lock(&slab->lock);
+        _spin_lock(&slab->lock);
         if (slab->free_objects > 0) {
             object_t *obj = slab->free_objects;
             slab->free_objects = obj->next; // 一个一个往后推
             slab->num_free--;
-            unlock(&slab->lock);
+            _spin_unlock(&slab->lock);
             return obj; //! 所以这里返回的是obj的指针，obj需要对齐
         } else {
-            unlock(&slab->lock);
+            _spin_unlock(&slab->lock);
             slab = slab->next;
         }
     }
@@ -317,15 +318,15 @@ void *slab_alloc(size_t size) {
 
     // 这里的 cache 的 size 是对齐的
     slab = allocate_slab(cache); // 申请一个新的slab
-    lock(&slab->lock);
+    _spin_lock(&slab->lock);
     object_t *obj = slab->free_objects;
     slab->free_objects = obj->next; 
     slab->num_free--;
-    unlock(&slab->lock);
-    lock(&cache->cache_lock);
+    _spin_unlock(&slab->lock);
+    _spin_lock(&cache->cache_lock);
     slab->next = cache->slabs; // 头插
     cache->slabs = slab;
-    unlock(&cache->cache_lock);
+    _spin_unlock(&cache->cache_lock);
 
     return obj;
 }
@@ -339,11 +340,11 @@ void slab_free(void *ptr) {
     uintptr_t slab_addr = (uintptr_t)ptr & ~(PAGE_SIZE - 1);
     slab_t *slab = (slab_t *)slab_addr;
 
-    lock(&slab->lock);
+    _spin_lock(&slab->lock);
     obj->next = slab->free_objects; //嗷这里分配没重置它
     slab->free_objects = obj;
     slab->num_free++;
-    unlock(&slab->lock);
+    _spin_unlock(&slab->lock);
 }
 
 static void *kalloc(size_t size) {
