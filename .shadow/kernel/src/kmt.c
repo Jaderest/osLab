@@ -9,6 +9,13 @@ void kmt_init() {
 
 }
 
+// 为task这个指针创建空间
+/*
+create 在系统中创建一个线程（task_t应当实现被分配好），这个线程立即就可以被调度执行
+但是只有打开中断时它才获得被调度执行的权利，（关中断就让它等着）
+然后它创建的线程永不返回，直到调用teardown
+只有永远不会被调度到处理器上执行的前提才能被回收
+*/
 int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
     return 0;
 }

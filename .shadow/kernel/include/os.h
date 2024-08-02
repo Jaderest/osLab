@@ -36,8 +36,21 @@ struct spinlock {
     })
 
 // 需要为这个结构体分配内存（想想需要什么内容）
-struct task {
 
+union tsk_union {
+    struct {
+        const char *name;
+        void (*entry)(void *arg);
+        void *arg;
+        union tsk_union *next;
+        //TODO： 或许需要一个task的状态
+        char end[0];
+    };
+    uint8_t stack[4096];
+};
+
+struct task {
+    union tsk_union tsk;
 };
 
 struct semaphore {
@@ -49,6 +62,11 @@ struct semaphore {
 #define LOCKED    1
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
+
+//------------------semaphore------------------
+void _sem_wait(sem_t *sem);
+void _sem_signal(sem_t *sem);
+void _sem_init(sem_t *sem, const char *name, int value);
 
 #define LOG
 #ifdef LOG

@@ -7,7 +7,8 @@
 #include <klib-macros.h>
 
 
-#define MAX_CPU_NUM 8
+#define MAX_CPU_NUM (8)
+#define TASK_STACK_SIZE (8192)
 
 // #define DEBUG
 #ifdef DEBUG
