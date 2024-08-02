@@ -38,10 +38,10 @@ static Context *os_trap(Event ev, Context *context) {
 }
 
 // TODO2: 增加代码可维护性
-// TODO 继续写！！！
 /*
 防止在增加新功能都去修改os trap
-增加了这个中断处理api，调用这个向操作系统内核注册一个中断处理程序，在
+增加了这个中断处理api，调用这个向操作系统内核注册一个中断处理程序
+在os trap执行时，当 ev.event（事件编号）和 event 匹配时，调用handler(event,ctx)
 */
 static void os_on_irq(int seq, int event, handler_t handler) {
     

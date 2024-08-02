@@ -14,7 +14,14 @@
     mod_##mod##_t *mod = &__##mod##_obj; \
     mod_##mod##_t __##mod##_obj
 
-typedef Context *(*handler_t)(Event, Context *);
+typedef Context *(*handler_t)(Event, Context *); // 函数指针类型，接受两个参数，并返回一个Context指针
+/*example
+Context *my_handler(Event ev, Context *ctx) {
+    return ctx;
+}
+handler_t handler = my_handler;
+Context *this_ctx = handler(ev, ctx);
+*/
 MODULE(os) {
     void (*init)();
     void (*run)();
