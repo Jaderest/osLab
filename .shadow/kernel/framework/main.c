@@ -30,7 +30,6 @@ void alignTest2() {
 
 }
 
-static spinlock_t lk1, lk2, lk3, lk4;
 
 int main() {
     ioe_init();
@@ -38,13 +37,7 @@ int main() {
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
 
-    // mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序
-    mpe_init(alignTest1); 
-    printf("lock addr: %x\n", &lk1);
-    printf("lock addr: %x\n", &lk2);
-    printf("lock addr: %x\n", &lk3);
-    printf("lock addr: %x\n", &lk4);
-    // mpe_init(alignTest1);
-    // mpe_init(alignTest2);
+    mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序
+    // mpe_init(alignTest1); 
     return 1;
 }
