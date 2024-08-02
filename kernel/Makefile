@@ -1,5 +1,5 @@
 NAME           := kernel
-SRCS           := $(shell find -L ./src/ -name "*.c") framework/main.c #这里单独提取了一个main，然后把所有的c文件都加进去
+SRCS           := framework/main.c $(shell find -L ./src/ -name "*.c") #这里单独提取了一个main，然后把所有的c文件都加进去
 INC_PATH       := include/ framework/                                  #这里把include和framework的路径都加进去，头文件在里面
 
 export MODULE  := L2
