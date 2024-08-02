@@ -1,4 +1,6 @@
 // DO NOT MODIFY: Will be reverted by the Online Judge.
+#ifndef __KERNEL_H__
+#define __KERNEL_H__
 
 #include <am.h>
 
@@ -46,3 +48,5 @@ MODULE(dev) {
     void (*init)();
     device_t *(*lookup)(const char *name);
 };
+
+#endif // __KERNEL_H__
