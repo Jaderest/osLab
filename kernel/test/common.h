@@ -22,7 +22,6 @@
 #define ASSERT
 #ifdef ASSERT
 
-// TODO PANIC宏，记得改改
 #define PANIC(fmt, ...)                                                        \
   do {                                                                         \
     fprintf(stderr, "\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__,      \

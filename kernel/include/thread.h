@@ -3,7 +3,7 @@
 
 #include <common.h>
 
-// Spinlock
+
 typedef int lock_t;
 #define LOCK_INIT() 0
 
@@ -19,4 +19,4 @@ void unlock(lock_t *lk) {
   atomic_xchg(lk, 0);
 }
 
-#endif
+#endif // _THREAD_H

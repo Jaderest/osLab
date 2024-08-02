@@ -1,5 +1,4 @@
-#include <am.h>
-#include <spinlock.h>
+#include <os.h>
 
 // This is a ported version of spin-lock
 // from xv6-riscv to AbstractMachine:
@@ -11,13 +10,13 @@ void push_off(); // push_off相当于中断开和关
 void pop_off();
 bool holding(spinlock_t *lk);
 
-void spin_lock(spinlock_t *lk) {
+void _spin_lock(spinlock_t *lk) {
     // Disable interrupts to avoid deadlock.关闭中断避免死锁
     push_off();
 
     // This is a deadlock.
     if (holding(lk)) { //如果上锁&持有锁的cpu为当前cpu，则立即终止它
-        panic("acquire %s", lk->name);
+        PANIC("acquire %s", lk->name);
     }
 
     // This our main body of spin lock.
@@ -29,9 +28,9 @@ void spin_lock(spinlock_t *lk) {
     lk->cpu = mycpu;
 }
 
-void spin_unlock(spinlock_t *lk) {
+void _spin_unlock(spinlock_t *lk) {
     if (!holding(lk)) { //看着怪怪的检查
-        panic("release %s", lk->name);
+        PANIC("release %s", lk->name);
     }
 
     lk->cpu = NULL;

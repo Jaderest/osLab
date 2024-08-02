@@ -2,20 +2,12 @@
 
 #include <kernel.h>
 #include <klib.h>
+#include <os.h>
 
 void alignTest1() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
-
-    // for (int i = 0; i < 4; i ++) {
-    //     void *p = pmm->alloc(4096);
-    //     p += 1;
-    // }
-    // for (int i = 0; i < 4; i ++) {
-    //     void *p = pmm->alloc(128 + i);
-    //     // printf("p: %x\n", p);
-    // }
 
     while (1) ;
 }
@@ -25,22 +17,22 @@ void alignTest2() {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
 
-    for (int i = 0; i < 10; i ++) {
-        void *p1 = pmm->alloc(5000);
-        void *p2 = pmm->alloc(8200);
-        printf("p1: %x\n", p1);
-        printf("p2: %x\n", p2);
-    }
-
     while (1) ;
 
 }
 
+static spinlock_t lk1, lk2, lk3, lk4;
+
 int main() {
     ioe_init();
-    cte_init(os->trap);
+    //TODO1：所以我要实现os->trap()
+    cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
-    mpe_init(os->run);
+    mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序
+    printf("lock addr: %x\n", &lk1);
+    printf("lock addr: %x\n", &lk2);
+    printf("lock addr: %x\n", &lk3);
+    printf("lock addr: %x\n", &lk4);
     // mpe_init(alignTest1);
     // mpe_init(alignTest2);
     return 1;
