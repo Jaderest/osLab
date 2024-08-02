@@ -7,12 +7,12 @@
 #include <klib-macros.h>
 
 
-#define MAX_CPU_NUM 8
+#define MAX_CPU_NUM (8)
+#define TASK_STACK_SIZE (8192)
 
 // #define DEBUG
 #ifdef DEBUG
 
-// 使用可变参数的方式定义debug宏
 #define debug(...) printf(__VA_ARGS__)
 #else
 #define debug(fmt, ...)
