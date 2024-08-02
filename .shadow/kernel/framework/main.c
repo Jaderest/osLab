@@ -32,7 +32,9 @@ int main() {
     //TODO1：所以我要实现os->trap()
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
+
     mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序
+    mpe_init(alignTest1); 
     printf("lock addr: %x\n", &lk1);
     printf("lock addr: %x\n", &lk2);
     printf("lock addr: %x\n", &lk3);
