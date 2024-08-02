@@ -4,13 +4,15 @@
 #include <klib.h>
 #include <os.h>
 
+spinlock_t log_lk = spinlock_init("log");
+
 void alignTest1() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
 
     for (int i = 0; i < 1000; ++i) {
-        printf("addr = %x\n", pmm->alloc(4096));
+        log("addr = %x\n", pmm->alloc(4096));
     }
 
     while (1) ;
