@@ -9,6 +9,10 @@ void alignTest1() {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
 
+    for (int i = 0; i < 1000; ++i) {
+        printf("addr = %x\n", pmm->alloc(4096));
+    }
+
     while (1) ;
 }
 
