@@ -48,8 +48,9 @@ struct semaphore {
 #define LOCKED    1
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
-//TODO3: 实现一个带锁的log宏
-// spinlock_t log_lk = spinlock_init("log");
+
+#define LOG
+#ifdef LOG
 extern spinlock_t log_lk;
 #define log(format, ...) \
     do { \
@@ -57,5 +58,8 @@ extern spinlock_t log_lk;
         printf(format, ##__VA_ARGS__); \
         _spin_unlock(&log_lk); \
     } while (0)
+#else
+#define log(format, ...)
+#endif
 
 #endif // _OS_H__

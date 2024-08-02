@@ -4,7 +4,9 @@
 #include <klib.h>
 #include <os.h>
 
+#ifdef LOG
 spinlock_t log_lk = spinlock_init("log");
+#endif
 
 void alignTest1() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
@@ -12,7 +14,8 @@ void alignTest1() {
     }
 
     for (int i = 0; i < 1000; ++i) {
-        log("addr = %x\n", pmm->alloc(4096));
+        void *addr = pmm->alloc(4096);
+        log("addr = %x\n", addr);
     }
 
     while (1) ;
