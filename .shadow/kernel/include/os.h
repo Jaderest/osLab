@@ -35,6 +35,7 @@ struct spinlock {
         .cpu = NULL, \
     })
 
+// 需要为这个结构体分配内存（想想需要什么内容）
 struct task {
 
 };
