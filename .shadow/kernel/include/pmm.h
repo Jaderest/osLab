@@ -4,6 +4,7 @@
 #include <common.h>
 #include "list.h"
 #include "thread.h"
+#include "os.h"
 
 #define MAX_CACHES 9
 #define PAGE_SIZE 4096

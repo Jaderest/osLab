@@ -28,10 +28,21 @@ static void os_run() {
 }
 #endif
 
+//TODO1: os->trap()的实现
+/*
+中断/异常发生后，am会将寄存器保存到栈上，建议对context做一个拷贝，并实现上下文切换
+每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
+*/
 static Context *os_trap(Event ev, Context *context) {
     return NULL;
 }
 
+// TODO2: 增加代码可维护性
+// TODO 继续写！！！
+/*
+防止在增加新功能都去修改os trap
+增加了这个中断处理api，调用这个向操作系统内核注册一个中断处理程序，在
+*/
 static void os_on_irq(int seq, int event, handler_t handler) {
     
 }
