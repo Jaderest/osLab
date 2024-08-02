@@ -22,6 +22,7 @@ extern struct cpu cpus[];
 #define mycpu (&cpus[cpu_current()])
 
 
+//------------------spinlock------------------
 struct spinlock {
     const char *name;
     int status;
@@ -34,40 +35,52 @@ struct spinlock {
         .status = UNLOCKED, \
         .cpu = NULL, \
     })
-
-// 需要为这个结构体分配内存（想想需要什么内容）
-
-union tsk_union {
-    struct {
-        const char *name;
-        void (*entry)(void *arg);
-        void *arg;
-        union tsk_union *next;
-        //TODO： 或许需要一个task的状态
-        char end[0];
-    };
-    uint8_t stack[4096];
-};
-
-struct task {
-    union tsk_union tsk;
-};
-
-struct semaphore {
-    
-};
-
-//------------------spinlock------------------
 #define UNLOCKED  0
 #define LOCKED    1
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
 
 //------------------semaphore------------------
+//TODO SEMAPHORE: 
+/*
+value指定了
+*/
+struct semaphore {
+    char *name;
+    int value; //0（生产者消费者缓冲区），1（互斥锁）
+    int count;
+    //TODO: 这里需要一个队列(gpt) and 各种可能的成员
+    spinlock_t lk;
+};
+void _sem_init(sem_t *sem, const char *name, int value);
 void _sem_wait(sem_t *sem);
 void _sem_signal(sem_t *sem);
-void _sem_init(sem_t *sem, const char *name, int value);
 
+//------------------task------------------
+union tsk_union {
+    struct {
+        const char *name;
+        void (*entry)(void *arg);
+        void *arg;
+        union tsk_union *next; //或许使用其他数据结构，或许是队列
+        //TODO： 或许需要一个task的状态
+        char end[0];
+    };
+    uint8_t stack[TASK_STACK_SIZE];
+};
+
+struct task {
+    union tsk_union tsk;
+};
+
+
+
+
+
+
+
+
+//------------------log------------------
 #define LOG
 #ifdef LOG
 extern spinlock_t log_lk;

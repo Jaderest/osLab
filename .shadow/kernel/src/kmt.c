@@ -25,6 +25,8 @@ void kmt_teardown(task_t *task) {
 }
 
 void kmt_spin_init(spinlock_t *lk, const char *name) {
+    //FIXME: 这里并不能使用alloc？
+    //TODO: 思考一下要不要alloc
     lk->name = name;
     lk->status = UNLOCKED;
     lk->cpu = NULL;
