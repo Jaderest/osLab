@@ -38,7 +38,7 @@ extern spinlock_t log_lk;
 #ifdef ASSERT
 #define PANIC(fmt, ...)  \
     do {  \
-        printf("\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
+        log("\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
         while(1) asm volatile ("hlt");  \
     } while (0)
 
@@ -57,9 +57,9 @@ extern spinlock_t log_lk;
 #define TRACE_F
 #ifdef TRACE_F
     #define TRACE_ENTRY \
-        log("\033[1;32m[TRACE] %s: %s: %d: Entry\033[0m\n", __FILE__, __func__, __LINE__)
+        log("\033[1;32m[TRACE in %d] %s: %s: %d: Entry\033[0m\n", cpu_current(), __FILE__, __func__, __LINE__)
     #define TRACE_EXIT \
-        log("\033[1;32m[TRACE] %s: %s: %d: Exit\033[0m\n", __FILE__, __func__, __LINE__)
+        log("\033[1;32m[TRACE in %d] %s: %s: %d: Exit\033[0m\n", cpu_current(), __FILE__, __func__, __LINE__)
 #else
     #define TRACE_ENTRY
     #define TRACE_EXIT
