@@ -8,8 +8,6 @@
 spinlock_t log_lk = spinlock_init("log");
 #endif
 
-sem_t empty, fill;
-
 void alignTest() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
