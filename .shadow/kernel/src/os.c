@@ -72,8 +72,10 @@ static void os_run() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
+    // 以下为正确代码，但是开始神秘重启
+    // TODO：研究os->trap()
     iset(true);
-    yield(); // 开始return NULL
+    // yield(); // 开始return NULL
     while (1) ;
 }
 #else
