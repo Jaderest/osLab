@@ -5,8 +5,17 @@
 
 struct cpu cpus[MAX_CPU_NUM];
 
-void kmt_init() {
+Context *kmt_context_save(Event ev, Context *ctx) {
+    return NULL;
+}
+Context *kmt_schedule(Event ev, Context *ctx) {
+    return NULL;
+}
 
+void kmt_init() {
+    //...
+    os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
+    os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
 }
 
 // 为task这个指针创建空间
