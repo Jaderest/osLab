@@ -56,7 +56,7 @@ union tsk_union {
         task_status_t status;
         // 和其他task的关系
         union tsk_union *next; //或许使用其他数据结构，或许是队列
-        Context *context;
+        Context context;
         char end[0];
     };
     uint8_t stack[TASK_STACK_SIZE];
