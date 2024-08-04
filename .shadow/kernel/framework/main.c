@@ -15,7 +15,7 @@ void alignTest() {
 
     for (int i = 0; i < 1000; ++i) {
         void *addr = pmm->alloc(4096);
-        log("addr = %x\n", addr);
+        printf("addr = %x\n", addr);
     }
 
     while (1) ;
