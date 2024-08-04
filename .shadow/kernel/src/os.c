@@ -72,6 +72,8 @@ static void os_run() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
+    iset(true);
+    yield();
     while (1) ;
 }
 #else
@@ -86,6 +88,7 @@ static void os_run() {
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
+
     return NULL;
 }
 
