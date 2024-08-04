@@ -14,8 +14,8 @@ static void run_test1() {
     static sem_t empty, fill;
     kmt->sem_init(&empty, "empty", N);
     kmt->sem_init(&fill,  "fill",  0);
-    log("empty addr = %d\n", &empty);
-    log("fill addr = %d\n", &fill);
+    log("empty addr = %x\n", &empty);
+    log("fill addr = %x\n", &fill);
 }
 
 static void os_init() {
