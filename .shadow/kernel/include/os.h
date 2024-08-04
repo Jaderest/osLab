@@ -59,7 +59,9 @@ union tsk_union {
         Context context;
         char end[0];
     };
+    uint32_t stack_guard_s[STACK_GUARD_SIZE];
     uint8_t stack[TASK_STACK_SIZE];
+    uint32_t stack_guard_e[STACK_GUARD_SIZE];
 };
 
 struct task {
