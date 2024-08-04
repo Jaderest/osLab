@@ -1,11 +1,5 @@
 #include <os.h>
 
-// This is a ported version of spin-lock
-// from xv6-riscv to AbstractMachine:
-// https://github.com/mit-pdos/xv6-riscv
-
-//! 这个spinlock是相当好的实现，我们写的时候也可以用它
-
 void push_off(); // push_off相当于中断开和关
 void pop_off();
 bool holding(spinlock_t *lk);
@@ -55,7 +49,7 @@ bool holding(spinlock_t *lk) {
 // push_off, pop_off leaves them off.
 void push_off(void) { //如何处理中断，关中断时，push中断前的状态放到栈里面
     int old = ienabled();
-    iset(false);
+    iset(false); //关中断
 
     struct cpu *c = mycpu;
     if (c->noff == 0) { //number of 关中断的次数
@@ -68,7 +62,7 @@ void pop_off(void) {
     struct cpu *c = mycpu;
 
     // Never enable interrupt when holding a lock.
-    if (ienabled()) {
+    if (ienabled()) { // 解锁的时候中断是不是打开的
         panic("pop_off - interruptible");
     }
     

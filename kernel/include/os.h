@@ -14,8 +14,8 @@
 #include <common.h>
 
 struct cpu {
-    int noff;
-    int intena;
+    int noff; // number of off（关中断的次数）
+    int intena; // interrupt enable（中断是不是处于enable的状态）
 };
 
 extern struct cpu cpus[];
@@ -40,22 +40,6 @@ struct spinlock {
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
 
-//------------------semaphore------------------
-//TODO SEMAPHORE: 
-/*
-value指定了
-*/
-struct semaphore {
-    char *name;
-    int value; //0（生产者消费者缓冲区），1（互斥锁）
-    int count;
-    //TODO: 这里需要一个队列(gpt) and 各种可能的成员
-    spinlock_t lk;
-};
-void _sem_init(sem_t *sem, const char *name, int value);
-void _sem_wait(sem_t *sem);
-void _sem_signal(sem_t *sem);
-
 //------------------task------------------
 typedef enum {
     BLOCKED,
@@ -69,10 +53,10 @@ union tsk_union {
         const char *name;
         void (*entry)(void *arg);
         void *arg;
-        Context *context;
         task_status_t status;
+        // 和其他task的关系
         union tsk_union *next; //或许使用其他数据结构，或许是队列
-        //TODO： 或许需要一个task的状态
+        Context *context;
         char end[0];
     };
     uint8_t stack[TASK_STACK_SIZE];
@@ -81,6 +65,26 @@ union tsk_union {
 struct task {
     union tsk_union tsk;
 };
+
+//------------------semaphore------------------
+//TODO SEMAPHORE: 
+/*
+value指定了
+*/
+
+struct semaphore {
+    spinlock_t lk;
+    int value; //0（生产者消费者缓冲区），1（互斥锁）
+    const char *name;
+    task_t *queue; //TODO: 思考这里的list怎么管理
+};
+void _sem_init(sem_t *sem, const char *name, int value);
+void _sem_wait(sem_t *sem);
+void _sem_signal(sem_t *sem);
+
+
+int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
+void _teardown(task_t *task);
 
 
 

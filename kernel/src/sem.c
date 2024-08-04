@@ -1,9 +1,11 @@
 #include <os.h>
 
 void _sem_init(sem_t *sem, const char *name, int value) {
-    sem->name = "sem"; // 这里不能直接赋值诶
-    //TODO name：name是否需要分配一个新的空间
+    sem = pmm->alloc(sizeof(sem_t));
+    sem->name = name;
     sem->value = value;
+    // TODO: 更新sem数据结构
+    sem->queue = NULL;
     sem->lk = spinlock_init(name); //TODO：检查这里lk是否赋值成功
 }
 
@@ -13,7 +15,7 @@ void _sem_init(sem_t *sem, const char *name, int value) {
 中断没有对应的线程，不能阻塞，因此不能在中断时调用 P
 */
 void _sem_wait(sem_t *sem) {
-    _spin_lock(&sem->lk);
+    _spin_lock(&sem->lk); //即使用锁阻塞在这里
     /*
     if (...) {
       // 没有资源，需要等待

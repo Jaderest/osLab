@@ -31,16 +31,17 @@ static void run_test1() {
 }
 */
 int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
-    return 0;
+    return _create(task, name, entry, arg);
 }
 
 void kmt_teardown(task_t *task) {
-
+    _teardown(task);
 }
 
 void kmt_spin_init(spinlock_t *lk, const char *name) {
     //FIXME: 这里并不能使用alloc？
     //TODO: 思考一下要不要alloc
+    lk = pmm->alloc(sizeof(spinlock_t));
     lk->name = name;
     lk->status = UNLOCKED;
     lk->cpu = NULL;
@@ -55,15 +56,15 @@ void kmt_spin_unlock(spinlock_t *lk) {
 }
 
 void kmt_sem_init(sem_t *sem, const char *name, int value) {
-    
+    _sem_init(sem, name, value);
 }
 
 void kmt_sem_wait(sem_t *sem) {
-    
+    _sem_wait(sem);
 }
 
 void kmt_sem_signal(sem_t *sem) {
-    
+    _sem_signal(sem);
 }
 
 
