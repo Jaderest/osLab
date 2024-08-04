@@ -37,6 +37,7 @@ struct spinlock {
     })
 #define UNLOCKED  0
 #define LOCKED    1
+bool holding(spinlock_t *lk);
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
 
@@ -50,8 +51,7 @@ typedef enum {
 
 struct task {
     const char *name;
-    void (*entry)(void *arg);
-    void *arg;
+    int id;
     task_status_t status;
     struct task *next;
     Context *context;
