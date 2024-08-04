@@ -46,10 +46,11 @@ void _spin_unlock(spinlock_t *lk);
 value指定了
 */
 struct semaphore {
-    const char *name;
-    int value; //0（生产者消费者缓冲区），1（互斥锁）
-    //TODO: 这里需要一个队列(gpt) and 各种可能的成员
     spinlock_t lk;
+    int value; //0（生产者消费者缓冲区），1（互斥锁）
+    const char *name;
+    task_t *queue;
+    //TODO: 这里需要一个队列(gpt) and 各种可能的成员
 };
 void _sem_init(sem_t *sem, const char *name, int value);
 void _sem_wait(sem_t *sem);

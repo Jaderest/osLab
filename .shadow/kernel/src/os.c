@@ -9,7 +9,8 @@ void putch(char ch) {
 #endif
 
 #define N 10
-#define DEBUG_LOCAL
+// #define DEBUG_LOCAL
+#ifdef DEBUG_LOCAL
 static void run_test1() {
     static sem_t empty, fill;
     kmt->sem_init(&empty, "empty", N);
@@ -17,6 +18,7 @@ static void run_test1() {
     log("empty addr = %x\n", &empty);
     log("fill addr = %x\n", &fill);
 }
+#endif
 
 static void os_init() {
     pmm->init();
