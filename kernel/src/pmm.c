@@ -46,7 +46,6 @@ static inline size_t buddy_block_order(size_t size) {
     while ((1 << order) < size) {
         order++;
     }
-    // debug("size = %d, order = %d\n", size, order);
 #ifdef TEST
     PANIC_ON(size < 1 || order < 0, "size = %ld, order = %ld", size, order);
 #else
@@ -59,23 +58,19 @@ static inline size_t buddy_block_order(size_t size) {
 void buddy_pool_init(buddy_pool_t *pool, void *start, void *end) { // 初始化buddy_pool
     //初始化自由列表，标记每个页的状态
     size_t page_num = (end - start) >> PAGE_SHIFT;
-    debug("page_num = %ld\n", page_num);
     pool->pool_meta_data = start;
     for (int i = 0; i <= MAX_ORDER; i++) {
         init_list_head(&pool->free_lists[i].free_list); // 初始化链表，每个order（也即层数）放一个freelist来存放空闲的block
     }
-    debug("meta data of buddy pool: [%p, %p)\n", pool->pool_meta_data, pool->pool_meta_data + page_num * sizeof(buddy_block_t));
+    log("meta data of buddy pool: [%p, %p)\n", pool->pool_meta_data, pool->pool_meta_data + page_num * sizeof(buddy_block_t));
     memset(pool->pool_meta_data, 0, page_num * sizeof(buddy_block_t));
     PANIC_ON((uintptr_t)pool->pool_meta_data % PAGE_SIZE != 0, "pool_meta_data is not aligned");
-    // debug("memset done\n");
 
     start += page_num * sizeof(buddy_block_t); // 从元数据后开始分配
     page_num = (end - start) >> PAGE_SHIFT;
-    // debug("page_num = %d\n", page_num);
     pool->pool_start_addr = (void *)ALIGN((uintptr_t)start, PAGE_SIZE);
     pool->pool_end_addr = end;
     page_num = (pool->pool_end_addr - pool->pool_start_addr) >> PAGE_SHIFT;
-    // debug("pool_start_addr = %p, pool_end_addr = %p\n", pool->pool_start_addr, pool->pool_end_addr);
 
     // 整个空间分为一个page，每个page绑定一个buddy_block_t
     // -----------meta_data-----------
@@ -285,9 +280,9 @@ static slab_t *allocate_slab(cache_t *cache) {
 
 void *slab_alloc(size_t size) {
 #ifdef TEST
-    debug("slab_alloc: %ld\n", size);
+    log("slab_alloc: %ld\n", size);
 #else
-    // debug("slab_alloc: %d\n", size);
+    // log("slab_alloc: %d\n", size);
 #endif
     if (size == 0 || size >= PAGE_SIZE) { //用户的非法请求
         return NULL;

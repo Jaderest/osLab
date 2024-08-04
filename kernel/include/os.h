@@ -59,6 +59,16 @@ struct task {
     uint8_t stack[STACK_SIZE];
     uint32_t stack_fense_e[STACK_GUARD_SIZE];
 };
+void init_stack_guard(task_t *task);
+int check_stack_guard(task_t *task);
+void idle_init();
+Context *kmt_context_save(Event ev, Context *context);
+Context *kmt_schedule(Event ev, Context *context);
+int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
+void _teardown(task_t *task);
+
+
+#define stack_check(task) check_stack_guard(task)
 
 //------------------semaphore------------------
 //TODO SEMAPHORE: 
@@ -77,8 +87,6 @@ void _sem_wait(sem_t *sem);
 void _sem_signal(sem_t *sem);
 
 
-int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
-void _teardown(task_t *task);
 
 
 
@@ -86,19 +94,5 @@ void _teardown(task_t *task);
 
 
 
-
-//------------------log------------------
-#define LOG
-#ifdef LOG
-extern spinlock_t log_lk;
-#define log(format, ...) \
-    do { \
-        _spin_lock(&log_lk); \
-        printf(format, ##__VA_ARGS__); \
-        _spin_unlock(&log_lk); \
-    } while (0)
-#else
-#define log(format, ...)
-#endif
 
 #endif // _OS_H__

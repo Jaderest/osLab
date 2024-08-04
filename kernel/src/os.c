@@ -43,7 +43,7 @@ void handler_add(int seq, int event, handler_t handler) {
 void print_handler() {
     Handler *p = handler_head;
     while (p) {
-        printf("seq: %d, event: %d\n", p->seq, p->event);
+        log("seq: %d, event: %d\n", p->seq, p->event);
         p = p->next;
     }
 }
@@ -56,13 +56,8 @@ static void os_init() {
     NO_INTR;
     pmm->init();
     kmt->init();
-    os_on_irq(0, 0, NULL);
-    os_on_irq(3, 0, NULL);
-    os_on_irq(2, 0, NULL);
-    os_on_irq(1, 0, NULL);
-    os_on_irq(123, 0, NULL);
-    os_on_irq(2, 0, NULL);
     print_handler();
+    NO_INTR;
 
     // dev->init();
 }
@@ -72,6 +67,10 @@ static void os_run() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
+    // 以下为正确代码，但是开始神秘重启
+    // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
+    iset(true);
+    yield(); // 开始return NULL
     while (1) ;
 }
 #else
@@ -86,7 +85,28 @@ static void os_run() {
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
-    return NULL;
+    TRACE_ENTRY;
+    NO_INTR;
+    Handler *p = handler_head;
+    Context *next = NULL;
+    int irq_num = 0;
+    while (p) {
+        if (p->event == ev.event || p->event == EVENT_NULL) {
+            Context *ret = p->handler(ev, context);
+            if (ret == NULL) log("context save\n");
+            PANIC_ON(ret && next, "returning multiple times");
+            log ("interrupt %d\n", ienabled());
+            if (ret) next = ret;
+        }
+        irq_num++;
+        log("num: %d\n", irq_num);
+        p = p->next;
+    }
+    NO_INTR;
+    log ("interrupt %d\n", ienabled());
+    PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
+    TRACE_EXIT;
+    return next;
 }
 
 // TODO2: 增加代码可维护性
