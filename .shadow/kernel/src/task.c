@@ -13,7 +13,7 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg)
         },
         entry, arg
     );
-    // 如何检查堆栈
+    // 如何检查堆栈？栈溢出的后果就是线程的信息可能被覆盖，出现各种诡异的情况
     //TODO: task的上下文需要如何创建
     return 0;
 }
