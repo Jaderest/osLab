@@ -64,7 +64,7 @@ void idle_init() {
 
 Context *kmt_context_save(Event ev, Context *ctx) {
     NO_INTR;
-    PANIC_ON(!check_stack_guard(current->context), "Stack overflow detected in CPU #%d\n", cpu_current());
+    PANIC_ON(!check_stack_guard(current), "Stack overflow detected in CPU #%d\n", cpu_current());
     if (current->status != BLOCKED) current->status = RUNNABLE;
     current->context = ctx;
     return NULL;
@@ -84,6 +84,6 @@ Context *kmt_schedule(Event ev, Context *ctx) {
         current = tasks[index];
     }
     current->status = RUNNING;
-    PANIC_ON(!check_stack_guard(current->context), "Stack overflow detected in CPU #%d\n", cpu_current());
+    PANIC_ON(!check_stack_guard(current), "Stack overflow detected in CPU #%d\n", cpu_current());
     return current->context;
 }

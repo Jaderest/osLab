@@ -75,8 +75,8 @@ static void os_run() {
     }
     // 以下为正确代码，但是开始神秘重启
     // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
-    // iset(true);
-    // yield(); // 开始return NULL
+    iset(true);
+    yield(); // 开始return NULL
     while (1) ;
 }
 #else
