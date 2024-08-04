@@ -1,7 +1,7 @@
 #include <os.h>
 
 int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
-    task->tsk.stack = pmm->alloc(TASK_STACK_SIZE);
+    task = pmm->alloc(TASK_STACK_SIZE);
     task->tsk.name = name;
     task->tsk.entry = entry;
     task->tsk.arg = arg;
@@ -12,7 +12,7 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg)
             .end = task->tsk.stack + TASK_STACK_SIZE,
         },
         entry, arg
-    )
+    );
     // 如何检查堆栈
     //TODO: task的上下文需要如何创建
     return 0;
