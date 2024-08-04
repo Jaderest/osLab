@@ -59,6 +59,13 @@ struct task {
     uint8_t stack[STACK_SIZE];
     uint32_t stack_fense_e[STACK_GUARD_SIZE];
 };
+void init_stack_guard(task_t *task);
+int check_stack_guard(task_t *task);
+void idle_init();
+Context *kmt_context_save(Event ev, Context *context);
+Context *kmt_schedule(Event ev, Context *context);
+
+#define stack_check(task) check_stack_guard(task)
 
 //------------------semaphore------------------
 //TODO SEMAPHORE: 

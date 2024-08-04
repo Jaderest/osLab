@@ -5,17 +5,10 @@
 
 struct cpu cpus[MAX_CPU_NUM];
 
-Context *kmt_context_save(Event ev, Context *ctx) {
-    return NULL;
-}
-Context *kmt_schedule(Event ev, Context *ctx) {
-    return NULL;
-}
-
 void kmt_init() {
-    //...
     os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
+    idle_init();
 }
 
 // 为task这个指针创建空间
@@ -48,8 +41,6 @@ void kmt_teardown(task_t *task) {
 }
 
 void kmt_spin_init(spinlock_t *lk, const char *name) {
-    //FIXME: 这里并不能使用alloc？
-    //TODO: 思考一下要不要alloc
     lk = pmm->alloc(sizeof(spinlock_t));
     lk->name = name;
     lk->status = UNLOCKED;

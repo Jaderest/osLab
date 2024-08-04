@@ -1,9 +1,11 @@
 #include <os.h>
 
-#define MAX_THREAD 256
-
 static int total_nt = 0; // 任务总数
-static task_t *tasks[MAX_THREAD] = {};
+static task_t idle[MAX_CPU_NUM] = {};      // 每个cpu的idle task（空闲任务）
+static task_t *tasks[MAX_THREAD] = {};     // 所有的task
+static task_t *currents[MAX_CPU_NUM] = {}; // 每个cpu当前运行的task
+#define current currents[cpu_current()]
+
 static spinlock_t task_lock = spinlock_init("task_lock");
 
 void init_stack_guard(task_t *task) {
@@ -22,8 +24,6 @@ int check_stack_guard(task_t *task) {
     }
     return 1;
 }
-#define stack_check(task) check_stack_guard(task)
-
 
 int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
     _spin_lock(&task_lock);
@@ -49,4 +49,41 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg)
 
 void _teardown(task_t *task) {
     
+}
+
+
+void idle_init() {
+    for (int i = 0; i < cpu_count(); i++) {
+        currents[i] = &idle[i];
+        idle[i].status = RUNNING;
+        idle[i].id = 0;
+        idle[i].name = "idle";
+        init_stack_guard(&idle[i]);
+    }
+}
+
+Context *kmt_context_save(Event ev, Context *ctx) {
+    NO_INTR;
+    PANIC_ON(!check_stack_guard(current->context), "Stack overflow detected in CPU #%d\n", cpu_current());
+    if (current->status != BLOCKED) current->status = RUNNABLE;
+    current->context = ctx;
+    return NULL;
+}
+
+Context *kmt_schedule(Event ev, Context *ctx) {
+    int index = current->id;
+    int i = 0;
+    while (i < total_nt) {
+        index = (index + 1) % total_nt;
+        if (tasks[index]->status == RUNNABLE) break;
+        i++;
+    }
+    if (i == total_nt) {
+        current = &idle[cpu_current()]; // 初始化要创建这个东西
+    } else {
+        current = tasks[index];
+    }
+    current->status = RUNNING;
+    PANIC_ON(!check_stack_guard(current->context), "Stack overflow detected in CPU #%d\n", cpu_current());
+    return current->context;
 }
