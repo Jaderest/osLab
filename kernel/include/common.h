@@ -8,7 +8,11 @@
 
 
 #define MAX_CPU_NUM (8)
-#define TASK_STACK_SIZE (8192)
+#define STACK_SIZE (8192)
+#define STACK_GUARD_SIZE (4)
+#define STACK_GUARD_VALUE (0xdeadbeef)
+#define INT_MAX (0x7fffffff)
+#define INT_MIN (0x80000000)
 /**
  * @brief 用于标记一个cpu的状态
  * 当中断到来时（也即进入on_interrupt时），都检查中断是否为关闭状态（应为关闭状态）

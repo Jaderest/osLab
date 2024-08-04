@@ -37,6 +37,7 @@ struct spinlock {
     })
 #define UNLOCKED  0
 #define LOCKED    1
+bool holding(spinlock_t *lk);
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
 
@@ -48,22 +49,15 @@ typedef enum {
     ZOMBIE,
 } task_status_t;
 
-union tsk_union {
-    struct {
-        const char *name;
-        void (*entry)(void *arg);
-        void *arg;
-        task_status_t status;
-        // 和其他task的关系
-        union tsk_union *next; //或许使用其他数据结构，或许是队列
-        Context context;
-        char end[0];
-    };
-    uint8_t stack[TASK_STACK_SIZE];
-};
-
 struct task {
-    union tsk_union tsk;
+    const char *name;
+    int id;
+    task_status_t status;
+    struct task *next;
+    Context *context;
+    uint32_t stack_fense_s[STACK_GUARD_SIZE];
+    uint8_t stack[STACK_SIZE];
+    uint32_t stack_fense_e[STACK_GUARD_SIZE];
 };
 
 //------------------semaphore------------------
