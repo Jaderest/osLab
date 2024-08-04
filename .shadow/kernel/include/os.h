@@ -94,18 +94,5 @@ void _sem_signal(sem_t *sem);
 
 
 
-//------------------log------------------
-#define LOG
-#ifdef LOG
-extern spinlock_t log_lk;
-#define log(format, ...) \
-    do { \
-        _spin_lock(&log_lk); \
-        printf(format, ##__VA_ARGS__); \
-        _spin_unlock(&log_lk); \
-    } while (0)
-#else
-#define log(format, ...)
-#endif
 
 #endif // _OS_H__

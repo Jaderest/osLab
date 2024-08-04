@@ -91,6 +91,7 @@ static void os_run() {
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
+    TRACE_ENTRY;
     NO_INTR;
     Handler *p = handler_head;
     Context *next = NULL;
@@ -103,6 +104,7 @@ static Context *os_trap(Event ev, Context *context) {
         p = p->next;
     }
     PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
+    TRACE_EXIT;
     return next;
 }
 

@@ -18,17 +18,30 @@
 #define INTR assert(ienabled())
 #define NO_INTR assert(!ienabled())
 
+
+//------------------log------------------
+#define LOG
+#ifdef LOG
+extern spinlock_t log_lk;
+#define log(format, ...) \
+    do { \
+        _spin_lock(&log_lk); \
+        printf(format, ##__VA_ARGS__); \
+        _spin_unlock(&log_lk); \
+    } while (0)
+#else
+#define log(format, ...)
+#endif
+
+//------------------assert------------------
 #define ASSERT
 #ifdef ASSERT
-
-// PANIC宏
 #define PANIC(fmt, ...)  \
     do {  \
         printf("\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
         while(1) asm volatile ("hlt");  \
     } while (0)
 
-// PANIC_ON宏
 #define PANIC_ON(condition, message, ...)         \
     do {                                          \
         if (condition) {                          \
@@ -40,6 +53,17 @@
 #define PANIC(fmt, ...)
 #define PANIC_ON(condition, message, ...)
 #endif // ASSERT
+
+#define TRACE_F
+#ifdef TRACE_F
+    #define TRACE_ENTRY \
+        log("\033[1;32m[TRACE] %s: %s: %d: Entry\033[0m\n", __FILE__, __func__, __LINE__)
+    #define TRACE_EXIT \
+        log("\033[1;32m[TRACE] %s: %s: %d: Exit\033[0m\n", __FILE__, __func__, __LINE__)
+#else
+    #define TRACE_ENTRY
+    #define TRACE_EXIT
+#endif // TRACE_F
 
 
 
