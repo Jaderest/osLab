@@ -56,15 +56,15 @@ void kmt_spin_unlock(spinlock_t *lk) {
 }
 
 void kmt_sem_init(sem_t *sem, const char *name, int value) {
-    
+    _sem_init(sem, name, value);
 }
 
 void kmt_sem_wait(sem_t *sem) {
-    
+    _sem_wait(sem);
 }
 
 void kmt_sem_signal(sem_t *sem) {
-    
+    _sem_signal(sem);
 }
 
 

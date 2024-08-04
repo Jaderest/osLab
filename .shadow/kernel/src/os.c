@@ -8,25 +8,61 @@ void putch(char ch) {
 }
 #endif
 
-#define N 10
-// #define DEBUG_LOCAL
-#ifdef DEBUG_LOCAL
-static void run_test1() {
-    static sem_t empty, fill;
-    kmt->sem_init(&empty, "empty", N);
-    kmt->sem_init(&fill,  "fill",  0);
-    log("empty addr = %x\n", &empty);
-    log("fill addr = %x\n", &fill);
+typedef struct Handler {
+    int seq;
+    int event;
+    handler_t handler;
+    struct Handler *next;
+    struct Handler *prev;
+} Handler;
+Handler *handler_head = NULL;
+void handler_add(int seq, int event, handler_t handler) {
+    Handler *h = pmm->alloc(sizeof(Handler));
+    PANIC_ON(h == NULL, "Failed to allocate memory for handler");
+    h->seq = seq;
+    h->event = event;
+    h->handler = handler;
+    h->next = h->prev = NULL;
+
+    if (handler_head == NULL) {
+        handler_head = h;
+        return;
+    }
+    Handler *p = handler_head;
+    Handler *prev = NULL;
+    while (p && p->seq < seq) {
+        prev = p;
+        p = p->next;
+    }
+    h->next = p;
+    h->prev = prev;
+    if (prev) prev->next = h;
+    if (p) p->prev = h;
 }
-#endif
+void print_handler() {
+    Handler *p = handler_head;
+    while (p) {
+        printf("seq: %d, event: %d\n", p->seq, p->event);
+        p = p->next;
+    }
+}
+
+static void os_on_irq(int seq, int event, handler_t handler) {
+    handler_add(seq, event, handler);
+}
 
 static void os_init() {
+    NO_INTR;
     pmm->init();
     kmt->init();
-    
-#ifdef DEBUG_LOCAL
-    run_test1();
-#endif
+    os_on_irq(0, 0, NULL);
+    os_on_irq(3, 0, NULL);
+    os_on_irq(2, 0, NULL);
+    os_on_irq(1, 0, NULL);
+    os_on_irq(123, 0, NULL);
+    os_on_irq(2, 0, NULL);
+    print_handler();
+
     // dev->init();
 }
 
@@ -58,9 +94,17 @@ static Context *os_trap(Event ev, Context *context) {
 增加了这个中断处理api，调用这个向操作系统内核注册一个中断处理程序
 在os trap执行时，当 ev.event（事件编号）和 event 匹配时，调用handler(event,ctx)
 */
-static void os_on_irq(int seq, int event, handler_t handler) {
-    
-}
+/*
+typedef struct {
+  enum {
+    EVENT_NULL = 0,
+    EVENT_YIELD, EVENT_SYSCALL, EVENT_PAGEFAULT, EVENT_ERROR,
+    EVENT_IRQ_TIMER, EVENT_IRQ_IODEV,
+  } event;
+  uintptr_t cause, ref;
+  const char *msg;
+} Event;
+*/
 
 MODULE_DEF(os) = {
     .init = os_init,

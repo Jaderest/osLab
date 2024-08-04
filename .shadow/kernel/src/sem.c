@@ -4,6 +4,8 @@ void _sem_init(sem_t *sem, const char *name, int value) {
     sem = pmm->alloc(sizeof(sem_t));
     sem->name = name;
     sem->value = value;
+    // TODO: 更新sem数据结构
+    sem->queue = NULL;
     sem->lk = spinlock_init(name); //TODO：检查这里lk是否赋值成功
 }
 
