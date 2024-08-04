@@ -15,18 +15,33 @@ create 在系统中创建一个线程（task_t应当实现被分配好），这�
 但是只有打开中断时它才获得被调度执行的权利，（关中断就让它等着）
 然后它创建的线程永不返回，直到调用teardown
 只有永远不会被调度到处理器上执行的前提才能被回收
+static inline task_t *task_alloc() {
+    return pmm->alloc(sizeof(task_t));
+}
+
+static void run_test1() {
+    kmt->sem_init(&empty, "empty", N);
+    kmt->sem_init(&fill,  "fill",  0);
+    for (int i = 0; i < NPROD; i++) {
+        kmt->create(task_alloc(), "producer", T_produce, NULL);
+    }
+    for (int i = 0; i < NCONS; i++) {
+        kmt->create(task_alloc(), "consumer", T_consume, NULL);
+    }
+}
 */
 int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
-    return 0;
+    return _create(task, name, entry, arg);
 }
 
 void kmt_teardown(task_t *task) {
-
+    _teardown(task);
 }
 
 void kmt_spin_init(spinlock_t *lk, const char *name) {
     //FIXME: 这里并不能使用alloc？
     //TODO: 思考一下要不要alloc
+    lk = pmm->alloc(sizeof(spinlock_t));
     lk->name = name;
     lk->status = UNLOCKED;
     lk->cpu = NULL;

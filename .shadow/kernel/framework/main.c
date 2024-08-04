@@ -37,6 +37,7 @@ int main() {
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
 
+    // 所有处理器运行同一份代码，拥有独立的堆栈，共享的内存
     mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序
     // mpe_init(alignTest1); 
     return 1;

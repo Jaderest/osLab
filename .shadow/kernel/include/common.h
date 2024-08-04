@@ -9,6 +9,14 @@
 
 #define MAX_CPU_NUM (8)
 #define TASK_STACK_SIZE (8192)
+/**
+ * @brief 用于标记一个cpu的状态
+ * 当中断到来时（也即进入on_interrupt时），都检查中断是否为关闭状态（应为关闭状态）
+ * 持有锁的时候没中断，出来的时候没有中断
+ * 主循环的时候中断都是打开状态，持有任意一把自旋锁的时候中断都处于关闭状态
+ */
+#define INTR assert(ienabled())
+#define NO_INTR assert(!ienabled())
 
 // #define DEBUG
 #ifdef DEBUG
@@ -16,7 +24,7 @@
 #define debug(...) printf(__VA_ARGS__)
 #else
 #define debug(fmt, ...)
-#endif
+#endif // DEBUG
 
 // #define ASSERT
 #ifdef ASSERT
@@ -39,6 +47,8 @@
 #else
 #define PANIC(fmt, ...)
 #define PANIC_ON(condition, message, ...)
-#endif
+#endif // ASSERT
 
-#endif
+
+
+#endif // __COMMON_H__

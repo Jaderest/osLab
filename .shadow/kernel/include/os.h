@@ -14,8 +14,8 @@
 #include <common.h>
 
 struct cpu {
-    int noff;
-    int intena;
+    int noff; // number of off（关中断的次数）
+    int intena; // interrupt enable（中断是不是处于enable的状态）
 };
 
 extern struct cpu cpus[];
@@ -57,11 +57,20 @@ void _sem_wait(sem_t *sem);
 void _sem_signal(sem_t *sem);
 
 //------------------task------------------
+typedef enum {
+    BLOCKED,
+    RUNNABLE,
+    RUNNING,
+    ZOMBIE,
+} task_status_t;
+
 union tsk_union {
     struct {
         const char *name;
         void (*entry)(void *arg);
         void *arg;
+        Context *context;
+        task_status_t status;
         union tsk_union *next; //或许使用其他数据结构，或许是队列
         //TODO： 或许需要一个task的状态
         char end[0];
@@ -72,6 +81,9 @@ union tsk_union {
 struct task {
     union tsk_union tsk;
 };
+
+int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
+void _teardown(task_t *task);
 
 
 
