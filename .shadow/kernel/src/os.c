@@ -43,7 +43,7 @@ void handler_add(int seq, int event, handler_t handler) {
 void print_handler() {
     Handler *p = handler_head;
     while (p) {
-        printf("seq: %d, event: %d\n", p->seq, p->event);
+        log("seq: %d, event: %d\n", p->seq, p->event);
         p = p->next;
     }
 }
@@ -56,12 +56,6 @@ static void os_init() {
     NO_INTR;
     pmm->init();
     kmt->init();
-    os_on_irq(0, 0, NULL);
-    os_on_irq(3, 0, NULL);
-    os_on_irq(2, 0, NULL);
-    os_on_irq(1, 0, NULL);
-    os_on_irq(123, 0, NULL);
-    os_on_irq(2, 0, NULL);
     print_handler();
     NO_INTR;
 
@@ -95,13 +89,17 @@ static Context *os_trap(Event ev, Context *context) {
     NO_INTR;
     Handler *p = handler_head;
     Context *next = NULL;
+    int irq_num = 0;
     while (p) {
         if (p->event == ev.event || p->event == EVENT_NULL) {
             Context *ret = p->handler(ev, context);
             if (ret == NULL) log("context save\n");
             PANIC_ON(ret && next, "returning multiple times");
+            log ("interrupt %d\n", ienabled());
             if (ret) next = ret;
         }
+        irq_num++;
+        log("num: %d\n", irq_num);
         p = p->next;
     }
     NO_INTR;
