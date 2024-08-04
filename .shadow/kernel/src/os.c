@@ -73,7 +73,7 @@ static void os_run() {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
     iset(true);
-    yield();
+    yield(); // 开始return NULL
     while (1) ;
 }
 #else
@@ -88,8 +88,19 @@ static void os_run() {
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
-
-    return NULL;
+    NO_INTR;
+    Handler *p = handler_head;
+    Context *next = NULL;
+    while (p) {
+        if (p->event == ev.event || p->event == EVENT_NULL) {
+            Context *ret = p->handler(ev, context);
+            PANIC_ON(ret && next, "returning multiple times");
+            if (ret) next = ret;
+        }
+        p = p->next;
+    }
+    PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
+    return next;
 }
 
 // TODO2: 增加代码可维护性
