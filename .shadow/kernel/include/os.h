@@ -64,6 +64,9 @@ int check_stack_guard(task_t *task);
 void idle_init();
 Context *kmt_context_save(Event ev, Context *context);
 Context *kmt_schedule(Event ev, Context *context);
+int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
+void _teardown(task_t *task);
+
 
 #define stack_check(task) check_stack_guard(task)
 
@@ -83,9 +86,6 @@ void _sem_init(sem_t *sem, const char *name, int value);
 void _sem_wait(sem_t *sem);
 void _sem_signal(sem_t *sem);
 
-
-int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
-void _teardown(task_t *task);
 
 
 
