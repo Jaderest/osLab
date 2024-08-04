@@ -63,6 +63,7 @@ static void os_init() {
     os_on_irq(123, 0, NULL);
     os_on_irq(2, 0, NULL);
     print_handler();
+    NO_INTR;
 
     // dev->init();
 }
@@ -73,8 +74,8 @@ static void os_run() {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
     // 以下为正确代码，但是开始神秘重启
-    // TODO：研究os->trap()
-    iset(true);
+    // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
+    // iset(true);
     // yield(); // 开始return NULL
     while (1) ;
 }
