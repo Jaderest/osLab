@@ -15,8 +15,8 @@
 #define INT_MAX (0x7fffffff)
 #define INT_MIN (0x80000000)
 
-#define INTR assert(ienabled())
-#define NO_INTR assert(!ienabled())
+#define INTR PANIC_ON(!ienabled(), "Interrupt is disabled")
+#define NO_INTR PANIC_ON(ienabled(), "Interrupt is enabled")
 
 
 //------------------log------------------
