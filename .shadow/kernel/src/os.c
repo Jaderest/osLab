@@ -104,6 +104,7 @@ static Context *os_trap(Event ev, Context *context) {
         p = p->next;
     }
     NO_INTR;
+    log ("interrupt %d\n", ienabled());
     PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
     TRACE_EXIT;
     return next;
