@@ -8,10 +8,21 @@ void putch(char ch) {
 }
 #endif
 
+static sem_t empty, fill;
+#define N 10
+#define DEBUG_LOCAL
+static void run_test1() {
+    kmt->sem_init(&empty, "empty", N);
+    kmt->sem_init(&fill,  "fill",  0);
+}
+
 static void os_init() {
     pmm->init();
     kmt->init();
     
+#ifdef DEBUG_LOCAL
+    run_test1();
+#endif
     // dev->init();
 }
 

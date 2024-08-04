@@ -1,11 +1,5 @@
 #include <os.h>
 
-// This is a ported version of spin-lock
-// from xv6-riscv to AbstractMachine:
-// https://github.com/mit-pdos/xv6-riscv
-
-//! 这个spinlock是相当好的实现，我们写的时候也可以用它
-
 void push_off(); // push_off相当于中断开和关
 void pop_off();
 bool holding(spinlock_t *lk);

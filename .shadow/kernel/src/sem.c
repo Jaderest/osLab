@@ -1,8 +1,8 @@
 #include <os.h>
 
 void _sem_init(sem_t *sem, const char *name, int value) {
-    sem->name = "sem"; // 这里不能直接赋值诶
-    //TODO name：name是否需要分配一个新的空间
+    sem = pmm->alloc(sizeof(sem_t));
+    sem->name = name;
     sem->value = value;
     sem->lk = spinlock_init(name); //TODO：检查这里lk是否赋值成功
 }

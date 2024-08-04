@@ -8,7 +8,9 @@
 spinlock_t log_lk = spinlock_init("log");
 #endif
 
-void alignTest1() {
+sem_t empty, fill;
+
+void alignTest() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
     }
@@ -21,15 +23,6 @@ void alignTest1() {
     while (1) ;
 }
 
-void alignTest2() {
-    for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
-        putch(*s == '*' ? '0' + cpu_current() : *s);
-    }
-
-    while (1) ;
-
-}
-
 
 int main() {
     ioe_init();
@@ -39,6 +32,6 @@ int main() {
 
     // 所有处理器运行同一份代码，拥有独立的堆栈，共享的内存
     mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序
-    // mpe_init(alignTest1); 
+    // mpe_init(alignTest); 
     return 1;
 }
