@@ -48,6 +48,7 @@ int main() {
     ioe_init();
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
+    log("Hello, OS World!\n");
     // create_threads();
 
     // 所有处理器运行同一份代码，拥有独立的堆栈，共享的内存
