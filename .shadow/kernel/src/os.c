@@ -1,4 +1,5 @@
 #include <os.h>
+#include <devices.h>
 
 #ifdef TEST
 #include <am.h>
@@ -56,10 +57,9 @@ static void os_init() {
     NO_INTR;
     pmm->init();
     kmt->init();
+    dev->init();
     print_handler();
     NO_INTR;
-
-    // dev->init();
 }
 
 #ifndef TEST
