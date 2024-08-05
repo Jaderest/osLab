@@ -53,6 +53,7 @@ void _teardown(task_t *task) {
     _spin_lock(&task_lock);
     tasks[task->id] = NULL;
     pmm->free(task);
+    _spin_unlock(&task_lock);
 }
 
 void idle_init() {
