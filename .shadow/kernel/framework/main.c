@@ -25,6 +25,7 @@ void alignTest() {
 int main() {
     ioe_init();
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
+    log("before os_init\n");
     os->init();
     log ("init done\n");
 
