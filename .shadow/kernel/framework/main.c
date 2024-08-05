@@ -45,13 +45,9 @@ void alignTest() {
 
 
 int main() {
-    printf("before pmm\n");
     ioe_init();
-    printf("before os\n");
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
-    printf("before os_init\n");
     os->init();
-    printf("init done\n");
     // create_threads();
 
     // 所有处理器运行同一份代码，拥有独立的堆栈，共享的内存
