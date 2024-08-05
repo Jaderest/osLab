@@ -41,7 +41,9 @@ static void dev_init() {
   DEVICES(INIT);
 
   kmt->create(pmm->alloc(sizeof(task_t)), "input-task", dev_input_task, NULL);
+  log("input task created\n");
   kmt->create(pmm->alloc(sizeof(task_t)), "tty-task",   dev_tty_task,   NULL);
+  log("tty task created\n");
 }
 
 MODULE_DEF(dev) = {
