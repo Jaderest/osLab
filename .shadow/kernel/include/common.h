@@ -54,12 +54,17 @@ extern spinlock_t log_lk;
 #define PANIC_ON(condition, message, ...)
 #endif // ASSERT
 
-// #define TRACE_F
-#ifdef TRACE_F
+// #define TRACE_F_COLOR
+#ifdef TRACE_F_COLOR
     #define TRACE_ENTRY \
         log("\033[1;32m[TRACE in %d] %s: %s: %d: Entry\033[0m\n", cpu_current(), __FILE__, __func__, __LINE__)
     #define TRACE_EXIT \
         log("\033[1;32m[TRACE in %d] %s: %s: %d: Exit\033[0m\n", cpu_current(), __FILE__, __func__, __LINE__)
+#elif defined(TRACE_F)
+    #define TRACE_ENTRY \
+        log("[TRACE in %d] %s: %s: %d: Entry\n", cpu_current(), __FILE__, __func__, __LINE__)
+    #define TRACE_EXIT \
+        log("[TRACE in %d] %s: %s: %d: Exit\n", cpu_current(), __FILE__, __func__, __LINE__)
 #else
     #define TRACE_ENTRY
     #define TRACE_EXIT
