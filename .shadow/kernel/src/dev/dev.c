@@ -37,6 +37,7 @@ static void dev_init() {
 #define INIT(id, device_type, dev_name, dev_id, dev_ops) \
   devices[id] = dev_create(sizeof(device_type), dev_name, dev_id, dev_ops); \
   devices[id]->ops->init(devices[id]);
+  log("init devices\n");
 
   DEVICES(INIT);
 
