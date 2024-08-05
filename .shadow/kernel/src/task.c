@@ -66,7 +66,6 @@ void idle_init() {
 }
 
 Context *kmt_context_save(Event ev, Context *ctx) {
-  TRACE_ENTRY;
   NO_INTR;
   PANIC_ON(!check_stack_guard(current), "Stack overflow detected in CPU #%d\n",
            cpu_current());
@@ -76,13 +75,11 @@ Context *kmt_context_save(Event ev, Context *ctx) {
   current->context = ctx;
 
   NO_INTR;
-  TRACE_EXIT;
   return NULL;
 }
 
 // thread starvation 那应该调整我的调度策略
 Context *kmt_schedule(Event ev, Context *ctx) {
-  TRACE_ENTRY;
   NO_INTR;
 
   int index = current->id;
@@ -103,7 +100,6 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   NO_INTR;
   PANIC_ON(!check_stack_guard(current), "Stack overflow detected in CPU #%d\n",
            cpu_current());
-  TRACE_EXIT;
   return current->context;
 }
 
