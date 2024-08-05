@@ -384,9 +384,12 @@ static void pmm_init() {
         pmsize >> 20, heap.start, heap.end
     );
 
+    log("pmm_init: %p, %p\n", pmm_start, pmm_end);
     buddy_pool_init(&g_buddy_pool, pmm_start, pmm_end);
+    log("buddy_pool_init done\n");
     // print_pool(&g_buddy_pool);
     slab_init();
+    log("slab_init done\n");
 }
 #else
 // 测试框架中的pmm_init
