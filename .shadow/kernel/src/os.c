@@ -58,7 +58,7 @@ static void os_init() {
     pmm->init();
     kmt->init();
     log("kmt init done\n");
-    dev->init();
+    // dev->init();
     print_handler();
     NO_INTR;
 }
