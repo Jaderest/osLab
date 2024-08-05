@@ -37,7 +37,7 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg),
   Area stack = (Area){task->stack, task->stack + STACK_SIZE};
   task->context = kcontext(stack, entry, arg);
   task->id = total_nt;
-  tasks[total_nt] = task; // TODO：关注一下这里有什么变化
+  tasks[total_nt] = task;
   total_nt++;
   PANIC_ON(!stack_check(task), "Stack overflow");
 
@@ -47,7 +47,13 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg),
   return 0;
 }
 
-void _teardown(task_t *task) {}
+// TODO: 实现一下teardown
+void _teardown(task_t *task) {
+    PANIC_ON(task->status != ZOMBIE && task->status , "Cannot teardown a running task");
+    _spin_lock(&task_lock);
+    tasks[task->id] = NULL;
+    pmm->free(task);
+}
 
 void idle_init() {
   for (int i = 0; i < cpu_count(); i++) {
@@ -74,20 +80,21 @@ Context *kmt_context_save(Event ev, Context *ctx) {
   return NULL;
 }
 
+// thread starvation 那应该调整我的调度策略
 Context *kmt_schedule(Event ev, Context *ctx) {
   TRACE_ENTRY;
   NO_INTR;
 
   int index = current->id;
   int i = 0;
-  while (i < total_nt) {
+  while (i < total_nt * 10) {
     index = (index + 1) % total_nt;
     if (tasks[index]->status == RUNNABLE)
       break;
     i++;
   }
-  if (i == total_nt) {
-    current = &idle[cpu_current()]; // 初始化要创建这个东西
+  if (i == 10 * total_nt) {
+    current = &idle[cpu_current()]; // 找不到可以运行的
   } else {
     current = tasks[index];
   }
