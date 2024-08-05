@@ -47,7 +47,6 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg),
   return 0;
 }
 
-// TODO: 实现一下teardown
 void _teardown(task_t *task) {
     PANIC_ON(task->status != ZOMBIE && task->status , "Cannot teardown a running task");
     _spin_lock(&task_lock);
