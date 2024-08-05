@@ -1,4 +1,5 @@
 #include <os.h>
+#include <devices.h>
 
 #ifdef TEST
 #include <am.h>
@@ -56,10 +57,9 @@ static void os_init() {
     NO_INTR;
     pmm->init();
     kmt->init();
+    dev->init();
     print_handler();
     NO_INTR;
-
-    // dev->init();
 }
 
 #ifndef TEST
@@ -93,17 +93,13 @@ static Context *os_trap(Event ev, Context *context) {
     while (p) {
         if (p->event == ev.event || p->event == EVENT_NULL) {
             Context *ret = p->handler(ev, context);
-            if (ret == NULL) log("context save\n");
             PANIC_ON(ret && next, "returning multiple times");
-            log ("interrupt %d\n", ienabled());
             if (ret) next = ret;
         }
         irq_num++;
-        log("num: %d\n", irq_num);
         p = p->next;
     }
     NO_INTR;
-    log ("interrupt %d\n", ienabled());
     PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
     TRACE_EXIT;
     return next;

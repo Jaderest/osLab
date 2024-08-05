@@ -36,6 +36,7 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *a
     return _create(task, name, entry, arg);
 }
 
+// 这个是不是也要注册成处理函数
 void kmt_teardown(task_t *task) {
     _teardown(task);
 }

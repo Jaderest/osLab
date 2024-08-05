@@ -75,12 +75,21 @@ void _teardown(task_t *task);
 /*
 value指定了
 */
+typedef struct task_node {
+    task_t *task;
+    struct task_node *prev;
+    struct task_node *next;
+} task_node_t;
+typedef struct task_queue {
+    task_node_t *head;
+    task_node_t *tail;
+} task_queue_t;
 
 struct semaphore {
     spinlock_t lk;
     int value; //0（生产者消费者缓冲区），1（互斥锁）
     const char *name;
-    task_t *queue; //TODO: 思考这里的list怎么管理
+    task_queue_t *queue; //TODO: 思考这里的list怎么管理
 };
 void _sem_init(sem_t *sem, const char *name, int value);
 void _sem_wait(sem_t *sem);
