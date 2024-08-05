@@ -56,6 +56,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 static void os_init() {
     NO_INTR;
     pmm->init();
+    printf("pmm->init() done\n");
     kmt->init();
     // dev->init();
     print_handler();
