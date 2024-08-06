@@ -70,6 +70,7 @@ static void os_run() {
   // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
   // iset(true);
   // yield(); // 开始return NULL
+  log("in cpu %d\n", cpu_current());
   while (1);
 }
 #else
