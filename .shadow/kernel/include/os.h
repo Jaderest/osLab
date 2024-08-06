@@ -66,6 +66,8 @@ void idle_init(); // cpu 上空转的任务
 // 写在kmt里，然后这里声明一下
 Context *kmt_context_save(Event ev, Context *context);
 Context *kmt_schedule(Event ev, Context *context);
+int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
+void kmt_teardown(task_t *task);
 
 
 #define stack_check(task) check_stack_guard(task)

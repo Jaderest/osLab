@@ -16,12 +16,43 @@ static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免�
 
 
 // 保存context
-Context *kmt_context_save(Event ev, Context *ctx) {
+Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用，那么处理的便是当前cpu的任务，可以直接current
+    NO_INTR;
+    PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
+
+    current->status = RUNNABLE; // 当前任务切换为可执行，初始情况其实是设置的idle，但是idle不在task队列里面
+    // 于是在schedule时可以assert检查idle
+    current->context = ctx; // 保存当前的context
+
     return NULL;
 }
 
-Context *kmt_schedule(Event ev, Context *ctx) {
-    return ctx;
+Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
+    // 获取可以运行的任务
+    int index = current->id; // 从当前任务开始
+    int i = 0;
+    for (i = 0; i < total_task_num * 10; ++i) { // 循环十遍
+        index = (index + 1) % total_task_num; // index也跟着循环
+        if (tasks[index] == NULL) { //TODO: teardown
+            continue;
+        }
+        if (tasks[index]->status == RUNNABLE) {
+            current = tasks[index];
+            current->status = RUNNING;
+            break;
+        }
+    }
+    // 处理获取结果
+    if (i == total_task_num * 10) {
+        PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
+        current = &idle[cpu_current()];
+        current->status = RUNNING;
+    } else {
+        current = tasks[index];
+        current->status = RUNNABLE;
+    }
+    PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
+    return current->context;
 }
 
 void init_stack_guard(task_t *task) {
@@ -33,10 +64,10 @@ void init_stack_guard(task_t *task) {
 int check_stack_guard(task_t *task) {
     for (int i = 0; i < STACK_GUARD_SIZE; ++i) {
         if (task->stack_fense_s[i] != STACK_GUARD_VALUE || task->stack_fense_e[i] != STACK_GUARD_VALUE) {
-            return 0;
+            return 1;
         }
     }
-    return 1;
+    return 0;
 }
 
 void task_init(task_t *task, const char *name) {
@@ -52,14 +83,15 @@ void idle_init() {
         currents[i]->context = kcontext((Area) {currents[i]->stack, currents[i]->stack + STACK_SIZE}, NULL, NULL);
         // 试一下只有这个几个空转会不会出问题
         init_stack_guard(&idle[i]);
-        PANIC_ON(stack_check(&idle[i]) == 0, "stack overflow in cpu %d", cpu_current());
+
+        PANIC_ON(stack_check(&idle[i]), "stack overflow in cpu %d", cpu_current());
     }
 }
 
 void kmt_init() {
     os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-    idle_init();
+    idle_init(); // 开机阶段，这个时候需要上锁保护吗？
 }
 
 // task的内存已预先分配好，并且允许任何线程调用task_create

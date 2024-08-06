@@ -84,7 +84,7 @@ static void os_run() {}
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
-  NO_INTR;
+  NO_INTR; // 确保中断是关闭的
   Handler *p = handler_head;
   Context *next = NULL;
   int irq_num = 0;
