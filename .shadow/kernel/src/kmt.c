@@ -39,10 +39,10 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
         log("--------monitor-------\n");
         for (int i = 0; i < cpu_count(); ++i) {
-            log("cpu %d: %s\n", i, currents[i]->name);
+            log("monitor:cpu %d: %s\n", i, currents[i]->name);
         }
         for (int i = 0; i < total_task_num; ++i) {
-            log("task %d: %s status = %d\n", i, tasks[i]->name, tasks[i]->status);
+            log("monitor:task %d: %s status = %d\n", i, tasks[i]->name, tasks[i]->status);
         }
         current = &idle[cpu_current()];
         current->status = RUNNING;
