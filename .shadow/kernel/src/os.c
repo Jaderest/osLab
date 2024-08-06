@@ -53,10 +53,14 @@ static void os_on_irq(int seq, int event, handler_t handler) {
   handler_add(seq, event, handler);
 }
 
-void test() {
-  while (1) { // 你是线程的
-    // 先不printf了
-    printf("("); //TODO 你一printf就出现问题，是不是上下文的问题
+void testL() {
+  while (1) {
+    printf("(");
+  }  
+}
+void testR() {
+  while (1) {
+    printf(")");
   }  
 }
 
@@ -69,7 +73,8 @@ static void os_init() {
   pmm->init();
   kmt->init();
   printf("init done\n");
-  kmt_create(task_alloc(), "test", test, NULL);
+  kmt_create(task_alloc(), "testL", testL, NULL);
+  kmt_create(task_alloc(), "testR", testR, NULL);
   // dev->init();
   print_handler(); // 为什么你可以用log
   NO_INTR;
