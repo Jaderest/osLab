@@ -223,6 +223,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 }
 
 void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
+    TRACE_ENTRY;
     _spin_lock(&sem->lk);
     sem->value--;
     if (sem->value < 0) {
@@ -235,9 +236,11 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
         _spin_unlock(&sem->lk);
         yield();
     }
+    TRACE_EXIT;
 }
 
 void kmt_sem_signal(sem_t *sem) {
+    TRACE_ENTRY;
     _spin_lock(&sem->lk);
     if (sem->value < 0) {
         PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
@@ -247,6 +250,7 @@ void kmt_sem_signal(sem_t *sem) {
     }
     sem->value++;
     _spin_unlock(&sem->lk);
+    TRACE_EXIT;
 }
 //------------------sem------------------
 
