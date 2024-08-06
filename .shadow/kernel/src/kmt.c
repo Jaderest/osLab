@@ -41,6 +41,9 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
             log("cpu %d: %s\n", i, currents[i]->name);
         }
     }
+    current = &idle[cpu_current()];
+    current->status = RUNNING;
+    return current->context;
 #endif
     NO_INTR;
     // test spinlock(&task_lk)看看有没有死锁
