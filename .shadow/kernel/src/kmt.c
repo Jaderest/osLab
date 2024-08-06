@@ -59,11 +59,11 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
         current = &idle[cpu_current()];
         current->status = RUNNING;
-        // log("%s idle\n", current->name);
+        log("%s idle on cpu %d\n", current->name, cpu_current());
     } else {
         current = tasks[index];
         current->status = RUNNABLE;
-        // log("%s not idle\n", current->name);
+        log("%s not idle on cpu %d\n", current->name, cpu_current());
     }
 
     _spin_unlock(&task_lk);
