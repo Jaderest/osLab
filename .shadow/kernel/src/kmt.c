@@ -27,8 +27,6 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     // 于是在schedule时可以assert检查idle
     current->context = ctx; // 保存当前的context
 
-    // 第一次保存的时候是没有overflow的
-    log("current name: %s\n", current->name);
     stack_check(current);
     NO_INTR;
     return NULL;
