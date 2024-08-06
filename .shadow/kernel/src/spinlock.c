@@ -69,11 +69,11 @@ void pop_off(void) {
 
     // Never enable interrupt when holding a lock.
     if (ienabled()) { // 解锁的时候中断是不是打开的
-        panic("pop_off - interruptible");
+        PANIC("pop_off - interruptible");
     }
     
     if (c->noff < 1) {
-        panic("pop_off");
+        PANIC("pop_off");
     } // 许多正确的检查
 
     c->noff -= 1;
