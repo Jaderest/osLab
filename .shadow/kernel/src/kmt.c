@@ -27,6 +27,7 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     current->context = ctx; // 保存当前的context
 
     // 第一次保存的时候是没有overflow的
+    log("current name: %s", current->name);
     PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
     NO_INTR;
     return NULL;
