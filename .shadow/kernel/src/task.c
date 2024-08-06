@@ -161,8 +161,9 @@ void _sem_wait(sem_t *sem) {
   sem->value--;
   if (sem->value < 0) {
     flag = 1;
+    atomic_xchg(&(current->blocked), 1);
     current->status = BLOCKED;
-    _sem_queue_push(sem->queue, current);
+    _sem_queue_push(sem->queue, current); //TODO: 小心这个数据结构
   }
   _spin_unlock(&sem->lk);
   if (flag) { // 若 P 操作失败，则不能继续执行
@@ -185,6 +186,7 @@ void _sem_signal(sem_t *sem) {
   if (sem->value <= 0) { // 说明原先的信号量是小于0的？等下这是什么意思
     PANIC_ON(!sem->queue, "Semaphore queue is empty");
     task_t *task = _sem_queue_pop(sem->queue);
+    atomic_xchg(&(task->blocked), 0);
     task->status = RUNNABLE;
   }
   NO_INTR;
