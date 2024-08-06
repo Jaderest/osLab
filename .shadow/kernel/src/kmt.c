@@ -51,8 +51,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     }
 #endif
     NO_INTR;
-    // test spinlock(&task_lk)看看有没有死锁
-    _spin_lock(&task_lk);
+    _spin_lock(&task_lk); // ？你不是上锁了吗怎么数据竞争了
     stack_check(current);
 
     int index = current->id; // 从当前任务开始
