@@ -35,6 +35,13 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
 //idle 应该写错了
 Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
     // 获取可以运行的任务
+#ifdef  MONITOR
+    if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
+        for (int i = 0; i < cpu_count() - 1; ++i) {
+            log("cpu %d: %s\n", i, currents[i]->name);
+        }
+    }
+#endif
     NO_INTR;
     // test spinlock(&task_lk)看看有没有死锁
     _spin_lock(&task_lk);
