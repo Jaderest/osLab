@@ -24,6 +24,7 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     stack_check(current);
 
     current->status = RUNNABLE; // 当前任务切换为可执行，初始情况其实是设置的idle，但是idle不在task队列里面
+    current->cpu_id = -1;
     // 于是在schedule时可以assert检查idle
     current->context = ctx; // 保存当前的context
 
@@ -78,7 +79,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         log("%s idle on cpu %d\n", current->name, cpu_current());
     } else {
         current = tasks[index];
-        current->status = RUNNABLE;
+        current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
         log("%s not idle on cpu %d\n", current->name, cpu_current());
     }
 
@@ -107,6 +108,7 @@ int check_stack_guard(task_t *task) {
 void task_init(task_t *task, const char *name) {
     task->name = name;
     task->status = RUNNABLE;
+    task->cpu_id = -1;
 }
 
 void idle_init() {

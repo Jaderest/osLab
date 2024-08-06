@@ -53,6 +53,7 @@ typedef enum {
 struct task {
     const char *name;
     int id; // id 编号
+    int cpu_id;
     task_status_t status;
     struct task *next; 
     Context *context; // 指针
