@@ -53,28 +53,28 @@ static void os_on_irq(int seq, int event, handler_t handler) {
   handler_add(seq, event, handler);
 }
 
-void testL() {
-  while (1) {
-    printf("(");
-  }  
-}
-void testR() {
-  while (1) {
-    printf(")");
-  }  
-}
+// void testL() {
+//   while (1) {
+//     printf("(");
+//   }  
+// }
+// void testR() {
+//   while (1) {
+//     printf(")");
+//   }  
+// }
 
-task_t *task_alloc() {
-  return pmm->alloc(sizeof(task_t));
-}
+// task_t *task_alloc() {
+//   return pmm->alloc(sizeof(task_t));
+// }
 
 static void os_init() {
   NO_INTR;
   pmm->init();
   kmt->init();
   printf("init done\n");
-  kmt_create(task_alloc(), "testL", testL, NULL);
-  kmt_create(task_alloc(), "testR", testR, NULL);
+  // kmt_create(task_alloc(), "testL", testL, NULL);
+  // kmt_create(task_alloc(), "testR", testR, NULL);
   // dev->init();
   print_handler(); // 为什么你可以用log
   NO_INTR;
