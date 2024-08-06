@@ -41,11 +41,11 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
 }
 
 //idle 应该写错了
-// int count[MAX_CPU_NUM] = {0};
+int count[MAX_CPU_NUM] = {0};
 Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
     // 获取可以运行的任务
-    // count[cpu_current()]++;
-    // log("cpu %d: %d times schedule\n", cpu_current(), count[cpu_current()]);
+    count[cpu_current()]++;
+    log("cpu %d: %d times schedule\n", cpu_current(), count[cpu_current()]);
 #ifdef  MONITOR
     if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
         log("--------monitor-------\n");
@@ -87,24 +87,24 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
         current = &idle[cpu_current()];
-        // log("idle\n");
+        log("idle\n");
     } else {
         current = tasks[index];
         // current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
-        // log("not idle\n");
-        // log("current->name:%s to cpu %d\n", current->name, cpu_current());
+        log("not idle\n");
+        log("current->name:%s to cpu %d\n", current->name, cpu_current());
         /**
          * 捋一下，我是第一次调度的时候把current设置成了task，这次调度是没有问题的，此时它也是runnable
          * 然后下一步，它开始运行了，运行信号量sem_wait，然后就锁死在这里了
          * 反正就是和信号量兼容一坨四，想想怎么写呢，要不要yield
          */
     }
-    // log("here\n");
+    log("here\n");
     current->status = RUNNING; //! 这里仍然是RUNNIG
     current->cpu_id = cpu_current();
 
     _spin_unlock(&task_lk);
-    // log("task unlock\n");
+    log("task unlock\n");
     NO_INTR;
     stack_check(current);
     return current->context;
@@ -248,19 +248,19 @@ void kmt_sem_wait(sem_t *sem) {
      */
     _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
     // log("after spinlock\n");
-    // log("sem->name:%s\n", sem->name);
+    log("sem->name:%s\n", sem->name);
     sem->value--;
     if (sem->value < 0) {
-        // log("if\n");
+        log("if\n");
         // 当前线程不能执行，BLOCKED！
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
         sem_queue_push(sem, current); // 是不是这里上锁导致的
         _spin_unlock(&sem->lk);
         INTR;
     } else {
-        // log("else\n");
+        log("else\n");
         _spin_unlock(&sem->lk);
-        // log("sem unlock\n");
+        log("sem unlock\n");
         INTR;
         // 就是需要yield()出去的！
         yield(); // 不是你的问题
