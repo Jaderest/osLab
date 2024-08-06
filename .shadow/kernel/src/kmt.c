@@ -13,22 +13,23 @@ static int total_task_num = 0;
 static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免得麻烦
 #define current currents[cpu_current()]
 
-
+#define stack_check(task) \
+PANIC_ON(check_stack_guard(task), "%s stack overflow in %d", (task)->name, cpu_current())
 
 // 保存context
 // ctx传的是当前cpu的当前Context，那么idle此时是不用创建context的
 // kmt_create的是现在cpu要跑的任务
 Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用，那么处理的便是当前cpu的任务，可以直接current
     NO_INTR;
-    PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
+    stack_check(current);
 
     current->status = RUNNABLE; // 当前任务切换为可执行，初始情况其实是设置的idle，但是idle不在task队列里面
     // 于是在schedule时可以assert检查idle
     current->context = ctx; // 保存当前的context
 
     // 第一次保存的时候是没有overflow的
-    log("current name: %s", current->name);
-    PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
+    log("current name: %s\n", current->name);
+    stack_check(current);
     NO_INTR;
     return NULL;
 }
@@ -39,7 +40,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     NO_INTR;
     // test spinlock(&task_lk)看看有没有死锁
     _spin_lock(&task_lk);
-    PANIC_ON(stack_check(current) == 1, "%s:stack overflow in cpu %d", current->name, cpu_current());
+    stack_check(current);
 
     int index = current->id; // 从当前任务开始
     int i = 0;
@@ -70,7 +71,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     _spin_unlock(&task_lk);
     NO_INTR;
     // 不是，这个task怎么回事
-    PANIC_ON(stack_check(current) == 1, "%s:stack overflow in cpu %d", current->name, cpu_current());
+    stack_check(current);
     return current->context;
 }
 
@@ -102,7 +103,7 @@ void idle_init() {
         // 试一下只有这个几个空转会不会出问题
         init_stack_guard(&idle[i]);
 
-        PANIC_ON(stack_check(&idle[i]), "stack overflow in cpu %d", cpu_current());
+        stack_check(&idle[i]);
     }
 }
 
@@ -117,10 +118,12 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *a
     TRACE_ENTRY;
     _spin_lock(&task_lk); // 保护全局变量
 
+    // 是你这
     task_init(task, name);
     Area stack = (Area) {task->stack, task->stack + STACK_SIZE};
 
     task->context = kcontext(stack, entry, arg);
+    init_stack_guard(task); // ，，，是不是忘记init了
 
     NO_INTR;
     tasks[total_task_num] = task;
@@ -128,6 +131,7 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *a
     NO_INTR;
 
     _spin_unlock(&task_lk);
+    stack_check(current);
     TRACE_EXIT;
     return 0;
 }

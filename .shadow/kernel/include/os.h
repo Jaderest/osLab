@@ -70,8 +70,6 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *a
 void kmt_teardown(task_t *task);
 
 
-#define stack_check(task) check_stack_guard(task)
-
 //------------------semaphore------------------
 //TODO SEMAPHORE: 
 /*
