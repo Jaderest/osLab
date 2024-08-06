@@ -5,40 +5,27 @@
 
 struct cpu cpus[MAX_CPU_NUM];
 
+Context *kmt_context_save(Event ev, Context *ctx) {
+    return NULL;
+}
+
+Context *kmt_schedule(Event ev, Context *ctx) {
+    return NULL;
+}
+
 void kmt_init() {
     os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-    idle_init();
 }
 
-// 为task这个指针创建空间
-/*
-create 在系统中创建一个线程（task_t应当实现被分配好），这个线程立即就可以被调度执行
-但是只有打开中断时它才获得被调度执行的权利，（关中断就让它等着）
-然后它创建的线程永不返回，直到调用teardown
-只有永远不会被调度到处理器上执行的前提才能被回收
-static inline task_t *task_alloc() {
-    return pmm->alloc(sizeof(task_t));
-}
-
-static void run_test1() {
-    kmt->sem_init(&empty, "empty", N);
-    kmt->sem_init(&fill,  "fill",  0);
-    for (int i = 0; i < NPROD; i++) {
-        kmt->create(task_alloc(), "producer", T_produce, NULL);
-    }
-    for (int i = 0; i < NCONS; i++) {
-        kmt->create(task_alloc(), "consumer", T_consume, NULL);
-    }
-}
-*/
 int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
-    return _create(task, name, entry, arg);
+    // return _create(task, name, entry, arg);
+    return 0;
 }
 
 // 这个是不是也要注册成处理函数
 void kmt_teardown(task_t *task) {
-    _teardown(task);
+    // _teardown(task);
 }
 
 void kmt_spin_init(spinlock_t *lk, const char *name) {
@@ -54,15 +41,15 @@ void kmt_spin_unlock(spinlock_t *lk) {
 }
 
 void kmt_sem_init(sem_t *sem, const char *name, int value) {
-    _sem_init(sem, name, value);
+    // _sem_init(sem, name, value);
 }
 
 void kmt_sem_wait(sem_t *sem) {
-    _sem_wait(sem);
+    // _sem_wait(sem);
 }
 
 void kmt_sem_signal(sem_t *sem) {
-    _sem_signal(sem);
+    // _sem_signal(sem);
 }
 
 
