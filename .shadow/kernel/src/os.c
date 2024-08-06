@@ -74,7 +74,7 @@ void producer(void *arg) {
 }
 void consumer(void *arg) { // 这个就是先获取fill
   while (1) {
-    log("before wait\n");
+    // log("before wait\n");
     kmt->sem_wait(&fill); // 那么这个线程当前就应该阻塞在这个位置，然后需要让出cpu，运行其他线程，直至信号量解封它
     // 但是事实是这个cpu发生了一次中断并进入调度，然后重新选了这个线程，然后发生奇怪的死锁
 /*
