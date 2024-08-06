@@ -5,6 +5,7 @@ void pop_off();
 bool holding(spinlock_t *lk);
 
 void _spin_lock(spinlock_t *lk) {
+    TRACE_ENTRY;
     // Disable interrupts to avoid deadlock.关闭中断避免死锁
     push_off();
 
@@ -20,9 +21,11 @@ void _spin_lock(spinlock_t *lk) {
     } while (got != UNLOCKED);
 
     lk->cpu = mycpu;
+    TRACE_EXIT;
 }
 
 void _spin_unlock(spinlock_t *lk) {
+    TRACE_ENTRY;
     if (!holding(lk)) { //看着怪怪的检查
         PANIC("release %s", lk->name);
     }
@@ -31,6 +34,7 @@ void _spin_unlock(spinlock_t *lk) {
     atomic_xchg(&lk->status, UNLOCKED);
 
     pop_off();
+    TRACE_EXIT;
 }
 
 void _spin_init(spinlock_t *lk, const char *name) {

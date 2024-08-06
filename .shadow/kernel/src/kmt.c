@@ -217,9 +217,8 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
     TRACE_ENTRY;
     sem->name = name;
     sem->value = value;
-    char dst[256] = ""; //TODO: debug
-    snprintf(dst, strlen(name)+4+1, "sem:%s", name);
-    log("init name:%s\n", dst);
+    char dst[256] = "";
+    snprintf(dst, strlen(name)+4+1, "sem-%s", name);
     _spin_init(&sem->lk, dst);
     sem->queue = NULL;
     TRACE_EXIT;
