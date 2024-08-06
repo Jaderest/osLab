@@ -55,7 +55,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 
 void test() {
   while (1) {
-    log("test on cpu:%d\n", cpu_current());
+    logintask("test on cpu:%d\n", cpu_current());
   }  
 }
 
@@ -70,7 +70,7 @@ static void os_init() {
   printf("init done\n");
   kmt_create(task_alloc(), "test", test, NULL);
   // dev->init();
-  print_handler();
+  print_handler(); // 为什么你可以用log
   NO_INTR;
 }
 
