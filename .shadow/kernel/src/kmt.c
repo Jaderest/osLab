@@ -41,8 +41,11 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
 }
 
 //idle 应该写错了
+int count[MAX_CPU_NUM] = {0};
 Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
     // 获取可以运行的任务
+    count[cpu_current()]++;
+    log("cpu %d %d times schedule\n", cpu_current(), count[cpu_current()]);
 #ifdef  MONITOR
     if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
         log("--------monitor-------\n");
@@ -95,7 +98,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
          */
     }
     log("here\n");
-    current->status = RUNNING;
+    current->status = RUNNING; //! 这里仍然是RUNNIG
     current->cpu_id = cpu_current();
 
     _spin_unlock(&task_lk);
