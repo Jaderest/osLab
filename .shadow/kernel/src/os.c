@@ -71,7 +71,7 @@ static void os_run() {
   yield(); // 开始return NULL
   
   // never reach
-  PANIC("Should not reach here");
+  // PANIC("Should not reach here");
   while(1) {log("in cpu %d\n", cpu_current());}
 }
 #else
