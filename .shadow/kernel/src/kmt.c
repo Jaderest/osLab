@@ -54,7 +54,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         current = tasks[index];
         current->status = RUNNABLE;
     } // return idle的时候发现stack overflow？
-    PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
+    PANIC_ON(stack_check(current), "%s:stack overflow in cpu %d", current->name, cpu_current());
     return current->context;
 }
 
