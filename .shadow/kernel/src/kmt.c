@@ -37,6 +37,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     // 获取可以运行的任务
 #ifdef  MONITOR
     if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
+        log("--------monitor-------\n");
         for (int i = 0; i < cpu_count(); ++i) {
             log("cpu %d: %s\n", i, currents[i]->name);
         }
@@ -45,9 +46,8 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         }
         current = &idle[cpu_current()];
         current->status = RUNNING;
+        log("--------monitor-------\n");
         return current->context;
-
-
     }
 #endif
     NO_INTR;
