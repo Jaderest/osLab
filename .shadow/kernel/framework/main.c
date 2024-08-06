@@ -39,8 +39,10 @@ static void consumer(void *arg) {
 static void create_threads() {
     kmt->sem_init(&empty, "empty", 10);
     kmt->sem_init(&fill, "fill", 0);
-    kmt->create(pmm->alloc(sizeof(task_t)), "producer", producer, NULL);
-    kmt->create(pmm->alloc(sizeof(task_t)), "consumer", consumer, NULL);
+    for (int i = 0; i < 10; ++i) {
+        kmt->create(pmm->alloc(sizeof(task_t)), "producer", producer, NULL);
+        kmt->create(pmm->alloc(sizeof(task_t)), "consumer", consumer, NULL);
+    }
 }
 
 
