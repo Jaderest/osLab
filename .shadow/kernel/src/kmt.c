@@ -181,7 +181,8 @@ void kmt_spin_unlock(spinlock_t *lk) {
 
 //------------------sem------------------
 void sem_queue_push(sem_t *sem, task_t *task) {
-    _spin_lock(&sem->lk); //哎呀接口没写好，重构一下
+    // _spin_lock(&sem->lk); //哎呀接口没写好，重构一下
+    //! 是不是这里不需要上锁的，，它就是在锁里面工作的来着
     task_node_t *node = pmm->alloc(sizeof(task_node_t));
     PANIC_ON(node == NULL, "sem queue push err");
 
@@ -196,7 +197,7 @@ void sem_queue_push(sem_t *sem, task_t *task) {
         sem->queue->head = node;
     }
     sem->queue->tail = node;
-    _spin_unlock(&sem->lk);
+    // _spin_unlock(&sem->lk);
 }
 task_t *sem_queue_pop(sem_t *sem) {
     if (sem->queue->head == NULL) return NULL;
@@ -226,14 +227,14 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 
 void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     TRACE_ENTRY;
-    _spin_lock(&sem->lk);
+    _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
     log("after spinlock\n");
     sem->value--;
     if (sem->value < 0) {
         log("if\n");
         // 当前线程不能执行，BLOCKED！
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
-        sem_queue_push(sem, current);
+        sem_queue_push(sem, current); // 是不是这里上锁导致的
         _spin_unlock(&sem->lk);
     } else {
         log("else\n");

@@ -6,7 +6,7 @@ bool holding(spinlock_t *lk);
 
 void _spin_lock(spinlock_t *lk) {
     // Disable interrupts to avoid deadlock.关闭中断避免死锁
-    printf("a\n");
+    // printf("a\n");
     push_off();
 
     // This is a deadlock.
@@ -24,7 +24,7 @@ void _spin_lock(spinlock_t *lk) {
 }
 
 void _spin_unlock(spinlock_t *lk) {
-    printf("b\n");
+    // printf("b\n");
     if (!holding(lk)) { //看着怪怪的检查
         PANIC("release %s", lk->name);
     }
