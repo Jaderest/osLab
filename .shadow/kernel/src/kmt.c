@@ -59,11 +59,11 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
         current = &idle[cpu_current()];
         current->status = RUNNING;
-        log("%s idle", current->name);
+        log("%s idle\n", current->name);
     } else {
         current = tasks[index];
         current->status = RUNNABLE;
-        log("%s not idle", current->name);
+        log("%s not idle\n", current->name);
     } // return idle的时候发现stack overflow？
 
     _spin_unlock(&task_lk);

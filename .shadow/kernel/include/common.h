@@ -16,9 +16,6 @@
 #define INT_MAX (0x7fffffff)
 #define INT_MIN (0x80000000)
 
-#define INTR PANIC_ON(!ienabled(), "Interrupt is disabled")
-#define NO_INTR PANIC_ON(ienabled(), "Interrupt is enabled")
-
 
 //------------------log------------------
 #define LOG
@@ -54,6 +51,9 @@ extern spinlock_t log_lk;
 #define PANIC(fmt, ...)
 #define PANIC_ON(condition, message, ...)
 #endif // ASSERT
+
+#define INTR PANIC_ON(!ienabled(), "Interrupt is disabled")
+#define NO_INTR PANIC_ON(ienabled(), "Interrupt is enabled")
 
 #define TRACE_F_COLOR
 #ifdef TRACE_F_COLOR
