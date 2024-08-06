@@ -68,19 +68,20 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
             break;
         }
     }
-    NO_INTR; // 这里也不应该啊
+    NO_INTR;
     // 处理获取结果
-    //FIXME: 嘻嘻
-    PANIC_ON(!holding(&task_lk), "cnm"); // 这里应该是持有任务这把锁的???
+    PANIC_ON(!holding(&task_lk), "cnm");
+    current->status = RUNNING;
+    current->cpu_id = cpu_current();
+
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
         current = &idle[cpu_current()];
-        current->status = RUNNING;
-        log("%s idle on cpu %d\n", current->name, cpu_current());
+        // log("%s idle on cpu %d\n", current->name, cpu_current());
     } else {
         current = tasks[index];
-        current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
-        log("%s not idle on cpu %d\n", current->name, cpu_current());
+        // current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
+        // log("%s not idle on cpu %d\n", current->name, cpu_current());
     }
 
     _spin_unlock(&task_lk);
