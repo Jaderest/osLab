@@ -61,7 +61,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     _spin_lock(&task_lk); // ？你不是上锁了吗怎么数据竞争了
     stack_check(current);
 
-    int index = current->id; // 从当前任务开始
+    int index = current->id + 1; // 从当前任务开始
     int i = 0;
     for (i = 0; i < total_task_num * 10; ++i) { // 循环十遍
         index = (index + 1) % total_task_num; // index也跟着循环
