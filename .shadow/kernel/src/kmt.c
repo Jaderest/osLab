@@ -229,6 +229,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
 void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     TRACE_ENTRY;
+    INTR;
     _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
     log("after spinlock\n");
     sem->value--;
@@ -242,7 +243,7 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
         log("else\n");
         _spin_unlock(&sem->lk);
         INTR;
-        // yield(); // 是不是你的问题
+        yield(); // 不是你的问题
     }
     TRACE_EXIT;
 }
