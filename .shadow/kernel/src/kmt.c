@@ -35,6 +35,8 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
 //idle 应该写错了
 Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
     // 获取可以运行的任务
+    PANIC_ON(stack_check(current) == 1, "%s:stack overflow in cpu %d", current->name, cpu_current());
+
     int index = current->id; // 从当前任务开始
     int i = 0;
     for (i = 0; i < total_task_num * 10; ++i) { // 循环十遍
