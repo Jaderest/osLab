@@ -74,6 +74,7 @@ void producer(void *arg) {
 }
 void consumer(void *arg) { // 这个就是先获取fill
   while (1) {
+    log("before wait\n");
     kmt->sem_wait(&fill);
     putch(')');
     kmt->sem_signal(&empty);

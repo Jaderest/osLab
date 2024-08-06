@@ -238,10 +238,13 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 
 // 怎么这里进了两次这个函数？观察一下cpu
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
-void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
+void kmt_sem_wait(sem_t *sem) {
     TRACE_ENTRY;
-    INTR; // 果然，这里中断是关掉的，然后再上锁就会有问题
+    // INTR; // 果然，这里中断是关掉的，然后再上锁就会有问题
     // 稳定复现了，问题就是这个函数
+    /**
+     * 切换到这里然后while(1)运行这个线程，wait失败然后是否又重新进了一次while
+     */
     _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
     // log("after spinlock\n");
     sem->value--;
