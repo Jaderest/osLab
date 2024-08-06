@@ -45,8 +45,8 @@ void _spin_init(spinlock_t *lk, const char *name);
 //------------------task------------------
 typedef enum {
     BLOCKED = 1,
-    RUNNABLE,
-    RUNNING,
+    RUNNABLE, //2
+    RUNNING, //3
     DEAD,
 } task_status_t;
 

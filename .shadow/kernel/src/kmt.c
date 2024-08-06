@@ -84,9 +84,11 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
         current = &idle[cpu_current()];
+        log("idle\n");
     } else {
         current = tasks[index];
         // current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
+        log("not idle\n");
     }
     current->status = RUNNING;
     current->cpu_id = cpu_current();
