@@ -69,7 +69,8 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     }
     NO_INTR; // 这里也不应该啊
     // 处理获取结果
-    PANIC_ON(!holding(&task_lk), "cnm"); // 这里应该是持有任务这把锁的
+    //FIXME: 嘻嘻
+    PANIC_ON(!holding(&task_lk), "cnm"); // 这里应该是持有任务这把锁的???
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
         current = &idle[cpu_current()];
@@ -129,21 +130,20 @@ void kmt_init() {
 // task的内存已预先分配好，并且允许任何线程调用task_create
 int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg) {
     TRACE_ENTRY;
-    _spin_lock(&task_lk); // 保护全局变量
 
-    // 是你这
     task_init(task, name);
     Area stack = (Area) {task->stack, task->stack + STACK_SIZE};
 
     task->context = kcontext(stack, entry, arg);
-    init_stack_guard(task); // ，，，是不是忘记init了
+    init_stack_guard(task);
 
+    _spin_lock(&task_lk); // 保护全局变量
     NO_INTR;
     tasks[total_task_num] = task;
     total_task_num++;
     NO_INTR;
-
     _spin_unlock(&task_lk);
+
     stack_check(current);
     TRACE_EXIT;
     return 0;
