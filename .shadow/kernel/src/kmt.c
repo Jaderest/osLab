@@ -69,6 +69,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     }
     NO_INTR; // 这里也不应该啊
     // 处理获取结果
+    PANIC_ON(!holding(&task_lk), "cnm"); // 这里应该是持有任务这把锁的
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
         current = &idle[cpu_current()];
