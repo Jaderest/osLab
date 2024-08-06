@@ -12,6 +12,7 @@ spinlock_t log_lk = spinlock_init("log");
 #define MAX_TASK_NUM 128 // 最多支持128个任务
 static task_t idle[MAX_CPU_NUM];     // cpu 上空转的任务
 static task_t *currents[MAX_CPU_NUM]; // 当前任务
+// static task_t *buffer[MAX_CPU_NUM]; // 当前cpu的上一个任务，或许优化一下调度策略
 static task_t *tasks[MAX_TASK_NUM];  // all tasks
 static int total_task_num = 0;
 static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免得麻烦
@@ -53,7 +54,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         }
         current = &idle[cpu_current()];
         current->status = RUNNING;
-        log("--------monitor-------\n");
+        log("--------Umonitor-------\n");
         return current->context;
     }
 #endif
