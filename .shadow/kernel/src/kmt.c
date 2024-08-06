@@ -225,6 +225,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     TRACE_ENTRY;
     _spin_lock(&sem->lk);
+    log("after spinlock\n");
     sem->value--;
     if (sem->value < 0) {
         // 当前线程不能执行，BLOCKED！
