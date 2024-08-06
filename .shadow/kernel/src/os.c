@@ -53,10 +53,21 @@ static void os_on_irq(int seq, int event, handler_t handler) {
   handler_add(seq, event, handler);
 }
 
+void test() {
+  while (1) {
+    printf("test on %d", cpu_current());
+  }  
+}
+
+task_t *task_alloc() {
+  return pmm->alloc(sizeof(task_t));
+}
+
 static void os_init() {
   NO_INTR;
   pmm->init();
   kmt->init();
+  kmt_create(task_alloc(), "test", test, NULL);
   // dev->init();
   print_handler();
   NO_INTR;
@@ -68,7 +79,7 @@ static void os_run() {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
   iset(true);
-  yield(); // 开始return NULL
+  yield(); // 大家都会跑 os_run，然后？
   
   // never reach
   // PANIC("Should not reach here");

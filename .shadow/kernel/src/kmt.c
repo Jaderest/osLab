@@ -16,6 +16,8 @@ static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免�
 
 
 // 保存context
+// ctx传的是当前cpu的当前Context，那么idle此时是不用创建context的
+// kmt_create的是现在cpu要跑的任务
 Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用，那么处理的便是当前cpu的任务，可以直接current
     NO_INTR;
     PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
@@ -27,6 +29,7 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     return NULL;
 }
 
+//idle 应该写错了
 Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
     // 获取可以运行的任务
     int index = current->id; // 从当前任务开始
@@ -80,7 +83,6 @@ void idle_init() {
         currents[i] = &idle[i];
         currents[i]->status = RUNNING;
         currents[i]->name = "idle";
-        currents[i]->context = kcontext((Area) {currents[i]->stack, currents[i]->stack + STACK_SIZE}, NULL, NULL);
         // 试一下只有这个几个空转会不会出问题
         init_stack_guard(&idle[i]);
 
