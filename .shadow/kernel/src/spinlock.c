@@ -7,7 +7,8 @@ bool holding(spinlock_t *lk);
 void _spin_lock(spinlock_t *lk) {
     // Disable interrupts to avoid deadlock.关闭中断避免死锁
     printf("a\n");
-    push_off();
+    push_off(); // 这个是关中断，关中断是没有问题的，但是此时cpu hold了sem这个锁，也即我这里上锁了两次？
+    // 信号量实现是没问题的，所以我需要找task的问题，一会看一下调度器
 
     // This is a deadlock.
     //! 说明我写出来一个死锁
