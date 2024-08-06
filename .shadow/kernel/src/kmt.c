@@ -246,14 +246,14 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     // log("after spinlock\n");
     sem->value--;
     if (sem->value < 0) {
-        // log("if\n");
+        log("if\n");
         // 当前线程不能执行，BLOCKED！
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
         sem_queue_push(sem, current); // 是不是这里上锁导致的
         _spin_unlock(&sem->lk);
         INTR;
     } else {
-        // log("else\n");
+        log("else\n");
         _spin_unlock(&sem->lk);
         log("sem unlock\n");
         INTR;
