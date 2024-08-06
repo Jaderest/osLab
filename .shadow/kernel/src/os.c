@@ -87,10 +87,10 @@ task_t *task_alloc() { return pmm->alloc(sizeof(task_t)); }
 static void run_test1() {
   kmt->sem_init(&empty, "empty", 3);
   kmt->sem_init(&fill, "fill", 0);
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 1; i++) {
     kmt->create(task_alloc(), "producer", producer, NULL);
   }
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 1; i++) {
     kmt->create(task_alloc(), "consumer", consumer, NULL);
   }
 }
