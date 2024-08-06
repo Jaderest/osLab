@@ -233,8 +233,8 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
         sem_queue_push(sem, current);
         _spin_unlock(&sem->lk);
     } else {
-        INTR;
         _spin_unlock(&sem->lk);
+        INTR;
         yield();
     }
     TRACE_EXIT;
