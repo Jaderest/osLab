@@ -97,6 +97,7 @@ static void os_run() {}
 */
 static Context *os_trap(Event ev, Context *context) {
   NO_INTR; // 确保中断是关闭的
+  TRACE_ENTRY;
   Handler *p = handler_head;
   Context *next = NULL;
   int irq_num = 0;
@@ -110,7 +111,9 @@ static Context *os_trap(Event ev, Context *context) {
     irq_num++;
     p = p->next;
   }
+  // 保存了一下当前的text
   NO_INTR;
+  TRACE_EXIT;
   PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
   return next;
 }
