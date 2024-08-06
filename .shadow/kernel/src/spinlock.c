@@ -6,7 +6,7 @@ bool holding(spinlock_t *lk);
 
 void _spin_lock(spinlock_t *lk) {
     // Disable interrupts to avoid deadlock.关闭中断避免死锁
-    printf("a\n");
+    // printf("a\n");
     push_off(); // 这个是关中断，关中断是没有问题的，但是此时cpu hold了sem这个锁，也即我这里上锁了两次？
     // 信号量实现是没问题的，所以我需要找task的问题，一会看一下调度器
 
@@ -27,7 +27,7 @@ void _spin_lock(spinlock_t *lk) {
 }
 
 void _spin_unlock(spinlock_t *lk) {
-    printf("b\n");
+    // printf("b\n");
     if (!holding(lk)) { //看着怪怪的检查
         PANIC("release %s", lk->name);
     }
