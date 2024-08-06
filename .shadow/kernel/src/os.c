@@ -53,22 +53,22 @@ static void os_on_irq(int seq, int event, handler_t handler) {
   handler_add(seq, event, handler);
 }
 
-// void test() {
-//   while (1) {
-//     printf("test on %d", cpu_current());
-//   }  
-// }
+void test() {
+  while (1) {
+    printf("test on %d", cpu_current());
+  }  
+}
 
-// task_t *task_alloc() {
-//   return pmm->alloc(sizeof(task_t));
-// }
+task_t *task_alloc() {
+  return pmm->alloc(sizeof(task_t));
+}
 
 static void os_init() {
   NO_INTR;
   pmm->init();
   kmt->init();
   printf("init done\n");
-  // kmt_create(task_alloc(), "test", test, NULL);
+  kmt_create(task_alloc(), "test", test, NULL);
   // dev->init();
   print_handler();
   NO_INTR;
