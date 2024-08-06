@@ -55,7 +55,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 
 void test() {
   while (1) {
-    logintask("test on cpu:%d\n", cpu_current());
+    printf("test on cpu:%d\n", cpu_current());
   }  
 }
 

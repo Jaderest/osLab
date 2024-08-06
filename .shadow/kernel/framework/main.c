@@ -6,7 +6,6 @@
 
 #ifdef LOG
 spinlock_t log_lk = spinlock_init("log");
-spinlock_t log1_lk = spinlock_init("logInTask");
 #endif
 
 void alignTest() {
