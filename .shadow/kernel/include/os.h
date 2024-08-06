@@ -71,7 +71,6 @@ void kmt_teardown(task_t *task);
 
 
 //------------------semaphore------------------
-//TODO SEMAPHORE: 
 /*
 value指定了
 */

@@ -56,7 +56,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 void test() {
   while (1) { // 你是线程的
     // 先不printf了
-    printf("(");
+    printf("("); //TODO 你一printf就出现问题，是不是上下文的问题
   }  
 }
 
@@ -91,7 +91,6 @@ static void os_run() {
 static void os_run() {}
 #endif
 
-// TODO1: os->trap()的实现
 /*
 中断/异常发生后，am会将寄存器保存到栈上，建议对context做一个拷贝，并实现上下文切换
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量

@@ -21,7 +21,6 @@
 #define LOG
 #ifdef LOG
 extern spinlock_t log_lk;
-extern spinlock_t log1_lk;
 #define log(format, ...) \
     do { \
         _spin_lock(&log_lk); \
