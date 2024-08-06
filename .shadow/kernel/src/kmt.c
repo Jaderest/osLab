@@ -62,13 +62,11 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     _spin_lock(&task_lk); // ？你不是上锁了吗怎么数据竞争了
     stack_check(current);
 
-    // rand(); //TODO: 看一下源码
-    // int index = current->id + 1; //? 到底怎调度好
     int index = rand() % total_task_num;
     int i = 0;
     for (i = 0; i < total_task_num * 10; ++i) { // 循环十遍
         index = (index + 1) % total_task_num; // index也跟着循环
-        if (tasks[index] == NULL) { //TODO: teardown
+        if (tasks[index] == NULL) { //TODO: teardown? 实现完信号量再看
             continue;
         }
         if (tasks[index]->status == RUNNABLE) {
@@ -116,6 +114,7 @@ void task_init(task_t *task, const char *name) {
     task->name = name;
     task->status = RUNNABLE;
     task->cpu_id = -1;
+    task->on_sem = 0; // 表示不在sem里
 }
 
 void idle_init() {
@@ -160,7 +159,7 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *a
 
 // 这个是不是也要注册成处理函数，不需要，写在schedule就行
 void kmt_teardown(task_t *task) {
-    // _teardown(task);
+    //TODO：
 }
 
 //------------------spinlock------------------
@@ -178,8 +177,44 @@ void kmt_spin_unlock(spinlock_t *lk) {
 //------------------spinlock------------------
 
 //------------------sem------------------
+void sem_queue_push(sem_t *sem, task_t *task) {
+    _spin_lock(&sem->lk); //哎呀接口没写好，重构一下
+    task_node_t *node = pmm->alloc(sizeof(task_node_t));
+    PANIC_ON(node == NULL, "sem queue push err");
+
+    atomic_xchg(&task->on_sem, 1);
+    
+    node->task = task;
+    node->prev = sem->queue->tail;
+    node->next = NULL;
+    if (sem->queue->tail != NULL) {
+        sem->queue->tail->next = node;
+    } else {
+        sem->queue->head = node;
+    }
+    sem->queue->tail = node;
+    _spin_unlock(&sem->lk);
+}
+task_t *sem_queue_pop(sem_t *sem) {
+    if (sem->queue->head == NULL) return NULL;
+    task_node_t *node = sem->queue->head;
+    task_t *task = node->task;
+    atomic_xchg(&task->on_sem, 0);
+
+    sem->queue->head = node->next;
+    if (sem->queue->head != NULL) {
+        sem->queue->head->prev = NULL;
+    } else {
+        sem->queue->tail = NULL;
+    }
+    pmm->free(node);
+    return task;
+}
 void kmt_sem_init(sem_t *sem, const char *name, int value) {
-    // _sem_init(sem, name, value);
+    sem->name = name;
+    sem->value = value;
+    _spin_init(&sem->lk, "sem");
+    sem->queue = NULL;
 }
 
 void kmt_sem_wait(sem_t *sem) {

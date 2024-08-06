@@ -53,7 +53,8 @@ typedef enum {
 struct task {
     const char *name;
     int id; // id 编号
-    int cpu_id;
+    int cpu_id; // debug need
+    int on_sem; // prepare for teardown
     task_status_t status;
     struct task *next; 
     Context *context; // 指针
@@ -91,9 +92,6 @@ struct semaphore {
     const char *name;
     task_queue_t *queue; //TODO: 思考这里的list怎么管理
 };
-void _sem_init(sem_t *sem, const char *name, int value);
-void _sem_wait(sem_t *sem);
-void _sem_signal(sem_t *sem);
 
 
 
