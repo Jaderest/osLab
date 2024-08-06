@@ -67,6 +67,7 @@ static void os_init() {
   NO_INTR;
   pmm->init();
   kmt->init();
+  printf("init done\n");
   kmt_create(task_alloc(), "test", test, NULL);
   // dev->init();
   print_handler();
