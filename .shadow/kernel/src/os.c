@@ -85,7 +85,7 @@ static void os_run() {
   yield(); // 大家都会跑 os_run，然后？
   
   // never reach
-  PANIC("Should not reach here: cpu%d", cpu_current());
+  PANIC("Should not reach here: cpu%d", cpu_current()); //! 这个Panic导致cpu2直接停止了，所以接下来的运行都出现问题
   while(1) {log("in cpu %d\n", cpu_current());}
 }
 #else
@@ -97,7 +97,7 @@ static void os_run() {}
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
-  NO_INTR; // 确保中断是关闭的
+  NO_INTR; // 确保中断是关闭的，中断确实是关的，但是task是有可能数据竞争的对吧
   // TRACE_ENTRY;
   Handler *p = handler_head;
   Context *next = NULL;

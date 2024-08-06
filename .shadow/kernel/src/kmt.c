@@ -23,10 +23,12 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     NO_INTR;
     stack_check(current);
 
+    _spin_lock(&task_lk);
     current->status = RUNNABLE; // 当前任务切换为可执行，初始情况其实是设置的idle，但是idle不在task队列里面
     current->cpu_id = -1;
     // 于是在schedule时可以assert检查idle
     current->context = ctx; // 保存当前的context
+    _spin_unlock(&task_lk);
 
     stack_check(current);
     NO_INTR;
