@@ -52,7 +52,7 @@ void idle_init() {
         currents[i]->context = kcontext((Area) {currents[i]->stack, currents[i]->stack + STACK_SIZE}, NULL, NULL);
         // 试一下只有这个几个空转会不会出问题
         init_stack_guard(&idle[i]);
-        PANIC_ON(stack_check(&idle[i]), "stack overflow");
+        PANIC_ON(stack_check(&idle[i]) == 0, "stack overflow in ");
     }
 }
 
