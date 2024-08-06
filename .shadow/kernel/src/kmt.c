@@ -5,6 +5,10 @@
 
 struct cpu cpus[MAX_CPU_NUM];
 
+#ifdef LOG
+spinlock_t log_lk = spinlock_init("log");
+#endif
+
 #define MAX_TASK_NUM 128 // 最多支持128个任务
 static task_t idle[MAX_CPU_NUM];     // cpu 上空转的任务
 static task_t *currents[MAX_CPU_NUM]; // 当前任务

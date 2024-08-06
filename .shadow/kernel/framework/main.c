@@ -4,10 +4,6 @@
 #include <klib.h>
 #include <os.h>
 
-#ifdef LOG
-spinlock_t log_lk = spinlock_init("log");
-#endif
-
 void alignTest() {
     for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
         putch(*s == '*' ? '0' + cpu_current() : *s);
