@@ -55,7 +55,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 
 void test() {
   while (1) {
-    printf("test on %d", cpu_current());
+    printf("test on cpu:%d\n", cpu_current());
   }  
 }
 
@@ -97,7 +97,7 @@ static void os_run() {}
 */
 static Context *os_trap(Event ev, Context *context) {
   NO_INTR; // 确保中断是关闭的
-  TRACE_ENTRY;
+  // TRACE_ENTRY;
   Handler *p = handler_head;
   Context *next = NULL;
   int irq_num = 0;
@@ -113,7 +113,7 @@ static Context *os_trap(Event ev, Context *context) {
   }
   // 保存了一下当前的text
   NO_INTR;
-  TRACE_EXIT;
+  // TRACE_EXIT;
   PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
   return next;
 }
