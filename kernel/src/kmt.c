@@ -42,10 +42,7 @@ void kmt_teardown(task_t *task) {
 }
 
 void kmt_spin_init(spinlock_t *lk, const char *name) {
-    lk = pmm->alloc(sizeof(spinlock_t));
-    lk->name = name;
-    lk->status = UNLOCKED;
-    lk->cpu = NULL;
+    _spin_init(lk, name);
 }
 
 void kmt_spin_lock(spinlock_t *lk) {

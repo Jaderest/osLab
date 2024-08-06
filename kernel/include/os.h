@@ -40,6 +40,7 @@ struct spinlock {
 bool holding(spinlock_t *lk);
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
+void _spin_init(spinlock_t *lk, const char *name);
 
 //------------------task------------------
 typedef enum {
@@ -53,6 +54,9 @@ struct task {
     const char *name;
     int id;
     task_status_t status;
+    int suspended;
+    int blocked;
+    int running;
     struct task *next;
     Context *context;
     uint32_t stack_fense_s[STACK_GUARD_SIZE];

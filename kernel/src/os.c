@@ -1,108 +1,108 @@
-#include <os.h>
 #include <devices.h>
+#include <os.h>
 
 #ifdef TEST
 #include <am.h>
 #include <stdio.h>
-void putch(char ch) {
-    putchar(ch);
-}
+void putch(char ch) { putchar(ch); }
 #endif
 
 //-----------------handler-----------------
 typedef struct Handler {
-    int seq;
-    int event;
-    handler_t handler;
-    struct Handler *next;
-    struct Handler *prev;
+  int seq;
+  int event;
+  handler_t handler;
+  struct Handler *next;
+  struct Handler *prev;
 } Handler;
 Handler *handler_head = NULL;
 void handler_add(int seq, int event, handler_t handler) {
-    Handler *h = pmm->alloc(sizeof(Handler));
-    PANIC_ON(h == NULL, "Failed to allocate memory for handler");
-    h->seq = seq;
-    h->event = event;
-    h->handler = handler;
-    h->next = h->prev = NULL;
+  Handler *h = pmm->alloc(sizeof(Handler));
+  PANIC_ON(h == NULL, "Failed to allocate memory for handler");
+  h->seq = seq;
+  h->event = event;
+  h->handler = handler;
+  h->next = h->prev = NULL;
 
-    if (handler_head == NULL) {
-        handler_head = h;
-        return;
-    }
-    Handler *p = handler_head;
-    Handler *prev = NULL;
-    while (p && p->seq < seq) {
-        prev = p;
-        p = p->next;
-    }
-    h->next = p;
-    h->prev = prev;
-    if (prev) prev->next = h;
-    if (p) p->prev = h;
+  if (handler_head == NULL) {
+    handler_head = h;
+    return;
+  }
+  Handler *p = handler_head;
+  Handler *prev = NULL;
+  while (p && p->seq < seq) {
+    prev = p;
+    p = p->next;
+  }
+  h->next = p;
+  h->prev = prev;
+  if (prev)
+    prev->next = h;
+  if (p)
+    p->prev = h;
 }
 void print_handler() {
-    Handler *p = handler_head;
-    while (p) {
-        log("seq: %d, event: %d\n", p->seq, p->event);
-        p = p->next;
-    }
+  Handler *p = handler_head;
+  while (p) {
+    log("seq: %d, event: %d\n", p->seq, p->event);
+    p = p->next;
+  }
 }
 
 static void os_on_irq(int seq, int event, handler_t handler) {
-    handler_add(seq, event, handler);
+  handler_add(seq, event, handler);
 }
 
 static void os_init() {
-    NO_INTR;
-    pmm->init();
-    kmt->init();
-    dev->init();
-    print_handler();
-    NO_INTR;
+  NO_INTR;
+  pmm->init();
+  kmt->init();
+  // dev->init();
+  print_handler();
+  NO_INTR;
 }
 
 #ifndef TEST
 static void os_run() {
-    for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
-        putch(*s == '*' ? '0' + cpu_current() : *s);
-    }
-    // 以下为正确代码，但是开始神秘重启
-    // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
-    iset(true);
-    yield(); // 开始return NULL
-    while (1) ;
+  for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
+    putch(*s == '*' ? '0' + cpu_current() : *s);
+  }
+  // 以下为正确代码，但是开始神秘重启
+  // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
+  iset(true);
+  yield(); // 开始return NULL
+  while (1)
+    ;
 }
 #else
-static void os_run() {
-    
-}
+static void os_run() {}
 #endif
 
-//TODO1: os->trap()的实现
+// TODO1: os->trap()的实现
 /*
 中断/异常发生后，am会将寄存器保存到栈上，建议对context做一个拷贝，并实现上下文切换
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
-    TRACE_ENTRY;
-    NO_INTR;
-    Handler *p = handler_head;
-    Context *next = NULL;
-    int irq_num = 0;
-    while (p) {
-        if (p->event == ev.event || p->event == EVENT_NULL) {
-            Context *ret = p->handler(ev, context);
-            PANIC_ON(ret && next, "returning multiple times");
-            if (ret) next = ret;
-        }
-        irq_num++;
-        p = p->next;
+  TRACE_ENTRY;
+  NO_INTR;
+  Handler *p = handler_head;
+  Context *next = NULL;
+  int irq_num = 0;
+  while (p) {
+    if (p->event == ev.event || p->event == EVENT_NULL) {
+      Context *ret = p->handler(ev, context);
+      PANIC_ON(ret && next, "returning multiple times");
+      if (ret)
+        next = ret;
     }
-    NO_INTR;
-    PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
-    TRACE_EXIT;
-    return next;
+    irq_num++;
+    p = p->next;
+  }
+  NO_INTR;
+  PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
+  TRACE_EXIT;
+  return next;
 }
 
 // TODO2: 增加代码可维护性
@@ -125,7 +125,7 @@ typedef struct {
 
 MODULE_DEF(os) = {
     .init = os_init,
-    .run  = os_run,
+    .run = os_run,
     .trap = os_trap,
     .on_irq = os_on_irq,
 };

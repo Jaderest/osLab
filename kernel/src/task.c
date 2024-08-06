@@ -6,7 +6,7 @@ static task_t *tasks[MAX_THREAD] = {};     // 所有的task
 static task_t *currents[MAX_CPU_NUM] = {}; // 每个cpu当前运行的task
 #define current currents[cpu_current()]
 
-static spinlock_t task_lock = spinlock_init("task_lock");
+static spinlock_t task_lock;
 
 void init_stack_guard(task_t *task) {
   for (int i = 0; i < STACK_GUARD_SIZE; i++) {
@@ -32,6 +32,9 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg),
 
   task->name = name;
   task->status = RUNNABLE;
+  task->suspended = 0;
+  task->blocked = 0;
+  task->running = 0;
   init_stack_guard(task);
 
   Area stack = (Area){task->stack, task->stack + STACK_SIZE};
@@ -50,8 +53,7 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg),
 void _teardown(task_t *task) {
     PANIC_ON(task->status != ZOMBIE && task->status , "Cannot teardown a running task");
     _spin_lock(&task_lock);
-    tasks[task->id] = NULL;
-    pmm->free(task);
+    // TODO: free task
     _spin_unlock(&task_lock);
 }
 
@@ -60,6 +62,8 @@ void idle_init() {
     currents[i] = &idle[i];
     idle[i].status = RUNNING;
     idle[i].id = 0;
+    idle[i].blocked = 0;
+    idle[i].suspended = 0;
     idle[i].name = "idle";
     init_stack_guard(&idle[i]);
   }
@@ -81,6 +85,7 @@ Context *kmt_context_save(Event ev, Context *ctx) {
 // thread starvation 那应该调整我的调度策略
 Context *kmt_schedule(Event ev, Context *ctx) {
   NO_INTR;
+
 
   int index = current->id;
   int i = 0;
@@ -140,7 +145,8 @@ void _sem_init(sem_t *sem, const char *name, int value) {
   sem->name = name;
   sem->value = value;
   sem->queue = NULL;
-  sem->lk = spinlock_init(name);
+  _spin_init(&sem->lk, name);
+  assert(sem->queue == NULL);
 }
 
 // P 操作（取球）
@@ -155,8 +161,9 @@ void _sem_wait(sem_t *sem) {
   sem->value--;
   if (sem->value < 0) {
     flag = 1;
+    atomic_xchg(&(current->blocked), 1);
     current->status = BLOCKED;
-    _sem_queue_push(sem->queue, current);
+    _sem_queue_push(sem->queue, current); //TODO: 小心这个数据结构
   }
   _spin_unlock(&sem->lk);
   if (flag) { // 若 P 操作失败，则不能继续执行
@@ -175,12 +182,13 @@ void _sem_wait(sem_t *sem) {
 void _sem_signal(sem_t *sem) {
   _spin_lock(&sem->lk); // 锁住了当前信号量的，然后关中断了
   NO_INTR;
-  sem->value++;
-  if (sem->value <= 0) { // 说明原先的信号量是小于0的？等下这是什么意思
+  if (sem->value < 0) { // 说明原先的信号量是小于0的？等下这是什么意思
     PANIC_ON(!sem->queue, "Semaphore queue is empty");
     task_t *task = _sem_queue_pop(sem->queue);
+    atomic_xchg(&(task->blocked), 0);
     task->status = RUNNABLE;
   }
   NO_INTR;
+  sem->value++;
   _spin_unlock(&sem->lk);
 }
