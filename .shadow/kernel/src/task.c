@@ -32,6 +32,9 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg),
 
   task->name = name;
   task->status = RUNNABLE;
+  task->suspended = 0;
+  task->blocked = 0;
+  task->running = 0;
   init_stack_guard(task);
 
   Area stack = (Area){task->stack, task->stack + STACK_SIZE};
@@ -50,8 +53,7 @@ int _create(task_t *task, const char *name, void (*entry)(void *arg),
 void _teardown(task_t *task) {
     PANIC_ON(task->status != ZOMBIE && task->status , "Cannot teardown a running task");
     _spin_lock(&task_lock);
-    tasks[task->id] = NULL;
-    pmm->free(task);
+    // TODO: free task
     _spin_unlock(&task_lock);
 }
 
@@ -60,6 +62,8 @@ void idle_init() {
     currents[i] = &idle[i];
     idle[i].status = RUNNING;
     idle[i].id = 0;
+    idle[i].blocked = 0;
+    idle[i].suspended = 0;
     idle[i].name = "idle";
     init_stack_guard(&idle[i]);
   }
@@ -81,6 +85,7 @@ Context *kmt_context_save(Event ev, Context *ctx) {
 // thread starvation 那应该调整我的调度策略
 Context *kmt_schedule(Event ev, Context *ctx) {
   NO_INTR;
+
 
   int index = current->id;
   int i = 0;
