@@ -36,6 +36,8 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
 Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
     // 获取可以运行的任务
     NO_INTR;
+    // test spinlock(&task_lk)看看有没有死锁
+    _spin_lock(&task_lk);
     PANIC_ON(stack_check(current) == 1, "%s:stack overflow in cpu %d", current->name, cpu_current());
 
     int index = current->id; // 从当前任务开始
@@ -61,6 +63,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         current->status = RUNNABLE;
     } // return idle的时候发现stack overflow？
 
+    _spin_unlock(&task_lk);
     NO_INTR;
     PANIC_ON(stack_check(current) == 1, "%s:stack overflow in cpu %d", current->name, cpu_current());
     return current->context;
