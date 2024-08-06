@@ -95,6 +95,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         /**
          * 捋一下，我是第一次调度的时候把current设置成了task，这次调度是没有问题的，此时它也是runnable
          * 然后下一步，它开始运行了，运行信号量sem_wait，然后就锁死在这里了
+         * 反正就是和信号量兼容一坨四，想想怎么写呢，要不要yield
          */
     }
     log("here\n");
@@ -254,7 +255,9 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     } else {
         // log("else\n");
         _spin_unlock(&sem->lk);
+        log("sem unlock\n");
         INTR;
+        // 就是需要yield()出去的！
         yield(); // 不是你的问题
     }
     TRACE_EXIT;
