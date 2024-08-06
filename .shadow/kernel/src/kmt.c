@@ -26,6 +26,9 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     // 于是在schedule时可以assert检查idle
     current->context = ctx; // 保存当前的context
 
+    PANIC_ON(stack_check(current), "stack overflow in cpu %d", cpu_current());
+    NO_INTR;
+
     return NULL;
 }
 
