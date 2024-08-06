@@ -214,10 +214,12 @@ task_t *sem_queue_pop(sem_t *sem) {
     return task;
 }
 void kmt_sem_init(sem_t *sem, const char *name, int value) {
+    TRACE_ENTRY;
     sem->name = name;
     sem->value = value;
     _spin_init(&sem->lk, "sem");
     sem->queue = NULL;
+    TRACE_EXIT;
 }
 
 void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
