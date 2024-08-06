@@ -12,7 +12,7 @@ void _spin_lock(spinlock_t *lk) {
 
     // This is a deadlock.
     //! 说明我写出来一个死锁
-    printf("before test hoding\n");
+    // printf("before test hoding\n");
     if (holding(lk)) { //如果上锁&持有锁的cpu为当前cpu，则立即终止它
         PANIC("acquire %s", lk->name);
     }
@@ -61,7 +61,7 @@ bool holding(spinlock_t *lk) {
 void push_off(void) { //如何处理中断，关中断时，push中断前的状态放到栈里面
     int old = ienabled();
     iset(false); //关中断
-    printf("interrupt close\n");
+    // printf("interrupt close\n");
 
     struct cpu *c = mycpu;
     if (c->noff == 0) { //number of 关中断的次数
@@ -85,6 +85,6 @@ void pop_off(void) {
     c->noff -= 1;
     if (c->noff == 0 && c->intena) {
         iset(true);
-        printf("interrupt open\n");
+        // printf("interrupt open\n");
     }
 }

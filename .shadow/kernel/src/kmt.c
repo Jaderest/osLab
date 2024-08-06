@@ -232,7 +232,7 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     INTR; // 果然，这里中断是关掉的，然后再上锁就会有问题
     // 稳定复现了，问题就是这个函数
     _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
-    log("after spinlock\n");
+    // log("after spinlock\n");
     sem->value--;
     if (sem->value < 0) {
         // log("if\n");
