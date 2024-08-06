@@ -53,19 +53,44 @@ static void os_on_irq(int seq, int event, handler_t handler) {
   handler_add(seq, event, handler);
 }
 
-void testL() {
+// void testL() {
+//   while (1) {
+//     printf("(");
+//   }
+// }
+// void testR() {
+//   while (1) {
+//     printf(")");
+//   }
+// }
+
+sem_t empty, fill;
+void producer(void *arg) {
   while (1) {
-    printf("(");
-  }  
+    kmt->sem_wait(&empty);
+    putch('(');
+    kmt->sem_signal(&fill);
+  }
 }
-void testR() {
+void consumer(void *arg) {
   while (1) {
-    printf(")");
-  }  
+    kmt->sem_wait(&fill);
+    putch(')');
+    kmt->sem_signal(&empty);
+  }
 }
 
-task_t *task_alloc() {
-  return pmm->alloc(sizeof(task_t));
+task_t *task_alloc() { return pmm->alloc(sizeof(task_t)); }
+
+static void run_test1() {
+  kmt->sem_init(&empty, "empty", 3);
+  kmt->sem_init(&fill, "fill", 0);
+  for (int i = 0; i < 2; i++) {
+    kmt->create(task_alloc(), "producer", producer, NULL);
+  }
+  for (int i = 0; i < 2; i++) {
+    kmt->create(task_alloc(), "consumer", consumer, NULL);
+  }
 }
 
 static void os_init() {
@@ -73,8 +98,9 @@ static void os_init() {
   pmm->init();
   kmt->init();
   printf("init done\n");
-  kmt_create(task_alloc(), "testL", testL, NULL);
-  kmt_create(task_alloc(), "testR", testR, NULL);
+  // kmt_create(task_alloc(), "testL", testL, NULL);
+  // kmt_create(task_alloc(), "testR", testR, NULL);
+  run_test1();
   // dev->init();
   print_handler(); // 为什么你可以用log
   NO_INTR;
@@ -88,9 +114,10 @@ static void os_run() {
   // 给当前cpu开中断之后就会立刻运行task，然后就会出问题
   iset(true);
   yield();
-  
+
   // 观察课程群大佬的issue发现这个yield其实也不必要
-  while(1);
+  while (1)
+    ;
 }
 #else
 static void os_run() {}
