@@ -229,7 +229,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
 void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     TRACE_ENTRY;
-    INTR; // 果然，这里中断是关掉的，然后再上锁就会有问题
+    // INTR; // 果然，这里中断是关掉的，然后再上锁就会有问题
     _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
     log("after spinlock\n");
     sem->value--;
@@ -239,6 +239,7 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
         sem_queue_push(sem, current); // 是不是这里上锁导致的
         _spin_unlock(&sem->lk);
+        INTR;
     } else {
         log("else\n");
         _spin_unlock(&sem->lk);
