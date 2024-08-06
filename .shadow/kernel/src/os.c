@@ -77,9 +77,10 @@ static void os_init() {
 
 #ifndef TEST
 static void os_run() {
-  for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
-    putch(*s == '*' ? '0' + cpu_current() : *s);
-  }
+  // for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
+  //   putch(*s == '*' ? '0' + cpu_current() : *s);
+  // }
+  // 给当前cpu开中断之后就会立刻运行task，然后就会出问题
   iset(true);
   yield(); // 大家都会跑 os_run，然后？
   
