@@ -229,7 +229,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
 void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
     TRACE_ENTRY;
-    INTR;
+    INTR; // 果然，这里中断是关掉的，然后再上锁就会有问题
     _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
     log("after spinlock\n");
     sem->value--;
@@ -250,6 +250,7 @@ void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
 
 void kmt_sem_signal(sem_t *sem) {
     TRACE_ENTRY;
+    INTR;
     _spin_lock(&sem->lk);
     if (sem->value < 0) {
         PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
@@ -259,6 +260,7 @@ void kmt_sem_signal(sem_t *sem) {
     }
     sem->value++;
     _spin_unlock(&sem->lk);
+    INTR;
     TRACE_EXIT;
 }
 //------------------sem------------------
