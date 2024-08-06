@@ -53,6 +53,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
             break;
         }
     }
+    NO_INTR; // 这里也不应该啊
     // 处理获取结果
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
