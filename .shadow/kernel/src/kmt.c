@@ -59,7 +59,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     }
 #endif
     NO_INTR;
-    _spin_lock(&task_lk); // ？你不是上锁了吗怎么数据竞争了
+    _spin_lock(&task_lk);
     stack_check(current);
 
     int index = rand() % total_task_num;
@@ -69,7 +69,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         if (tasks[index] == NULL) { //TODO: teardown? 实现完信号量再看
             continue;
         }
-        if (tasks[index]->status == RUNNABLE) {
+        if (tasks[index]->status == RUNNABLE) { // 只有runnable可以break
             current = tasks[index];
             break;
         }
@@ -77,6 +77,9 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
     NO_INTR;
     // 处理获取结果
     PANIC_ON(!holding(&task_lk), "cnm");
+
+    //idle是不可能被阻塞的
+    PANIC_ON(idle[cpu_current()].status == BLOCKED, "idle blocked!");
 
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
@@ -217,12 +220,31 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
     sem->queue = NULL;
 }
 
-void kmt_sem_wait(sem_t *sem) {
-    // _sem_wait(sem);
+void kmt_sem_wait(sem_t *sem) { //666忘记实现这个了，难怪
+    _spin_lock(&sem->lk);
+    sem->value--;
+    if (sem->value < 0) {
+        // 当前线程不能执行，BLOCKED！
+        current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
+        sem_queue_push(sem, current);
+        _spin_unlock(&sem->lk);
+    } else {
+        INTR;
+        _spin_unlock(&sem->lk);
+        yield();
+    }
 }
 
 void kmt_sem_signal(sem_t *sem) {
-    // _sem_signal(sem);
+    _spin_lock(&sem->lk);
+    if (sem->value < 0) {
+        PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
+        task_t *task = sem_queue_pop(sem);
+        PANIC_ON(task->status != BLOCKED, "blocked err");
+        task->status = RUNNABLE;
+    }
+    sem->value++;
+    _spin_unlock(&sem->lk);
 }
 //------------------sem------------------
 
