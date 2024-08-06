@@ -70,8 +70,7 @@ static void os_run() {
   // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
   // iset(true);
   // yield(); // 开始return NULL
-  while (1)
-    ;
+  while (1);
 }
 #else
 static void os_run() {}
