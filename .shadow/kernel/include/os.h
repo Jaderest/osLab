@@ -47,29 +47,25 @@ typedef enum {
     BLOCKED,
     RUNNABLE,
     RUNNING,
-    ZOMBIE,
+    DEAD,
 } task_status_t;
 
 struct task {
     const char *name;
-    int id;
+    int id; // id 编号
     task_status_t status;
-    int suspended;
-    int blocked;
-    int running;
-    struct task *next;
-    Context *context;
+    struct task *next; 
+    Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];
     uint8_t stack[STACK_SIZE];
     uint32_t stack_fense_e[STACK_GUARD_SIZE];
 };
 void init_stack_guard(task_t *task);
 int check_stack_guard(task_t *task);
-void idle_init();
+void idle_init(); // cpu 上空转的任务
+// 写在kmt里，然后这里声明一下
 Context *kmt_context_save(Event ev, Context *context);
 Context *kmt_schedule(Event ev, Context *context);
-int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
-void _teardown(task_t *task);
 
 
 #define stack_check(task) check_stack_guard(task)

@@ -8,10 +8,11 @@
 
 
 #define MAX_CPU_NUM (8)
-#define MAX_THREAD (256)
+
 #define STACK_SIZE (8192)
 #define STACK_GUARD_SIZE (4)
 #define STACK_GUARD_VALUE (0xdeadbeef)
+
 #define INT_MAX (0x7fffffff)
 #define INT_MIN (0x80000000)
 

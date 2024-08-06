@@ -67,9 +67,10 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  // TODO：研究os->trap()，打印log，然后看看什么情况会导致重启，写好防护性代码
   // iset(true);
   // yield(); // 开始return NULL
+  
+  // never reach
   while(1) {log("in cpu %d\n", cpu_current());}
 }
 #else
@@ -82,7 +83,6 @@ static void os_run() {}
 每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
 */
 static Context *os_trap(Event ev, Context *context) {
-  TRACE_ENTRY;
   NO_INTR;
   Handler *p = handler_head;
   Context *next = NULL;
@@ -99,16 +99,8 @@ static Context *os_trap(Event ev, Context *context) {
   }
   NO_INTR;
   PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
-  TRACE_EXIT;
   return next;
 }
-
-// TODO2: 增加代码可维护性
-/*
-防止在增加新功能都去修改os trap
-增加了这个中断处理api，调用这个向操作系统内核注册一个中断处理程序
-在os trap执行时，当 ev.event（事件编号）和 event 匹配时，调用handler(event,ctx)
-*/
 /*
 typedef struct {
   enum {
