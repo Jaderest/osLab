@@ -85,7 +85,7 @@ static void os_run() {
   yield(); // 大家都会跑 os_run，然后？
   
   // never reach
-  PANIC("Should not reach here");
+  PANIC("Should not reach here: cpu%d", cpu_current());
   while(1) {log("in cpu %d\n", cpu_current());}
 }
 #else
