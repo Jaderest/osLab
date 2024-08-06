@@ -182,13 +182,13 @@ void _sem_wait(sem_t *sem) {
 void _sem_signal(sem_t *sem) {
   _spin_lock(&sem->lk); // 锁住了当前信号量的，然后关中断了
   NO_INTR;
-  sem->value++;
-  if (sem->value <= 0) { // 说明原先的信号量是小于0的？等下这是什么意思
+  if (sem->value < 0) { // 说明原先的信号量是小于0的？等下这是什么意思
     PANIC_ON(!sem->queue, "Semaphore queue is empty");
     task_t *task = _sem_queue_pop(sem->queue);
     atomic_xchg(&(task->blocked), 0);
     task->status = RUNNABLE;
   }
   NO_INTR;
+  sem->value++;
   _spin_unlock(&sem->lk);
 }
