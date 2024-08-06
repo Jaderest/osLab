@@ -248,6 +248,7 @@ void kmt_sem_wait(sem_t *sem) {
      */
     _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
     // log("after spinlock\n");
+    log("sem->name:%s\n", sem->name);
     sem->value--;
     if (sem->value < 0) {
         log("if\n");
