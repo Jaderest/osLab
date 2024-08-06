@@ -66,15 +66,12 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         }
         if (tasks[index]->status == RUNNABLE) {
             current = tasks[index];
-            current->status = RUNNING;
             break;
         }
     }
     NO_INTR;
     // 处理获取结果
     PANIC_ON(!holding(&task_lk), "cnm");
-    current->status = RUNNING;
-    current->cpu_id = cpu_current();
 
     if (i == total_task_num * 10) {
         PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d", cpu_current());
@@ -85,6 +82,8 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         // current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
         // log("%s not idle on cpu %d\n", current->name, cpu_current());
     }
+    current->status = RUNNING;
+    current->cpu_id = cpu_current();
 
     _spin_unlock(&task_lk);
     NO_INTR;
