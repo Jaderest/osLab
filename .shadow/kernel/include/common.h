@@ -36,7 +36,7 @@ extern spinlock_t log_lk;
 #ifdef ASSERT
 #define PANIC(fmt, ...)  \
     do {  \
-        log("\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
+        printf("\033[1;41mPanic: %s:%d: " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
         while(1) asm volatile ("hlt");  \
     } while (0)
 
