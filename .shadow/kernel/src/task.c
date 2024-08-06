@@ -6,7 +6,7 @@ static task_t *tasks[MAX_THREAD] = {};     // 所有的task
 static task_t *currents[MAX_CPU_NUM] = {}; // 每个cpu当前运行的task
 #define current currents[cpu_current()]
 
-static spinlock_t task_lock = spinlock_init("task_lock");
+static spinlock_t task_lock;
 
 void init_stack_guard(task_t *task) {
   for (int i = 0; i < STACK_GUARD_SIZE; i++) {
@@ -145,7 +145,8 @@ void _sem_init(sem_t *sem, const char *name, int value) {
   sem->name = name;
   sem->value = value;
   sem->queue = NULL;
-  sem->lk = spinlock_init(name);
+  _spin_init(&sem->lk, name);
+  assert(sem->queue == NULL);
 }
 
 // P 操作（取球）

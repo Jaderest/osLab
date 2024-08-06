@@ -40,6 +40,7 @@ struct spinlock {
 bool holding(spinlock_t *lk);
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
+void _spin_init(spinlock_t *lk, const char *name);
 
 //------------------task------------------
 typedef enum {

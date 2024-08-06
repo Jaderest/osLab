@@ -33,6 +33,12 @@ void _spin_unlock(spinlock_t *lk) {
     pop_off();
 }
 
+void _spin_init(spinlock_t *lk, const char *name) {
+    lk->name = name;
+    lk->status = UNLOCKED;
+    lk->cpu = NULL;
+}
+
 // Check whether this cpu is holding the lock.
 // Interrupts must be off.
 bool holding(spinlock_t *lk) {
