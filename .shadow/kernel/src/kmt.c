@@ -92,6 +92,7 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         current = tasks[index];
         // current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
         log("not idle\n");
+        log("current->name:%s to cpu %d\n", current->name, cpu_current());
         /**
          * 捋一下，我是第一次调度的时候把current设置成了task，这次调度是没有问题的，此时它也是runnable
          * 然后下一步，它开始运行了，运行信号量sem_wait，然后就锁死在这里了

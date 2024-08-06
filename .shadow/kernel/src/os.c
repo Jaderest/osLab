@@ -75,7 +75,8 @@ void producer(void *arg) {
 void consumer(void *arg) { // 这个就是先获取fill
   while (1) {
     log("before wait\n");
-    kmt->sem_wait(&fill);
+    kmt->sem_wait(&fill); // 那么这个线程当前就应该阻塞在这个位置，并且这个cpu不能发生中断直至信号量解封它
+    // 但是事实是这个cpu发生了一次中断并进入调度，然后重新重新选了这个线程（写一个追踪看看）
     putch(')');
     kmt->sem_signal(&empty);
   }
