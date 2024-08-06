@@ -11,7 +11,7 @@ void _spin_lock(spinlock_t *lk) {
 
     // This is a deadlock.
     //! 说明我写出来一个死锁
-    log("before test hoding\n");
+    printf("before test hoding\n");
     if (holding(lk)) { //如果上锁&持有锁的cpu为当前cpu，则立即终止它
         PANIC("acquire %s", lk->name);
     }
