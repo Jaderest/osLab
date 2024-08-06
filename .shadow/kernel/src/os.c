@@ -67,10 +67,11 @@ static void os_run() {
   for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
-  // iset(true);
-  // yield(); // 开始return NULL
+  iset(true);
+  yield(); // 开始return NULL
   
   // never reach
+  PANIC("Should not reach here");
   while(1) {log("in cpu %d\n", cpu_current());}
 }
 #else
