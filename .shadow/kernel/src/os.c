@@ -56,6 +56,7 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 void test() {
   while (1) { // 你是线程的
     // 先不printf了
+    printf("(");
   }  
 }
 
