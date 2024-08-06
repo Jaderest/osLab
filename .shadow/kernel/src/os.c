@@ -82,11 +82,10 @@ static void os_run() {
   // }
   // 给当前cpu开中断之后就会立刻运行task，然后就会出问题
   iset(true);
-  yield(); // 大家都会跑 os_run，然后？
+  yield();
   
-  // never reach
-  PANIC("Should not reach here: cpu%d", cpu_current()); //! 这个Panic导致cpu2直接停止了，所以接下来的运行都出现问题
-  while(1) {log("in cpu %d\n", cpu_current());}
+  // 观察课程群大佬的issue发现这个yield其实也不必要
+  while(1);
 }
 #else
 static void os_run() {}
