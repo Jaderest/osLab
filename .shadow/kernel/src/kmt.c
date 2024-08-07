@@ -65,7 +65,8 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     _spin_lock(&task_lk);
     stack_check(current);
 
-    int index = rand() % total_task_num;
+    // int index = rand() % total_task_num;
+    int index = current->id;
     int i = 0;
     for (i = 0; i < total_task_num * 10; ++i) { // 循环十遍
         index = (index + 1) % total_task_num; // index也跟着循环
@@ -73,6 +74,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
             continue;
         }
         //TODO 貌似产生了数据竞争
+        // 导致了一个死锁，反正就是schedule的问题
         if (tasks[index]->status == RUNNABLE) { // 只有runnable可以break
             current = tasks[index];
             break;
@@ -80,6 +82,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
             //选下一个线程
             continue;
         }
+        //TODO: 问题应该就出在这里，cpu调度它出现问题了
     }
     NO_INTR;
     // 处理获取结果
@@ -100,7 +103,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
         /**
          * 捋一下，我是第一次调度的时候把current设置成了task，这次调度是没有问题的，此时它也是runnable
          * 然后下一步，它开始运行了，运行信号量sem_wait，然后就锁死在这里了
-         * 反正就是和信号量兼容一坨四，想想怎么写呢，要不要yield
+         * 反正就是和信号量一起弄得一拖四
          */
     }
     log("here\n");
@@ -257,8 +260,6 @@ void kmt_sem_wait(sem_t *sem) {
     if (sem->value < 0) {
         log("if\n");
         // 当前线程不能执行，BLOCKED！
-        //TODO: 这个锁怎么上的？
-        // _spin_lock(&task_lk);
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
         sem_queue_push(sem, current); // 是不是这里上锁导致的
         // _spin_unlock(&task_lk);
@@ -279,17 +280,17 @@ void kmt_sem_wait(sem_t *sem) {
 void kmt_sem_signal(sem_t *sem) {
     TRACE_ENTRY;
     INTR;
-    _spin_lock(&sem->lk);
+    _spin_lock(&(sem->lk));
     if (sem->value < 0) {
         PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
         // _spin_lock(&task_lk);
         task_t *task = sem_queue_pop(sem);
         PANIC_ON(task->status != BLOCKED, "blocked err");
-        task->status = RUNNABLE;
+        task->status = RUNNABLE; // BLOCK 状态取消
         // _spin_unlock(&task_lk);
     }
     sem->value++;
-    _spin_unlock(&sem->lk);
+    _spin_unlock(&(sem->lk));
     INTR;
     TRACE_EXIT;
 }
