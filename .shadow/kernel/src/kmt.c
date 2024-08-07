@@ -26,7 +26,7 @@ PANIC_ON(check_stack_guard(task), "%s stack overflow in %d", (task)->name, cpu_c
 // kmt_create的是现在cpu要跑的任务
 Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用，那么处理的便是当前cpu的任务，可以直接current
     NO_INTR;
-    stack_check(current);
+    stack_check(current); //？四个线程栈出错了，那肯定是有数据竞争
 
     _spin_lock(&task_lk);
     current->status = RUNNABLE; // 当前任务切换为可执行，初始情况其实是设置的idle，但是idle不在task队列里面
