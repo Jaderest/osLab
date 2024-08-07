@@ -55,8 +55,9 @@ struct task {
     int id; // id 编号
     int cpu_id; // debug need
     int suspend; // 独占任务，防止被调用走
-    int block; // 阻塞
-    int running; // 运行
+    int block; // 阻塞, 0 未阻塞
+    int running; // 运行, 0 未运行
+    int dead; // 死亡, 0 未死亡
     task_status_t status; // 难评
     struct task *next; 
     Context *context; // 指针
