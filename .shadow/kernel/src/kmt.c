@@ -65,8 +65,8 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     _spin_lock(&task_lk);
     stack_check(current);
 
-    // int index = rand() % total_task_num;
-    int index = current->id;
+    int index = rand() % total_task_num;
+    // int index = current->id;
     int i = 0;
     for (i = 0; i < total_task_num * 10; ++i) { // 循环十遍
         index = (index + 1) % total_task_num; // index也跟着循环
