@@ -49,10 +49,10 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
         log("--------monitor-------\n");
         for (int i = 0; i < cpu_count(); ++i) {
-            log("monitor:cpu %d: %s\n", i, currents[i]->name);
+            log("monitor_cpu %d: %s\n", i, currents[i]->name);
         }
         for (int i = 0; i < total_task_num; ++i) {
-            log("monitor:task %d: %s status = %d in cpuid %d\n", i, tasks[i]->name, tasks[i]->status, tasks[i]->cpu_id);
+            log("monitor_task %d: %s status = %d in cpuid %d\n", i, tasks[i]->name, tasks[i]->status, tasks[i]->cpu_id);
         }
         // 尝试变成只有一个cpu会运行这个monitor（monitor脱离cpu）
         // current = &idle[cpu_current()];
