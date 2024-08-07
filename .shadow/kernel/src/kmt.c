@@ -40,9 +40,8 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     return NULL;
 }
 
-//idle 应该写错了
 int count[MAX_CPU_NUM] = {0};
-Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急着跑代码
+Context *kmt_schedule(Event ev, Context *ctx) {
     // 获取可以运行的任务
     count[cpu_current()]++;
     log("cpu %d: %d times schedule\n", cpu_current(), count[cpu_current()]);
@@ -55,10 +54,11 @@ Context *kmt_schedule(Event ev, Context *ctx) { // ?理一下思路先，不急�
         for (int i = 0; i < total_task_num; ++i) {
             log("monitor:task %d: %s status = %d in cpuid %d\n", i, tasks[i]->name, tasks[i]->status, tasks[i]->cpu_id);
         }
-        current = &idle[cpu_current()];
-        current->status = RUNNING;
+        // 尝试变成只有一个cpu会运行这个monitor（monitor脱离cpu）
+        // current = &idle[cpu_current()];
+        // current->status = RUNNING;
         log("--------Umonitor-------\n");
-        return current->context;
+        // return current->context;
     }
 #endif
     NO_INTR;
