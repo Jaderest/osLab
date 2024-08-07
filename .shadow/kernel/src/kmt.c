@@ -149,7 +149,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     current = &idle[cpu_current()];
     current->status = RUNNING;
   } else {
-    log("current task: %s -> ", tasks[index]->name);
+    log("current task: %s -> ", current->name);
     current->status = RUNNABLE;
     current = tasks[index];
     log("next task: %s\n", current->name);
