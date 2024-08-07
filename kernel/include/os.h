@@ -29,6 +29,22 @@ struct spinlock {
     struct cpu *cpu;
 };
 
+typedef struct task_node {
+    task_t *task;
+    struct task_node *prev;
+    struct task_node *next;
+} task_node_t;
+typedef struct task_queue {
+    task_node_t *head;
+    task_node_t *tail;
+} task_queue_t;
+
+typedef struct {
+    spinlock_t spinlock;
+    int locked; // 表示锁是否被占用 or 被别的线程持有
+    task_queue_t *wait_list;
+} mutexlock_t;
+
 #define spinlock_init(name_) \
     ((spinlock_t) { \
         .name = name_, \
@@ -41,6 +57,9 @@ bool holding(spinlock_t *lk);
 void _spin_lock(spinlock_t *lk);
 void _spin_unlock(spinlock_t *lk);
 void _spin_init(spinlock_t *lk, const char *name);
+void mutex_init(mutexlock_t *lock, const char *name);
+void mutex_lock(mutexlock_t *lock);
+void mutex_unlock(mutexlock_t *lock);
 
 //------------------task------------------
 typedef enum {
@@ -55,7 +74,7 @@ struct task {
     int id; // id 编号
     int cpu_id; // debug need
     task_status_t status;
-    struct task *next; 
+    // struct task *next; // 这东西貌似没有用
     Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];
     uint8_t stack[STACK_SIZE];
@@ -75,30 +94,13 @@ void kmt_teardown(task_t *task);
 /*
 value指定了
 */
-typedef struct task_node {
-    task_t *task;
-    struct task_node *prev;
-    struct task_node *next;
-} task_node_t;
-typedef struct task_queue {
-    task_node_t *head;
-    task_node_t *tail;
-} task_queue_t;
 
 struct semaphore {
-    spinlock_t lk;
+    mutexlock_t lk;
     int value; //0（生产者消费者缓冲区），1（互斥锁）
     const char *name;
     task_queue_t *queue; //TODO: 思考这里的list怎么管理
 };
-
-
-
-
-
-
-
-
 
 
 #endif // _OS_H__
