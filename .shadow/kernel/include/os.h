@@ -54,7 +54,9 @@ struct task {
     const char *name;
     int id; // id 编号
     int cpu_id; // debug need
-    int block; // prepare for teardown
+    int suspend; // 独占任务，防止被调用走
+    int block; // 阻塞
+    int running; // 运行
     task_status_t status; // 难评
     struct task *next; 
     Context *context; // 指针

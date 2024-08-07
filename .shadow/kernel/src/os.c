@@ -110,25 +110,25 @@ sem unlock
 
 task_t *task_alloc() { return pmm->alloc(sizeof(task_t)); }
 
-// static void run_test1() {
-//   kmt->sem_init(&empty, "empty", 3);
-//   kmt->sem_init(&fill, "fill", 0);
-//   for (int i = 0; i < 1; i++) {
-//     kmt->create(task_alloc(), "producer", producer, NULL);
-//   }
-//   for (int i = 0; i < 1; i++) {
-//     kmt->create(task_alloc(), "consumer", consumer, NULL);
-//   }
-// }
+static void run_test1() {
+  kmt->sem_init(&empty, "empty", 3);
+  kmt->sem_init(&fill, "fill", 0);
+  for (int i = 0; i < 1; i++) {
+    kmt->create(task_alloc(), "producer", producer, NULL);
+  }
+  for (int i = 0; i < 1; i++) {
+    kmt->create(task_alloc(), "consumer", consumer, NULL);
+  }
+}
 
 static void os_init() {
   NO_INTR;
   pmm->init();
   kmt->init();
   printf("init done\n");
-  kmt_create(task_alloc(), "testL", testL, NULL);
-  kmt_create(task_alloc(), "testR", testR, NULL);
-  // run_test1();
+  // kmt_create(task_alloc(), "testL", testL, NULL);
+  // kmt_create(task_alloc(), "testR", testR, NULL);
+  run_test1();
   // dev->init();
   print_handler(); // 为什么你可以用log
   NO_INTR;
