@@ -54,8 +54,8 @@ struct task {
     const char *name;
     int id; // id 编号
     int cpu_id; // debug need
-    int on_sem; // prepare for teardown
-    task_status_t status;
+    int block; // prepare for teardown
+    task_status_t status; // 难评
     struct task *next; 
     Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];

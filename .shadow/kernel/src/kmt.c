@@ -136,7 +136,6 @@ void task_init(task_t *task, const char *name) {
     task->name = name;
     task->status = RUNNABLE;
     task->cpu_id = -1;
-    task->on_sem = 0; // 表示不在sem里
 }
 
 void idle_init() {
@@ -204,8 +203,6 @@ void sem_queue_push(sem_t *sem, task_t *task) {
     //! 是不是这里不需要上锁的，，它就是在锁里面工作的来着
     task_node_t *node = pmm->alloc(sizeof(task_node_t));
     PANIC_ON(node == NULL, "sem queue push err");
-
-    atomic_xchg(&task->on_sem, 1);
     
     node->task = task;
     node->prev = sem->queue->tail;
@@ -222,7 +219,6 @@ task_t *sem_queue_pop(sem_t *sem) {
     if (sem->queue->head == NULL) return NULL;
     task_node_t *node = sem->queue->head;
     task_t *task = node->task;
-    atomic_xchg(&task->on_sem, 0);
 
     sem->queue->head = node->next;
     if (sem->queue->head != NULL) {
