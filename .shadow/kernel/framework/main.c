@@ -41,25 +41,25 @@ void alignTest() {
 //     }
 // }
 
-static void testPrintL() {
-    while (1)
-    {
-        putch('(');
-    }
-}
-static void testPrintR() {
-    while (1)
-    {
-        putch(')');
-    }
-}
+// static void testPrintL() {
+//     while (1)
+//     {
+//         putch('(');
+//     }
+// }
+// static void testPrintR() {
+//     while (1)
+//     {
+//         putch(')');
+//     }
+// }
 static void create_threads() {
-    TRACE_ENTRY;
-    for (int i = 0; i < 1; ++i) {
-        kmt->create(pmm->alloc(sizeof(task_t)), "producer", testPrintL, NULL);
-        kmt->create(pmm->alloc(sizeof(task_t)), "consumer", testPrintR, NULL);
-    }
-    TRACE_EXIT;
+    // TRACE_ENTRY;
+    // for (int i = 0; i < 1; ++i) {
+    //     kmt->create(pmm->alloc(sizeof(task_t)), "producer", testPrintL, NULL);
+    //     kmt->create(pmm->alloc(sizeof(task_t)), "consumer", testPrintR, NULL);
+    // }
+    // TRACE_EXIT;
 }
 
 
