@@ -11,12 +11,14 @@ spinlock_t log_lk = spinlock_init("log");
 
 #define MAX_TASK_NUM 128 // 最多支持128个任务
 static task_t idle[MAX_CPU_NUM];     // cpu 上空转的任务
-static task_t *currents[MAX_CPU_NUM]; // 当前任务
-// static task_t *buffer[MAX_CPU_NUM]; // 当前cpu的上一个任务，或许优化一下调度策略
+static task_t *currents[MAX_CPU_NUM] = {}; // 当前任务
+// static task_t *buffers[MAX_CPU_NUM] = {}; // 当前cpu的上一个任务，或许优化一下调度策略
+
 static task_t *tasks[MAX_TASK_NUM];  // all tasks
 static int total_task_num = 0;
 static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免得麻烦
 #define current currents[cpu_current()]
+// #define buffer buffers[cpu_current()]
 
 #define stack_check(task) \
 PANIC_ON(check_stack_guard(task), "%s stack overflow in %d", (task)->name, cpu_current())
@@ -28,10 +30,11 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     NO_INTR;
     stack_check(current);
 
-    current->status = RUNNABLE; // 当前任务切换为可执行，初始情况其实是设置的idle，但是idle不在task队列里面
-    current->cpu_id = -1;
+    // 这里应该不急着变task的状态
     // 于是在schedule时可以assert检查idle
     current->context = ctx; // 保存当前的context
+    atomic_xchg(&current->suspend, 1); //当前cpu暂时独享当前任务
+    atomic_xchg(&current->running, 0); //当前任务不再运行
 
     stack_check(current);
     NO_INTR;
@@ -60,7 +63,6 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     }
 #endif
     NO_INTR;
-    _spin_lock(&task_lk);
     stack_check(current);
 
     int index = rand() % total_task_num;
@@ -108,7 +110,6 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     current->status = RUNNING; //! 这里仍然是RUNNIG
     current->cpu_id = cpu_current();
 
-    _spin_unlock(&task_lk);
     log("task unlock\n");
     NO_INTR;
     stack_check(current);
