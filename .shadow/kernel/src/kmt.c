@@ -155,7 +155,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     current = &idle[cpu_current()];
     current->status = RUNNING;
   } else {
-    log("[cpu%d]current task: %s -> ", current->name);
+    log("[cpu%d]current task: %s -> ", cpu_current(), current->name);
     current->status = RUNNABLE;
     current->cpu_id = -1;
 
