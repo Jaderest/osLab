@@ -18,7 +18,7 @@
 
 
 //------------------log------------------
-// #define LOG
+#define LOG
 #ifdef LOG
 extern spinlock_t log_lk;
 #define log(format, ...) \
