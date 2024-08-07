@@ -26,10 +26,9 @@ PANIC_ON(check_stack_guard(task), "%s stack overflow in %d", (task)->name, cpu_c
 // kmt_create的是现在cpu要跑的任务
 Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用，那么处理的便是当前cpu的任务，可以直接current
     NO_INTR;
-    stack_check(current);
+    stack_check(current); //？四个线程栈出错了，那肯定是有数据竞争
 
     _spin_lock(&task_lk);
-    current->status = RUNNABLE; // 当前任务切换为可执行，初始情况其实是设置的idle，但是idle不在task队列里面
     current->cpu_id = -1;
     // 于是在schedule时可以assert检查idle
     current->context = ctx; // 保存当前的context
@@ -40,27 +39,8 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     return NULL;
 }
 
-int count[MAX_CPU_NUM] = {0};
 Context *kmt_schedule(Event ev, Context *ctx) {
     // 获取可以运行的任务
-    count[cpu_current()]++;
-    log("cpu %d: %d times schedule\n", cpu_current(), count[cpu_current()]);
-#ifdef  MONITOR
-    if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
-        log("--------monitor-------\n");
-        for (int i = 0; i < cpu_count(); ++i) {
-            log("monitor_cpu %d: %s\n", i, currents[i]->name);
-        }
-        for (int i = 0; i < total_task_num; ++i) {
-            log("monitor_task %d: %s status = %d in cpuid %d\n", i, tasks[i]->name, tasks[i]->status, tasks[i]->cpu_id);
-        }
-        // 尝试变成只有一个cpu会运行这个monitor（monitor脱离cpu）
-        // current = &idle[cpu_current()];
-        // current->status = RUNNING;
-        log("--------Umonitor-------\n");
-        // return current->context;
-    }
-#endif
     NO_INTR;
     _spin_lock(&task_lk);
     stack_check(current);
@@ -136,7 +116,6 @@ void task_init(task_t *task, const char *name) {
     task->name = name;
     task->status = RUNNABLE;
     task->cpu_id = -1;
-    task->on_sem = 0; // 表示不在sem里
 }
 
 void idle_init() {
@@ -205,8 +184,6 @@ void sem_queue_push(sem_t *sem, task_t *task) {
     task_node_t *node = pmm->alloc(sizeof(task_node_t));
     PANIC_ON(node == NULL, "sem queue push err");
 
-    atomic_xchg(&task->on_sem, 1);
-    
     node->task = task;
     node->prev = sem->queue->tail;
     node->next = NULL;
@@ -222,7 +199,6 @@ task_t *sem_queue_pop(sem_t *sem) {
     if (sem->queue->head == NULL) return NULL;
     task_node_t *node = sem->queue->head;
     task_t *task = node->task;
-    atomic_xchg(&task->on_sem, 0);
 
     sem->queue->head = node->next;
     if (sem->queue->head != NULL) {
@@ -260,6 +236,7 @@ void kmt_sem_wait(sem_t *sem) {
     if (sem->value < 0) {
         log("if\n");
         // 当前线程不能执行，BLOCKED！
+        NO_INTR;
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
         sem_queue_push(sem, current); // 是不是这里上锁导致的
         // _spin_unlock(&task_lk);
@@ -268,6 +245,7 @@ void kmt_sem_wait(sem_t *sem) {
         INTR;
     } else {
         log("else\n");
+        NO_INTR;
         _spin_unlock(&sem->lk);
         log("sem unlock\n");
         INTR;
