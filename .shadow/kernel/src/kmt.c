@@ -218,6 +218,7 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
   _spin_lock(&task_lk_spin); // 保护全局变量
   // 使用互斥锁的话这里是没有中断的，但是保护了task_lk需要保护的东西
 
+  task->id = total_task_num;
   tasks[total_task_num] = task;
   total_task_num++;
 
