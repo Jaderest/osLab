@@ -254,10 +254,11 @@ void kmt_sem_wait(sem_t *sem) {
     if (sem->value < 0) {
         log("if\n");
         // 当前线程不能执行，BLOCKED！
-        _spin_lock(&task_lk);
+        //TODO: 这个锁怎么上的？
+        // _spin_lock(&task_lk);
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
         sem_queue_push(sem, current); // 是不是这里上锁导致的
-        _spin_unlock(&task_lk);
+        // _spin_unlock(&task_lk);
 
         _spin_unlock(&sem->lk);
         INTR;
@@ -278,11 +279,11 @@ void kmt_sem_signal(sem_t *sem) {
     _spin_lock(&sem->lk);
     if (sem->value < 0) {
         PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
-        _spin_lock(&task_lk);
+        // _spin_lock(&task_lk);
         task_t *task = sem_queue_pop(sem);
         PANIC_ON(task->status != BLOCKED, "blocked err");
         task->status = RUNNABLE;
-        _spin_unlock(&task_lk);
+        // _spin_unlock(&task_lk);
     }
     sem->value++;
     _spin_unlock(&sem->lk);

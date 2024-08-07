@@ -85,6 +85,6 @@ void pop_off(void) {
     c->noff -= 1;
     if (c->noff == 0 && c->intena) {
         iset(true);
-        printf("interrupt open\n");
+        // printf("interrupt open\n");
     }
 }
