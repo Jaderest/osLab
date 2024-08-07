@@ -142,7 +142,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     }
   }
 
-  mutex_lock(&task_lk);
+  // mutex_lock(&task_lk);
   stack_check(current);
   if (i == total_task_num * 10) {
     current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
@@ -161,7 +161,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     current->status = RUNNING;
   }
   stack_check(current);
-  mutex_unlock(&task_lk);
+  // mutex_unlock(&task_lk);
 
   NO_INTR;
   return current->context;
