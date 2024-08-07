@@ -66,12 +66,11 @@ static void os_init() {
 
 #ifndef TEST
 static void os_run() {
-  iset(true);
-  yield();
+  // iset(true);
+  // yield();
 
   // 观察课程群大佬的issue发现这个yield其实也不必要
-  while (1)
-    ;
+  while (1);
 }
 #else
 static void os_run() {}
@@ -83,7 +82,7 @@ static void os_run() {}
 */
 static Context *os_trap(Event ev, Context *context) {
   NO_INTR; // 确保中断是关闭的，中断确实是关的，但是task是有可能数据竞争的对吧
-  
+
   Handler *p = handler_head;
   Context *next = NULL;
   int irq_num = 0;
