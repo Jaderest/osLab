@@ -79,7 +79,7 @@ void mutex_lock(mutexlock_t *lk) {
   int acquired = 0;
   log("mutex_lock\n");
   _spin_lock(&lk->spinlock);
-  log("spinlock locked\n");
+  // 你就死在这里，可是我只有一个cpu，你到底怎么回事
   if (lk->locked != 0) {
     queue_push(lk->wait_list, current);
     current->status = BLOCKED;
@@ -148,7 +148,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     }
   }
 
-  mutex_lock(&task_lk);
+  // mutex_lock(&task_lk);
   // _spin_lock(&task_lk_spin);
   //! 有点想死，你凭什么死锁
   stack_check(current);
@@ -170,7 +170,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   }
   stack_check(current);
   // _spin_unlock(&task_lk_spin);
-  mutex_unlock(&task_lk);
+  // mutex_unlock(&task_lk);
 
   NO_INTR;
   return current->context;
