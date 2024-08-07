@@ -77,6 +77,7 @@ void mutex_init(mutexlock_t *lk, const char *name) {
 void mutex_lock(mutexlock_t *lk) {
   TRACE_ENTRY;
   int acquired = 0;
+  log("mutex_lock\n");
   _spin_lock(&lk->spinlock);
   if (lk->locked != 0) {
     queue_push(lk->wait_list, current);
