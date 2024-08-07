@@ -72,6 +72,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
         if (tasks[index] == NULL) { //TODO: teardown? 实现完信号量再看
             continue;
         }
+        //TODO 貌似产生了数据竞争
         if (tasks[index]->status == RUNNABLE) { // 只有runnable可以break
             current = tasks[index];
             break;
@@ -253,8 +254,11 @@ void kmt_sem_wait(sem_t *sem) {
     if (sem->value < 0) {
         log("if\n");
         // 当前线程不能执行，BLOCKED！
+        _spin_lock(&task_lk);
         current->status = BLOCKED; //TODO: 检查线程切换的函数，一会再看看
         sem_queue_push(sem, current); // 是不是这里上锁导致的
+        _spin_unlock(&task_lk);
+
         _spin_unlock(&sem->lk);
         INTR;
     } else {
@@ -274,9 +278,11 @@ void kmt_sem_signal(sem_t *sem) {
     _spin_lock(&sem->lk);
     if (sem->value < 0) {
         PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
+        _spin_lock(&task_lk);
         task_t *task = sem_queue_pop(sem);
         PANIC_ON(task->status != BLOCKED, "blocked err");
         task->status = RUNNABLE;
+        _spin_unlock(&task_lk);
     }
     sem->value++;
     _spin_unlock(&sem->lk);
