@@ -17,6 +17,8 @@ static task_t *currents[MAX_CPU_NUM]; // 当前任务
 static task_t *tasks[MAX_TASK_NUM]; // all tasks
 static int total_task_num = 0;
 static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免得麻烦
+// static mutexlock_t task_lk;
+//TODO: 我要将所有spinlock换成mutexlock
 #define current currents[cpu_current()]
 
 #define stack_check(task)                                                      \
@@ -25,9 +27,7 @@ static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免�
 
 //------------------spinlock------------------
 void kmt_spin_init(spinlock_t *lk, const char *name) { _spin_init(lk, name); }
-
 void kmt_spin_lock(spinlock_t *lk) { _spin_lock(lk); }
-
 void kmt_spin_unlock(spinlock_t *lk) { _spin_unlock(lk); }
 //-----------------E-spinlock------------------
 
@@ -74,7 +74,6 @@ void mutex_init(mutexlock_t *lk, const char *name) {
   queue_init(lk->wait_list);
   _spin_init(&lk->spinlock, name);
 }
-
 void mutex_lock(mutexlock_t *lk) {
   int acquired = 0;
   _spin_lock(&lk->spinlock);
@@ -89,7 +88,6 @@ void mutex_lock(mutexlock_t *lk) {
   if (!acquired)
     yield(); // 主动切换到其他线程执行
 }
-
 void mutex_unlock(mutexlock_t *lk) {
   _spin_lock(&lk->spinlock);
   if (!queue_empty(lk->wait_list)) {
@@ -102,21 +100,11 @@ void mutex_unlock(mutexlock_t *lk) {
 }
 //----------E-mutexlock-----------
 
-// 保存context
-// ctx传的是当前cpu的当前Context，那么idle此时是不用创建context的
-// kmt_create的是现在cpu要跑的任务
-Context *kmt_context_save(
-    Event ev,
-    Context *
-        ctx) { // 在os->trap里面调用，那么处理的便是当前cpu的任务，可以直接current
+Context *kmt_context_save(Event ev, Context *ctx) {
   NO_INTR;
   stack_check(current); // ？四个线程栈出错了，那肯定是有数据竞争
 
-  _spin_lock(&task_lk);
-  current->cpu_id = -1;
-  // 于是在schedule时可以assert检查idle
-  current->context = ctx; // 保存当前的context
-  _spin_unlock(&task_lk);
+  //TODO
 
   stack_check(current);
   NO_INTR;
@@ -125,62 +113,8 @@ Context *kmt_context_save(
 
 Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
-  NO_INTR;
-  _spin_lock(&task_lk);
-  stack_check(current);
-
-  int index = rand() % total_task_num;
-  // int index = current->id;
-  int i = 0;
-  for (i = 0; i < total_task_num * 10; ++i) { // 循环十遍
-    index = (index + 1) % total_task_num;     // index也跟着循环
-    if (tasks[index] == NULL) { // TODO: teardown? 实现完信号量再看
-      continue;
-    }
-    // TODO 貌似产生了数据竞争
-    //  导致了一个死锁，反正就是schedule的问题
-    if (tasks[index]->status == RUNNABLE) { // 只有runnable可以break
-      current = tasks[index];
-      break;
-    } else if (tasks[index]->status ==
-               BLOCKED) { // 事实上这个调度出了不小的问题
-      // 选下一个线程
-      continue;
-    }
-    // TODO: 问题应该就出在这里，cpu调度它出现问题了
-  }
-  NO_INTR;
-  // 处理获取结果
-  PANIC_ON(!holding(&task_lk), "cnm");
-
-  // idle是不可能被阻塞的
-  PANIC_ON(idle[cpu_current()].status == BLOCKED, "idle blocked!");
-
-  if (i == total_task_num * 10) {
-    PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d",
-             cpu_current());
-    current = &idle[cpu_current()];
-    log("idle\n");
-  } else {
-    current = tasks[index];
-    // current->status = RUNNING; //? 我这里原来是写的RUNNABLE，牛魔的copilot
-    log("not idle\n");
-    log("current->name:%s to cpu %d\n", current->name, cpu_current());
-    /**
-     * 捋一下，我是第一次调度的时候把current设置成了task，这次调度是没有问题的，此时它也是runnable
-     * 然后下一步，它开始运行了，运行信号量sem_wait，然后就锁死在这里了
-     * 反正就是和信号量一起弄得一拖四
-     */
-  }
-  log("here\n");
-  current->status = RUNNING; //! 这里仍然是RUNNIG
-  current->cpu_id = cpu_current();
-
-  _spin_unlock(&task_lk);
-  log("task unlock\n");
-  NO_INTR;
-  stack_check(current);
-  return current->context;
+  //TODO
+  return NULL;
 }
 
 void init_stack_guard(task_t *task) {
@@ -208,11 +142,8 @@ void task_init(task_t *task, const char *name) {
 void idle_init() {
   for (int i = 0; i < cpu_count(); ++i) { // 先初始化在每个cpu上
     currents[i] = &idle[i];
-    currents[i]->status = RUNNING;
     currents[i]->name = "idle";
-    // 试一下只有这个几个空转会不会出问题
     init_stack_guard(&idle[i]);
-
     stack_check(&idle[i]);
   }
 }
@@ -220,7 +151,7 @@ void idle_init() {
 void kmt_init() {
   os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
   os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-  idle_init(); // 开机阶段，这个时候需要上锁保护吗？
+  idle_init();
 }
 
 // task的内存已预先分配好，并且允许任何线程调用task_create
