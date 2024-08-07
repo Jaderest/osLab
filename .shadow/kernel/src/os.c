@@ -75,34 +75,30 @@ void producer(void *arg) {
 void consumer(void *arg) { // 这个就是先获取fill
   while (1) {
     // log("before wait\n");
-    kmt->sem_wait(&fill); // 那么这个线程当前就应该阻塞在这个位置，然后需要让出cpu，运行其他线程，直至信号量解封它
+    kmt->sem_wait(
+        &fill); // 那么这个线程当前就应该阻塞在这个位置，然后需要让出cpu，运行其他线程，直至信号量解封它
     // 但是事实是这个cpu发生了一次中断并进入调度，然后重新选了这个线程，然后发生奇怪的死锁
-/*
-current->name:consumer to cpu 0
-here
-task unlock
-before wait
-[TRACE in 0] /home/jaderest/os-workbench/kernel/src/kmt.c: kmt_sem_wait: 243: Entry
-sem->name:fill
-if
-cpu 0: 2 times schedule
-not idle
-current->name:consumer to cpu 0
-here
-task unlock
-cpu 0: 3 times schedule
-not idle
-current->name:producer to cpu 0
-here
-task unlock
-[TRACE in 0] /home/jaderest/os-workbench/kernel/src/kmt.c: kmt_sem_wait: 243: Entry
-sem->name:empty
-else
-sem unlock
-[1;41mPanic: /home/jaderest/os-workbench/kernel/src/kmt.c:264: Interrupt is disabled[0m
-比如以上输出，首先cpu0的第一次中断，将fill那个线程切换上来，没有解锁（很奇怪这里为什么会立马中断并且没有解锁），然后立马跳到另一个empty的线程，然后获取锁的时候发现获取的是同一把锁，明明是两个线程啊？
-所以一会就要检查中间为什么会立即发生一次中断
-*/
+    /*
+    current->name:consumer to cpu 0
+    here
+    task unlock
+    before wait
+    [TRACE in 0] /home/jaderest/os-workbench/kernel/src/kmt.c: kmt_sem_wait:
+    243: Entry sem->name:fill if cpu 0: 2 times schedule not idle
+    current->name:consumer to cpu 0
+    here
+    task unlock
+    cpu 0: 3 times schedule
+    not idle
+    current->name:producer to cpu 0
+    here
+    task unlock
+    [TRACE in 0] /home/jaderest/os-workbench/kernel/src/kmt.c: kmt_sem_wait:
+    243: Entry sem->name:empty else sem unlock [1;41mPanic:
+    /home/jaderest/os-workbench/kernel/src/kmt.c:264: Interrupt is disabled[0m
+    比如以上输出，首先cpu0的第一次中断，将fill那个线程切换上来，没有解锁（很奇怪这里为什么会立马中断并且没有解锁），然后立马跳到另一个empty的线程，然后获取锁的时候发现获取的是同一把锁，明明是两个线程啊？
+    所以一会就要检查中间为什么会立即发生一次中断
+    */
     putch(')');
     kmt->sem_signal(&empty);
   }
@@ -126,8 +122,10 @@ static void os_init() {
   pmm->init();
   kmt->init();
   printf("init done\n");
-  kmt_create(task_alloc(), "testL", testL, NULL);
-  kmt_create(task_alloc(), "testR", testR, NULL);
+  for (int i = 0; i < 2; i++) {
+    kmt_create(task_alloc(), "testL", testL, NULL);
+    kmt_create(task_alloc(), "testR", testR, NULL);
+  }
   // run_test1();
   // dev->init();
   print_handler(); // 为什么你可以用log
