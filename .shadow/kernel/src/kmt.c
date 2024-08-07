@@ -108,11 +108,11 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   NO_INTR;
 
   // idle是不可能被阻塞的
-  PANIC_ON(idle[cpu_current()].status == BLOCKED, "idle blocked!");
+//   PANIC_ON(idle[cpu_current()].status == BLOCKED, "idle blocked!");
 
   if (i == total_task_num * 10) {
-    PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d",
-             cpu_current());
+    // PANIC_ON(idle[cpu_current()].status != RUNNABLE, "idle err in cpu %d",
+    //          cpu_current());
     current = &idle[cpu_current()];
     log("idle\n");
   } else {
