@@ -100,19 +100,51 @@ void mutex_unlock(mutexlock_t *lk) {
 //----------E-mutexlock-----------
 
 Context *kmt_context_save(Event ev, Context *ctx) {
-  NO_INTR;
-  stack_check(current); // ？四个线程栈出错了，那肯定是有数据竞争
-
-  //TODO
-
+  NO_INTR; // 确保中断是关闭的，这里是不是am主动关上的中断，中断处理函数就必须关中断
   stack_check(current);
+
+  current->context = ctx; //保存当前的context
+
   NO_INTR;
   return NULL;
 }
 
 Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
-  //TODO
+  int index = current->id;
+  int i = 0;
+  NO_INTR;
+
+  mutex_lock(&task_lk);
+  for (i = 0; i < total_task_num * 10; ++i) {
+    index = (index + 1) % total_task_num;
+    if (tasks[index]->status == RUNNABLE) {
+      break;
+    } else if (tasks[index] == NULL) {
+      continue;
+    } else if (tasks[index]->status == RUNNING || tasks[index]->status == BLOCKED) {
+      continue;
+    } else { // DEAD
+      tasks[index] = NULL;
+    }
+  }
+
+  stack_check(current);
+  if (i == total_task_num * 10) {
+    current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
+
+    current = &idle[cpu_current()];
+    current->status = RUNNING;
+  } else {
+    current->status = RUNNABLE;
+    current = tasks[index];
+    current->status = RUNNING;
+  }
+  stack_check(current);
+  mutex_unlock(&task_lk);
+
+  NO_INTR;
+  return current->context;
   return NULL;
 }
 

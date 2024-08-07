@@ -68,11 +68,11 @@ static void os_init() {
 
 #ifndef TEST
 static void os_run() {
-  // iset(true);
-  // yield();
+  iset(true);
+  yield();
 
   // 观察课程群大佬的issue发现这个yield其实也不必要
-  while (1);
+  // while (1);
 }
 #else
 static void os_run() {}
