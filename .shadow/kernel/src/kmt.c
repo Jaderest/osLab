@@ -191,6 +191,7 @@ int check_stack_guard(task_t *task) {
 
 void task_init(task_t *task, const char *name) {
   task->name = name;
+  task->cpu_id = -1;
   task->status = RUNNABLE;
   init_stack_guard(task);
 }
