@@ -62,8 +62,9 @@ Context *kmt_schedule(Event ev, Context *ctx) {
           tasks[i]->status, tasks[i]->cpu_id);
     }
     // 尝试变成只有一个cpu会运行这个monitor（monitor脱离cpu）
-    // current = &idle[cpu_current()];
-    // current->status = RUNNING;
+    current = &idle[cpu_current()];
+    current->status = RUNNING;
+    current->running = 1;
     log("--------Umonitor-------\n");
     // return current->context;
   }
