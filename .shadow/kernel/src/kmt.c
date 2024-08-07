@@ -120,7 +120,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
       log("cpu%d: %s\n", i, currents[i]->name);
     }
     for (int i = 0; i < total_task_num; ++i) {
-      log("task%d: %s\n", i, tasks[i]->name);
+      log("task%d: %s on cpu %d\n", i, tasks[i]->name, tasks[i]->cpu_id);
     }
     log("--------E-monitor---------\n");
   }
@@ -154,7 +154,10 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   } else {
     log("current task: %s -> ", current->name);
     current->status = RUNNABLE;
+    current->cpu_id = -1;
+    
     current = tasks[index];
+    current->cpu_id = cpu_current();
     log("next task: %s\n", current->name);
     current->status = RUNNING;
   }
