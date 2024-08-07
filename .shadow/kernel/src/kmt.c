@@ -78,7 +78,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
         if (tasks[index]->status == RUNNABLE) { // 只有runnable可以break
             current = tasks[index];
             break;
-        } else if (tasks[index]->status == BLOCKED) {
+        } else if (tasks[index]->status == BLOCKED) { // 事实上这个调度出了不小的问题
             //选下一个线程
             continue;
         }
