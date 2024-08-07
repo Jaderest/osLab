@@ -153,7 +153,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     current = &idle[cpu_current()];
     current->status = RUNNING;
   } else {
-    log("current task: %s -> ", current->name);
+    log("[cpu%d]current task: %s -> ", current->name);
     current->status = RUNNABLE;
     current->cpu_id = -1;
 
@@ -215,7 +215,7 @@ void kmt_init() {
 int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
                void *arg) {
   TRACE_ENTRY;
-  
+
 
   task_init(task, name);
   Area stack = (Area){task->stack, task->stack + STACK_SIZE};
