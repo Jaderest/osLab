@@ -67,6 +67,7 @@ int main() {
     os->init();
     log("Hello, OS World!\n");
     create_threads();
+    log("create threads\n");
 
     // 所有处理器运行同一份代码，拥有独立的堆栈，共享的内存
     mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序
