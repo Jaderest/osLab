@@ -11,15 +11,14 @@ spinlock_t log_lk = spinlock_init("log");
 
 #define MAX_TASK_NUM 128              // 最多支持128个任务
 static task_t idle[MAX_CPU_NUM];      // cpu 上空转的任务
-static task_t *currents[MAX_CPU_NUM]; // 当前任务
-// static task_t *buffer[MAX_CPU_NUM]; //
-// 当前cpu的上一个任务，或许优化一下调度策略
+
+static mutexlock_t task_lk; // 在kmt->init()
+//--------protected in task_lk---------
 static task_t *tasks[MAX_TASK_NUM]; // all tasks
 static int total_task_num = 0;
-// static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免得麻烦
-static mutexlock_t task_lk;
-//TODO: 我要将所有spinlock换成mutexlock
+static task_t *currents[MAX_CPU_NUM]; // 当前任务
 #define current currents[cpu_current()]
+//-------------------------------------
 
 #define stack_check(task)                                                      \
   PANIC_ON(check_stack_guard(task), "%s stack overflow in %d", (task)->name,   \
@@ -136,12 +135,14 @@ int check_stack_guard(task_t *task) {
 void task_init(task_t *task, const char *name) {
   task->name = name;
   task->status = RUNNABLE;
-  task->cpu_id = -1;
+  init_stack_guard(task);
 }
 
 void idle_init() {
   for (int i = 0; i < cpu_count(); ++i) { // 先初始化在每个cpu上
     currents[i] = &idle[i];
+    idle[i].cpu_id = i;
+    idle[i].status = RUNNING; // 空转线程，开机的时候转在cpu上的
     currents[i]->name = "idle";
     init_stack_guard(&idle[i]);
     stack_check(&idle[i]);
@@ -151,6 +152,7 @@ void idle_init() {
 void kmt_init() {
   os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
   os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
+  mutex_init(&task_lk, "task_lock");
   idle_init();
 }
 
@@ -166,10 +168,11 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
   init_stack_guard(task);
 
   mutex_lock(&task_lk); // 保护全局变量
-  NO_INTR;
+  // 使用互斥锁的话这里是没有中断的，但是保护了task_lk需要保护的东西
+
   tasks[total_task_num] = task;
   total_task_num++;
-  NO_INTR;
+
   mutex_unlock(&task_lk);
 
   stack_check(current);

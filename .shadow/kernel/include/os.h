@@ -74,7 +74,7 @@ struct task {
     int id; // id 编号
     int cpu_id; // debug need
     task_status_t status;
-    struct task *next; 
+    // struct task *next; // 这东西貌似没有用
     Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];
     uint8_t stack[STACK_SIZE];
@@ -101,14 +101,6 @@ struct semaphore {
     const char *name;
     task_queue_t *queue; //TODO: 思考这里的list怎么管理
 };
-
-
-
-
-
-
-
-
 
 
 #endif // _OS_H__
