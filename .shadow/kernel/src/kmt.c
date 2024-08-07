@@ -111,7 +111,8 @@ Context *kmt_context_save(Event ev, Context *ctx) {
 
 Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
-  int index = current->id;
+  // int index = current->id;
+  int index = rand() % total_task_num;
   int i = 0;
   NO_INTR;
 
