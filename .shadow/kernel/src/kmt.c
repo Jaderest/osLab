@@ -299,7 +299,7 @@ void kmt_sem_wait(sem_t *sem) {
 
 void kmt_sem_signal(sem_t *sem) {
   TRACE_ENTRY;
-  INTR;
+//   INTR;
   _spin_lock(&(sem->lk));
   if (sem->value < 0) {
     PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
@@ -312,7 +312,7 @@ void kmt_sem_signal(sem_t *sem) {
   }
   sem->value++;
   _spin_unlock(&(sem->lk));
-  INTR;
+//   INTR;
   TRACE_EXIT;
 }
 //------------------sem------------------
