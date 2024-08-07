@@ -75,6 +75,7 @@ void mutex_init(mutexlock_t *lk, const char *name) {
   _spin_init(&lk->spinlock, name);
 }
 void mutex_lock(mutexlock_t *lk) {
+  TRACE_ENTRY;
   int acquired = 0;
   _spin_lock(&lk->spinlock);
   if (lk->locked != 0) {
@@ -85,6 +86,7 @@ void mutex_lock(mutexlock_t *lk) {
     acquired = 1;
   }
   _spin_unlock(&lk->spinlock);
+  TRACE_EXIT;
   if (!acquired)
     yield(); // 主动切换到其他线程执行
 }
