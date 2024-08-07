@@ -213,6 +213,7 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
   task->context = kcontext(stack, entry, arg);
   init_stack_guard(task);
 
+  log("task %s created\n", name);
   mutex_lock(&task_lk); // 保护全局变量
   // 使用互斥锁的话这里是没有中断的，但是保护了task_lk需要保护的东西
 
@@ -220,6 +221,7 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
   total_task_num++;
 
   mutex_unlock(&task_lk);
+  log("unlock\n");
 
   stack_check(current);
   TRACE_EXIT;
