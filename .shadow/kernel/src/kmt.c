@@ -76,6 +76,9 @@ Context *kmt_schedule(Event ev, Context *ctx) {
         if (tasks[index]->status == RUNNABLE) { // 只有runnable可以break
             current = tasks[index];
             break;
+        } else if (tasks[index]->status == BLOCKED) {
+            //选下一个线程
+            continue;
         }
     }
     NO_INTR;
