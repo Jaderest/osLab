@@ -114,14 +114,14 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
   // int index = current->id;
 
-  log("---------monitor---------\n");
-  for (int i = 0; i < cpu_count(); ++i) {
-    log("cpu%d: %s\n", i, currents[i]->name);
-  }
-  for (int i = 0; i < total_task_num; ++i) {
-    log("task%d: %s\n", i, tasks[i]->name);
-  }
-  log("--------E-monitor---------\n");
+  // log("---------monitor---------\n");
+  // for (int i = 0; i < cpu_count(); ++i) {
+  //   log("cpu%d: %s\n", i, currents[i]->name);
+  // }
+  // for (int i = 0; i < total_task_num; ++i) {
+  //   log("task%d: %s\n", i, tasks[i]->name);
+  // }
+  // log("--------E-monitor---------\n");
 
   int index = rand() % total_task_num;
   int i = 0;
