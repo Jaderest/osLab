@@ -71,17 +71,12 @@ static void os_run() {
   iset(true);
   yield();
 
-  // 观察课程群大佬的issue发现这个yield其实也不必要
   while (1);
 }
 #else
 static void os_run() {}
 #endif
 
-/*
-中断/异常发生后，am会将寄存器保存到栈上，建议对context做一个拷贝，并实现上下文切换
-每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
-*/
 static Context *os_trap(Event ev, Context *context) {
   NO_INTR; // 确保中断是关闭的，中断确实是关的，但是task是有可能数据竞争的对吧
   // TRACE_ENTRY;
