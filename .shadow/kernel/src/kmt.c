@@ -16,8 +16,8 @@ static task_t *currents[MAX_CPU_NUM]; // 当前任务
 // 当前cpu的上一个任务，或许优化一下调度策略
 static task_t *tasks[MAX_TASK_NUM]; // all tasks
 static int total_task_num = 0;
-static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免得麻烦
-// static mutexlock_t task_lk;
+// static spinlock_t task_lk = spinlock_init("task"); // 用宏初始化了，免得麻烦
+static mutexlock_t task_lk;
 //TODO: 我要将所有spinlock换成mutexlock
 #define current currents[cpu_current()]
 
@@ -165,12 +165,12 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
   task->context = kcontext(stack, entry, arg);
   init_stack_guard(task);
 
-  _spin_lock(&task_lk); // 保护全局变量
+  mutex_lock(&task_lk); // 保护全局变量
   NO_INTR;
   tasks[total_task_num] = task;
   total_task_num++;
   NO_INTR;
-  _spin_unlock(&task_lk);
+  mutex_unlock(&task_lk);
 
   stack_check(current);
   TRACE_EXIT;
@@ -189,7 +189,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
   sem->value = value;
   char dst[256] = "";
   snprintf(dst, strlen(name) + 4 + 1, "sem-%s", name);
-  _spin_init(&sem->lk, dst);
+  mutex_init(&sem->lk, dst);
   queue_init(sem->queue);
   TRACE_EXIT;
 }
@@ -198,51 +198,17 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
 void kmt_sem_wait(sem_t *sem) {
   TRACE_ENTRY;
-  INTR; // 果然，这里中断是关掉的，然后再上锁就会有问题
-  // 稳定复现了，问题就是这个函数
-  /**
-   * 切换到这里然后while(1)运行这个线程，wait失败然后是否又重新进了一次while
-   */
-  _spin_lock(&sem->lk); // 锁这个信号量加上自旋锁cpu
-  // log("after spinlock\n");
-  log("sem->name:%s\n", sem->name);
-  sem->value--;
-  if (sem->value < 0) {
-    log("if\n");
-    // 当前线程不能执行，BLOCKED！
-    NO_INTR;
-    current->status = BLOCKED; // TODO: 检查线程切换的函数，一会再看看
-    queue_push(sem->queue, current); // 是不是这里上锁导致的
-    // _spin_unlock(&task_lk);
+  INTR;
 
-    _spin_unlock(&sem->lk);
-    INTR;
-  } else {
-    log("else\n");
-    NO_INTR;
-    _spin_unlock(&sem->lk);
-    log("sem unlock\n");
-    INTR;
-    // 就是需要yield()出去的！
-    yield(); // 不是你的问题
-  }
+
+  INTR;
   TRACE_EXIT;
 }
 
 void kmt_sem_signal(sem_t *sem) {
   TRACE_ENTRY;
   INTR;
-  _spin_lock(&(sem->lk));
-  if (sem->value < 0) {
-    PANIC_ON(sem->queue == NULL, "queue err in sem:%s", sem->name);
-    // _spin_lock(&task_lk);
-    task_t *task = queue_pop(sem->queue);
-    PANIC_ON(task->status != BLOCKED, "blocked err");
-    task->status = RUNNABLE; // BLOCK 状态取消
-                             // _spin_unlock(&task_lk);
-  }
-  sem->value++;
-  _spin_unlock(&(sem->lk));
+
   INTR;
   TRACE_EXIT;
 }
