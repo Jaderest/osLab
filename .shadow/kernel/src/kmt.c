@@ -79,6 +79,7 @@ void mutex_lock(mutexlock_t *lk) {
   int acquired = 0;
   log("mutex_lock\n");
   _spin_lock(&lk->spinlock);
+  log("spinlock locked\n");
   if (lk->locked != 0) {
     queue_push(lk->wait_list, current);
     current->status = BLOCKED;
