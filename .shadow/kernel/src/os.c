@@ -55,6 +55,8 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 
 task_t *task_alloc() { return pmm->alloc(sizeof(task_t)); }
 
+
+
 static void os_init() {
   NO_INTR;
   pmm->init();
