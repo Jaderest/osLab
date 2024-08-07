@@ -85,8 +85,6 @@ Context *kmt_schedule(Event ev, Context *ctx) {
         //TODO: 问题应该就出在这里，cpu调度它出现问题了
     }
     NO_INTR;
-    // 处理获取结果
-    PANIC_ON(!holding(&task_lk), "cnm");
 
     //idle是不可能被阻塞的
     PANIC_ON(idle[cpu_current()].status == BLOCKED, "idle blocked!");
