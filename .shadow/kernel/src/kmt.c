@@ -104,7 +104,9 @@ Context *kmt_context_save(Event ev, Context *ctx) {
   NO_INTR; // 确保中断是关闭的，这里是不是am主动关上的中断，中断处理函数就必须关中断
   stack_check(current);
 
+  _spin_lock(&task_lk_spin);
   current->context = ctx; //保存当前的context
+  _spin_unlock(&task_lk_spin);
 
   NO_INTR;
   return NULL;
@@ -225,7 +227,6 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
 
   log("task %s created\n", name);
   _spin_lock(&task_lk_spin); // 保护全局变量
-  // 使用互斥锁的话这里是没有中断的，但是保护了task_lk需要保护的东西
 
   task->id = total_task_num;
   tasks[total_task_num] = task;
