@@ -6,9 +6,13 @@ bool holding(spinlock_t *lk);
 
 void _spin_lock(spinlock_t *lk) {
     // Disable interrupts to avoid deadlock.关闭中断避免死锁
-    push_off();
+    // printf("a\n");
+    push_off(); // 这个是关中断，关中断是没有问题的，但是此时cpu hold了sem这个锁，也即我这里上锁了两次？
+    // 信号量实现是没问题的，所以我需要找task的问题，一会看一下调度器
 
     // This is a deadlock.
+    //! 说明我写出来一个死锁
+    // printf("before test hoding\n");
     if (holding(lk)) { //如果上锁&持有锁的cpu为当前cpu，则立即终止它
         PANIC("acquire %s", lk->name);
     }
@@ -23,6 +27,7 @@ void _spin_lock(spinlock_t *lk) {
 }
 
 void _spin_unlock(spinlock_t *lk) {
+    // printf("b\n");
     if (!holding(lk)) { //看着怪怪的检查
         PANIC("release %s", lk->name);
     }
@@ -56,6 +61,7 @@ bool holding(spinlock_t *lk) {
 void push_off(void) { //如何处理中断，关中断时，push中断前的状态放到栈里面
     int old = ienabled();
     iset(false); //关中断
+    // printf("interrupt close\n");
 
     struct cpu *c = mycpu;
     if (c->noff == 0) { //number of 关中断的次数
@@ -69,15 +75,16 @@ void pop_off(void) {
 
     // Never enable interrupt when holding a lock.
     if (ienabled()) { // 解锁的时候中断是不是打开的
-        panic("pop_off - interruptible");
+        PANIC("pop_off - interruptible");
     }
     
     if (c->noff < 1) {
-        panic("pop_off");
+        PANIC("pop_off");
     } // 许多正确的检查
 
     c->noff -= 1;
     if (c->noff == 0 && c->intena) {
         iset(true);
+        // printf("interrupt open\n");
     }
 }

@@ -44,38 +44,35 @@ void _spin_init(spinlock_t *lk, const char *name);
 
 //------------------task------------------
 typedef enum {
-    BLOCKED,
-    RUNNABLE,
+    BLOCKED = 1,
+    RUNNABLE, //2
     RUNNING,
-    ZOMBIE,
+    DEAD,
 } task_status_t;
 
 struct task {
     const char *name;
-    int id;
+    int id; // id 编号
+    int cpu_id; // debug need
+    int on_sem; // prepare for teardown
     task_status_t status;
-    int suspended;
-    int blocked;
-    int running;
-    struct task *next;
-    Context *context;
+    struct task *next; 
+    Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];
     uint8_t stack[STACK_SIZE];
     uint32_t stack_fense_e[STACK_GUARD_SIZE];
 };
 void init_stack_guard(task_t *task);
 int check_stack_guard(task_t *task);
-void idle_init();
+void idle_init(); // cpu 上空转的任务
+// 写在kmt里，然后这里声明一下
 Context *kmt_context_save(Event ev, Context *context);
 Context *kmt_schedule(Event ev, Context *context);
-int _create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
-void _teardown(task_t *task);
+int kmt_create(task_t *task, const char *name, void (*entry)(void *arg), void *arg);
+void kmt_teardown(task_t *task);
 
-
-#define stack_check(task) check_stack_guard(task)
 
 //------------------semaphore------------------
-//TODO SEMAPHORE: 
 /*
 value指定了
 */
@@ -95,9 +92,6 @@ struct semaphore {
     const char *name;
     task_queue_t *queue; //TODO: 思考这里的list怎么管理
 };
-void _sem_init(sem_t *sem, const char *name, int value);
-void _sem_wait(sem_t *sem);
-void _sem_signal(sem_t *sem);
 
 
 

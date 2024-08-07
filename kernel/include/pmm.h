@@ -17,7 +17,6 @@ typedef struct object {
 } object_t;
 
 
-//TODO！！！ 修改lock_t -> spinlock_t
 
 typedef struct slab {
     struct slab *next;       // 指向下一个slab

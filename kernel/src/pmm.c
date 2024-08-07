@@ -37,7 +37,6 @@ void print_pool(buddy_pool_t *pool) {
 #define PAGE_SHIFT 12 // 2^12 = 4096
 static size_t buddy_mem_sz = 0;
 static buddy_pool_t g_buddy_pool = {};
-// static lock_t global_lock = LOCK_INIT();
 static spinlock_t global_lock = spinlock_init("global_lock");
 
 // size is at least 1 page, return the order of size of the size, order is at least 0
