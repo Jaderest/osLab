@@ -133,11 +133,14 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   if (i == total_task_num * 10) {
     current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
 
+    log("no task to run, idle\n");
     current = &idle[cpu_current()];
     current->status = RUNNING;
   } else {
+    log("current task: %s -> ", tasks[index]->name);
     current->status = RUNNABLE;
     current = tasks[index];
+    log("next task: %s\n", current->name);
     current->status = RUNNING;
   }
   stack_check(current);
