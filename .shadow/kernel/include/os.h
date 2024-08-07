@@ -46,7 +46,7 @@ void _spin_init(spinlock_t *lk, const char *name);
 typedef enum {
     BLOCKED = 1,
     RUNNABLE, //2
-    RUNNING, //3
+    RUNNING,
     DEAD,
 } task_status_t;
 
@@ -54,11 +54,8 @@ struct task {
     const char *name;
     int id; // id 编号
     int cpu_id; // debug need
-    int suspend; // 独占任务，防止被调用走
-    int block; // 阻塞, 0 未阻塞
-    int running; // 运行, 0 未运行
-    int dead; // 死亡, 0 未死亡
-    task_status_t status; // 难评
+    int on_sem; // prepare for teardown
+    task_status_t status;
     struct task *next; 
     Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];
