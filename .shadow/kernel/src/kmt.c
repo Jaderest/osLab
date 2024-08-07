@@ -40,27 +40,8 @@ Context *kmt_context_save(Event ev, Context *ctx) { // 在os->trap里面调用�
     return NULL;
 }
 
-int count[MAX_CPU_NUM] = {0};
 Context *kmt_schedule(Event ev, Context *ctx) {
     // 获取可以运行的任务
-    count[cpu_current()]++;
-    log("cpu %d: %d times schedule\n", cpu_current(), count[cpu_current()]);
-#ifdef  MONITOR
-    if (cpu_current() == cpu_count() - 1) { //  单独针对这个cpu
-        log("--------monitor-------\n");
-        for (int i = 0; i < cpu_count(); ++i) {
-            log("monitor_cpu %d: %s\n", i, currents[i]->name);
-        }
-        for (int i = 0; i < total_task_num; ++i) {
-            log("monitor_task %d: %s status = %d in cpuid %d\n", i, tasks[i]->name, tasks[i]->status, tasks[i]->cpu_id);
-        }
-        // 尝试变成只有一个cpu会运行这个monitor（monitor脱离cpu）
-        // current = &idle[cpu_current()];
-        // current->status = RUNNING;
-        log("--------Umonitor-------\n");
-        // return current->context;
-    }
-#endif
     NO_INTR;
     _spin_lock(&task_lk);
     stack_check(current);
