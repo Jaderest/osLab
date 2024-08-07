@@ -44,13 +44,13 @@ void alignTest() {
 static void testPrintL() {
     while (1)
     {
-        putch('(');
+        // putch('(');
     }
 }
 static void testPrintR() {
     while (1)
     {
-        putch(')');
+        // putch(')');
     }
 }
 static void create_threads() {
