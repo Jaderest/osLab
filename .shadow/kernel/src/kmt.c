@@ -114,20 +114,22 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
   // int index = current->id;
 
-  // log("---------monitor---------\n");
-  // for (int i = 0; i < cpu_count(); ++i) {
-  //   log("cpu%d: %s\n", i, currents[i]->name);
-  // }
-  // for (int i = 0; i < total_task_num; ++i) {
-  //   log("task%d: %s\n", i, tasks[i]->name);
-  // }
-  // log("--------E-monitor---------\n");
+  if (cpu_current() == cpu_count() - 1) {
+    log("---------monitor---------\n");
+    for (int i = 0; i < cpu_count(); ++i) {
+      log("cpu%d: %s\n", i, currents[i]->name);
+    }
+    for (int i = 0; i < total_task_num; ++i) {
+      log("task%d: %s\n", i, tasks[i]->name);
+    }
+    log("--------E-monitor---------\n");
+  }
 
   int index = rand() % total_task_num;
   int i = 0;
   NO_INTR;
 
-  // mutex_lock(&task_lk);
+  mutex_lock(&task_lk);
   for (i = 0; i < total_task_num * 10; ++i) {
     index = (index + 1) % total_task_num;
     if (tasks[index]->status == RUNNABLE) {
@@ -156,7 +158,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     current->status = RUNNING;
   }
   stack_check(current);
-  // mutex_unlock(&task_lk);
+  mutex_unlock(&task_lk);
 
   NO_INTR;
   return current->context;
