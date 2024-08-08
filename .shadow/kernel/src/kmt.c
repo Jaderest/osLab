@@ -156,7 +156,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     }
   }
 
-  // mutex_lock(&task_lk);
+  mutex_lock(&task_lk);
   // _spin_lock(&task_lk_spin);
   //! 有点想死，你凭什么死锁
   stack_check(current);
@@ -178,7 +178,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   }
   stack_check(current);
   // _spin_unlock(&task_lk_spin);
-  // mutex_unlock(&task_lk);
+  mutex_unlock(&task_lk);
 
   NO_INTR;
   TRACE_EXIT;
