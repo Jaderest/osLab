@@ -192,14 +192,18 @@ Context *kmt_schedule(Event ev, Context *ctx) {
 
   stack_check(current);
   if (i == total_task_num * 10) {
-    current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
+    if (current->status == RUNNING) {
+      current->status = RUNNABLE; // 作为一个runnable的线程
+    } //! BLOCKED 的线程可不能随便改
 
     log("no task to run, idle\n");
     current = &idle[cpu_current()];
     current->status = RUNNING;
   } else {
     log("[cpu%d]current task: %s -> ", cpu_current(), current->name);
-    current->status = RUNNABLE;
+    if (current->status == RUNNING) {
+      current->status = RUNNABLE;
+    } //! BLOCKED 的线程直接让出去就行
     current->cpu_id = -1;
 
     current = tasks[index];
@@ -304,7 +308,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
   sem->value = value;
   char dst[256] = "";
   snprintf(dst, strlen(name) + 4 + 1, "sem-%s", name);
-  mutex_init(&sem->lk, dst);
+  _spin_init(&sem->lk, dst);
   queue_init(sem->queue);
   TRACE_EXIT;
 }

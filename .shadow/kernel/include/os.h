@@ -96,7 +96,8 @@ value指定了
 */
 
 struct semaphore {
-    mutexlock_t lk;
+    // mutexlock_t lk;
+    spinlock_t lk;
     int value; //0（生产者消费者缓冲区），1（互斥锁）
     const char *name;
     task_queue_t *queue; //TODO: 思考这里的list怎么管理
