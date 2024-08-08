@@ -379,9 +379,7 @@ static void pmm_init() {
     pmm_end = heap.end;
     buddy_mem_sz = pmsize;
     printf(
-        "Got %d MiB heap: [%p, %p]\n",
-        pmsize >> 20, heap.start, heap.end
-    );
+        "Got %d MiB heap\n", pmsize >> 20);
 
     buddy_pool_init(&g_buddy_pool, pmm_start, pmm_end);
     // print_pool(&g_buddy_pool);
