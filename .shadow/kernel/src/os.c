@@ -81,7 +81,7 @@ static void os_run() {}
 
 static Context *os_trap(Event ev, Context *context) {
   NO_INTR; // 确保中断是关闭的，中断确实是关的，但是task是有可能数据竞争的对吧
-  // TRACE_ENTRY;
+  TRACE_ENTRY;
 
   Handler *p = handler_head;
   Context *next = NULL;
@@ -102,7 +102,7 @@ static Context *os_trap(Event ev, Context *context) {
 
   NO_INTR;
   PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
-  // TRACE_EXIT;
+  TRACE_EXIT;
   return next;
 }
 /*
