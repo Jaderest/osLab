@@ -3,7 +3,7 @@
 #include <os.h>
 #include <stdint.h>
 
-struct cpu cpus[MAX_CPU_NUM];
+struct cpu cpus[MAX_CPU_NUM] = {0};
 
 #ifdef LOG
 spinlock_t log_lk = spinlock_init("log");
