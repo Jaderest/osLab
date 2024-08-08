@@ -187,8 +187,9 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   }
   stack_check(current);
   // _spin_unlock(&task_lk_spin);
-  
+
   NO_INTR;
+  asm volatile("" ::: "memory");
   mutex_unlock(&task_lk); // 然后你就被中断了？？
 
   NO_INTR;
