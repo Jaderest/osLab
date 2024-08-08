@@ -46,18 +46,18 @@ sem_t empty, fill;
 static void testPrintL() {
     while (1)
     {
-        // kmt->sem_wait(&empty);
+        kmt->sem_wait(&empty);
         putch('(');
-        // kmt->sem_signal(&fill);
+        kmt->sem_signal(&fill);
         // log("(");
     }
 }
 static void testPrintR() {
     while (1)
     {
-        // kmt->sem_wait(&fill);
+        kmt->sem_wait(&fill);
         putch(')');
-        // kmt->sem_signal(&empty);
+        kmt->sem_signal(&empty);
         // log(")");
     }
 }
