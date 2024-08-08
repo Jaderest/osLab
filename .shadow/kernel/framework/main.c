@@ -44,14 +44,14 @@ void alignTest() {
 static void testPrintL() {
     while (1)
     {
-        // putch('(');
+        putch('(');
         // log("(");
     }
 }
 static void testPrintR() {
     while (1)
     {
-        // putch(')');
+        putch(')');
         // log(")");
     }
 }
