@@ -147,16 +147,16 @@ Context *kmt_context_save(Event ev, Context *ctx) {
 
 int count = 0;
 Context *kmt_schedule(Event ev, Context *ctx) {
-  _spin_lock(&task_lk_spin);
-  if (count == 0) {
-    tasks[0]->status = BLOCKED;
-    current = tasks[0]; // 强行赋值试一下
-    current->cpu_id = cpu_current();
+  // _spin_lock(&task_lk_spin);
+  // if (count == 0) {
+  //   tasks[0]->status = BLOCKED;
+  //   current = tasks[0]; // 强行赋值试一下
+  //   current->cpu_id = cpu_current();
 
-  } else if (count == 5) {
-    tasks[0]->status = RUNNABLE;
-  }
-  _spin_unlock(&task_lk_spin);
+  // } else if (count == 5) {
+  //   tasks[0]->status = RUNNABLE;
+  // }
+  // _spin_unlock(&task_lk_spin);
   count++;
   log("schedule times: %d\n", count);
   // 获取可以运行的任务
@@ -350,7 +350,7 @@ void kmt_sem_wait(sem_t *sem) {
 
 void kmt_sem_signal(sem_t *sem) {
   TRACE_ENTRY;
-  INTR;
+  // INTR;
   _spin_lock(&sem->lk);
   sem->value++;
   if (sem->value <= 0) {
@@ -358,7 +358,7 @@ void kmt_sem_signal(sem_t *sem) {
     task->status = RUNNABLE;
   }
   _spin_unlock(&sem->lk);
-  INTR;
+  // INTR;
   TRACE_EXIT;
 }
 //------------------sem------------------
