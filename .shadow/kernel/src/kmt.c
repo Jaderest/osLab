@@ -77,10 +77,10 @@ void mutex_init(mutexlock_t *lk, const char *name) {
 void mutex_lock(mutexlock_t *lk) {
   TRACE_ENTRY;
   int acquired = 0;
-  log("mutex_lock\n");
 
   asm volatile("" ::: "memory");
   _spin_lock(&lk->spinlock);
+  log("mutex_lock\n");
   // 你就死在这里，可是我只有一个cpu，你到底怎么回事
   if (lk->locked != LOCKED) {
     queue_push(lk->wait_list, current);
