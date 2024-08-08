@@ -90,8 +90,10 @@ void mutex_lock(mutexlock_t *lk) {
   }
   _spin_unlock(&lk->spinlock);
   TRACE_EXIT;
-  if (!acquired)
+  if (!acquired) {
+    log("yield!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     yield(); // 主动切换到其他线程执行
+  }
 }
 void mutex_unlock(mutexlock_t *lk) {
   log("mutex_unlock\n");
