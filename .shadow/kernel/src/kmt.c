@@ -93,8 +93,10 @@ void mutex_lock(mutexlock_t *lk) {
   // 你就死在这里，可是我只有一个cpu，你到底怎么回事
   if (lk->locked != LOCKED) {
     log("be locked\n");
+    _spin_lock(&task_lk_spin);
     queue_push(lk->wait_list, current); // 等会，这个current是不是要加锁？？
     current->status = BLOCKED;
+    _spin_unlock(&task_lk_spin);
   } else {
     log("not be locked\n");
     lk->locked = UNLOCKED;
