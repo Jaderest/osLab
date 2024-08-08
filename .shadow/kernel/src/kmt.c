@@ -108,7 +108,9 @@ Context *kmt_context_save(Event ev, Context *ctx) {
   NO_INTR; // 确保中断是关闭的，这里是不是am主动关上的中断，中断处理函数就必须关中断
   stack_check(current);
 
-  PANIC_ON(holding(&task_lk_spin), "acquire task_lk_spin");
+  NO_INTR;
+  PANIC_ON(holding(&task_lk_spin), "acquire task_lk_spin"); // 无锁但是关中断状态
+  NO_INTR;
 
   _spin_lock(&task_lk_spin);
   current->context = ctx; //保存当前的context
