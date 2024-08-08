@@ -48,6 +48,7 @@ void queue_push(task_queue_t *queue, task_t *task) {
   node->task = task;
   node->prev = queue->tail;
   node->next = NULL;
+  log("mid\n");
   if (queue->tail != NULL) { // 非空队列
     queue->tail->next = node;
   } else { // 空队列
