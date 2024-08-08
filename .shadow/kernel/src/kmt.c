@@ -88,7 +88,9 @@ void mutex_lock(mutexlock_t *lk) {
     lk->locked = UNLOCKED;
     acquired = 1;
   }
+  log("before unlock\n");
   _spin_unlock(&lk->spinlock);
+  log ("before yield\n");
   TRACE_EXIT;
   if (!acquired) {
     log("yield!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
