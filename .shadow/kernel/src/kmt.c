@@ -153,6 +153,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     tasks[0]->status = RUNNABLE;
   }
   count++;
+  log("schedule times: %d\n", count);
   // 获取可以运行的任务
   // int index = current->id;
   TRACE_ENTRY;
