@@ -89,7 +89,7 @@ static Context *os_trap(Event ev, Context *context) {
   while (p) {
     NO_INTR;
     if (p->event == ev.event || p->event == EVENT_NULL) {
-      log ("handler name: %d\n", p->seq);
+      // log ("handler name: %d\n", p->seq);
       Context *ret = p->handler(ev, context);
       PANIC_ON(ret && next, "returning multiple times");
       if (ret)
