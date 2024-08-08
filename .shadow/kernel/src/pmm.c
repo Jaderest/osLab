@@ -379,7 +379,7 @@ static void pmm_init() {
     pmm_end = heap.end;
     buddy_mem_sz = pmsize;
     printf(
-        "Got %d MiB heap: [%p, %p)\n",
+        "Got %d MiB heap: [%p, %p]\n",
         pmsize >> 20, heap.start, heap.end
     );
 
