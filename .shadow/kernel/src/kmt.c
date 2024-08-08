@@ -49,14 +49,17 @@ void queue_push(task_queue_t *queue, task_t *task) {
   node->prev = queue->tail;
   node->next = NULL;
   log("mid\n");
-  NO_INTR;
+  asm volatile("" ::: "memory");
   if (queue->tail != NULL) { // 非空队列
+    asm volatile("" ::: "memory");
     queue->tail->next = node;
     log ("if\n");
   } else { // 空队列
+    asm volatile("" ::: "memory");
     queue->head = node;
     log("else\n");
   }
+  asm volatile("" ::: "memory");
   queue->tail = node;
   log("queue_push end\n");
 }
