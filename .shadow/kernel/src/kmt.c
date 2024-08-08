@@ -179,6 +179,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   stack_check(current);
   // _spin_unlock(&task_lk_spin);
   mutex_unlock(&task_lk);
+  log("unlock\n");
 
   NO_INTR;
   TRACE_EXIT;
