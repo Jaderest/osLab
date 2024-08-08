@@ -66,7 +66,6 @@ typedef enum {
     BLOCKED = 1,
     RUNNABLE, //2
     RUNNING,
-    DEAD,
 } task_status_t;
 
 struct task {
