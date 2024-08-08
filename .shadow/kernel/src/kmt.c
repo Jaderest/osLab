@@ -106,6 +106,7 @@ void mutex_unlock(mutexlock_t *lk) {
 
 Context *kmt_context_save(Event ev, Context *ctx) {
   NO_INTR; // 确保中断是关闭的，这里是不是am主动关上的中断，中断处理函数就必须关中断
+  TRACE_ENTRY;
   stack_check(current);
 
   NO_INTR;
@@ -117,12 +118,14 @@ Context *kmt_context_save(Event ev, Context *ctx) {
   _spin_unlock(&task_lk_spin);
 
   NO_INTR;
+  TRACE_EXIT;
   return NULL;
 }
 
 Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
   // int index = current->id;
+  TRACE_ENTRY;
 
   if (cpu_current() == cpu_count() - 1) {
     log("---------monitor---------\n");
@@ -177,8 +180,8 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   // mutex_unlock(&task_lk);
 
   NO_INTR;
+  TRACE_EXIT;
   return current->context;
-  return NULL;
 }
 
 void init_stack_guard(task_t *task) {
