@@ -87,12 +87,14 @@ static Context *os_trap(Event ev, Context *context) {
   Context *next = NULL;
   int irq_num = 0;
   while (p) {
+    NO_INTR;
     if (p->event == ev.event || p->event == EVENT_NULL) {
       Context *ret = p->handler(ev, context);
       PANIC_ON(ret && next, "returning multiple times");
       if (ret)
         next = ret;
     }
+    NO_INTR;
     irq_num++;
     p = p->next;
   }
