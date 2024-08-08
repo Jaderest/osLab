@@ -41,6 +41,7 @@ int queue_empty(task_queue_t *queue) {
   return (queue->head == NULL && queue->tail == NULL);
 }
 void queue_push(task_queue_t *queue, task_t *task) {
+  PANIC_ON(queue == NULL, "have not initialize the queue");
   log("queue_push\n");
   task_node_t *node = pmm->alloc(sizeof(task_node_t));
   PANIC_ON(node == NULL, "node alloc err");
@@ -50,6 +51,7 @@ void queue_push(task_queue_t *queue, task_t *task) {
   node->next = NULL;
   log("mid\n");
   asm volatile("" ::: "memory");
+  NO_INTR;
   if (queue->tail != NULL) { // 非空队列
     asm volatile("" ::: "memory");
     queue->tail->next = node;
