@@ -66,20 +66,19 @@ typedef enum {
     BLOCKED = 1,
     RUNNABLE, //2
     RUNNING,
-    DEAD,
 } task_status_t;
 
 struct task {
     const char *name;
-    int id; // id 编号
+    int id;
     int cpu_id; // debug need
     task_status_t status;
-    // struct task *next; // 这东西貌似没有用
     Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];
     uint8_t stack[STACK_SIZE];
     uint32_t stack_fense_e[STACK_GUARD_SIZE];
 };
+
 void init_stack_guard(task_t *task);
 int check_stack_guard(task_t *task);
 void idle_init(); // cpu 上空转的任务
@@ -96,7 +95,8 @@ value指定了
 */
 
 struct semaphore {
-    mutexlock_t lk;
+    // mutexlock_t lk;
+    spinlock_t lk;
     int value; //0（生产者消费者缓冲区），1（互斥锁）
     const char *name;
     task_queue_t *queue; //TODO: 思考这里的list怎么管理

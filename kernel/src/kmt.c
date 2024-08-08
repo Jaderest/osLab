@@ -32,27 +32,38 @@ void kmt_spin_unlock(spinlock_t *lk) { _spin_unlock(lk); }
 //-----------------E-spinlock------------------
 
 //------------mutexlock-------------
-void queue_init(task_queue_t *queue) {
-  queue = pmm->alloc(sizeof(task_queue_t));
-  queue->head = NULL;
-  queue->tail = NULL;
+void queue_init(task_queue_t **queue) {
+  *queue = pmm->alloc(sizeof(task_queue_t));
+  (*queue)->head = NULL;
+  (*queue)->tail = NULL;
 }
 int queue_empty(task_queue_t *queue) {
   return (queue->head == NULL && queue->tail == NULL);
 }
 void queue_push(task_queue_t *queue, task_t *task) {
+  PANIC_ON(queue == NULL, "have not initialize the queue");
+  log("queue_push\n");
   task_node_t *node = pmm->alloc(sizeof(task_node_t));
   PANIC_ON(node == NULL, "node alloc err");
 
   node->task = task;
   node->prev = queue->tail;
   node->next = NULL;
+  log("mid\n");
+  asm volatile("" ::: "memory");
+  NO_INTR;
   if (queue->tail != NULL) { // 非空队列
+    asm volatile("" ::: "memory");
     queue->tail->next = node;
+    log ("if\n");
   } else { // 空队列
+    asm volatile("" ::: "memory");
     queue->head = node;
+    log("else\n");
   }
+  asm volatile("" ::: "memory");
   queue->tail = node;
+  log("queue_push end\n");
 }
 task_t *queue_pop(task_queue_t *queue) {
   if (queue->head == NULL)
@@ -71,27 +82,36 @@ task_t *queue_pop(task_queue_t *queue) {
 }
 void mutex_init(mutexlock_t *lk, const char *name) {
   lk->locked = UNLOCKED;
-  queue_init(lk->wait_list);
+  queue_init(&(lk->wait_list));
   _spin_init(&lk->spinlock, name);
 }
 void mutex_lock(mutexlock_t *lk) {
   TRACE_ENTRY;
   int acquired = 0;
-  log("mutex_lock\n");
 
+  asm volatile("" ::: "memory");
   _spin_lock(&lk->spinlock);
+  log("mutex_lock\n");
   // 你就死在这里，可是我只有一个cpu，你到底怎么回事
   if (lk->locked != LOCKED) {
-    queue_push(lk->wait_list, current);
+    log("be locked\n");
+    // _spin_lock(&task_lk_spin);
+    queue_push(lk->wait_list, current); // 等会，这个current是不是要加锁？？
     current->status = BLOCKED;
+    // _spin_unlock(&task_lk_spin);
   } else {
+    log("not be locked\n");
     lk->locked = UNLOCKED;
     acquired = 1;
   }
+  log("before unlock\n");
   _spin_unlock(&lk->spinlock);
+  log ("before yield\n");
   TRACE_EXIT;
-  if (!acquired)
+  if (!acquired) {
+    log("yield!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     yield(); // 主动切换到其他线程执行
+  }
 }
 void mutex_unlock(mutexlock_t *lk) {
   log("mutex_unlock\n");
@@ -127,7 +147,20 @@ Context *kmt_context_save(Event ev, Context *ctx) {
   return NULL;
 }
 
+int count = 0;
 Context *kmt_schedule(Event ev, Context *ctx) {
+  // _spin_lock(&task_lk_spin);
+  // if (count == 0) {
+  //   tasks[0]->status = BLOCKED;
+  //   current = tasks[0]; // 强行赋值试一下
+  //   current->cpu_id = cpu_current();
+
+  // } else if (count == 5) {
+  //   tasks[0]->status = RUNNABLE;
+  // }
+  // _spin_unlock(&task_lk_spin);
+  count++;
+  log("schedule times: %d\n", count);
   // 获取可以运行的任务
   // int index = current->id;
   TRACE_ENTRY;
@@ -142,9 +175,12 @@ Context *kmt_schedule(Event ev, Context *ctx) {
       log("cpu%d: %s\n", i, currents[i]->name);
     }
     for (int i = 0; i < total_task_num; ++i) {
-      log("task%d: %s on cpu %d\n", i, tasks[i]->name, tasks[i]->cpu_id);
+      log("task%d: %s status %d -- on cpu %d\n", i, tasks[i]->name, tasks[i]->status ,tasks[i]->cpu_id);
     }
     log("--------E-monitor---------\n");
+  }
+  if (count == 1) {
+    return current->context;
   }
 
   int index = rand() % total_task_num;
@@ -153,6 +189,9 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk"); //?
   PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
 
+  // 访问全局变量，需要加锁
+  // mutex_lock(&task_lk);
+  _spin_lock(&task_lk_spin);
   for (i = 0; i < total_task_num * 10; ++i) {
     PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
     index = (index + 1) % total_task_num;
@@ -166,21 +205,23 @@ Context *kmt_schedule(Event ev, Context *ctx) {
       tasks[index] = NULL;
     }
   }
-  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk"); // 第一次调度的时候没有问题
-  PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
+  // PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk"); // 第一次调度的时候没有问题
+  // PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
 
-  // mutex_lock(&task_lk);
-  _spin_lock(&task_lk_spin);
   stack_check(current);
   if (i == total_task_num * 10) {
-    current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
+    if (current->status == RUNNING) {
+      current->status = RUNNABLE; // 作为一个runnable的线程
+    } //! BLOCKED 的线程可不能随便改
 
     log("no task to run, idle\n");
     current = &idle[cpu_current()];
     current->status = RUNNING;
   } else {
     log("[cpu%d]current task: %s -> ", cpu_current(), current->name);
-    current->status = RUNNABLE;
+    if (current->status == RUNNING) {
+      current->status = RUNNABLE;
+    } //! BLOCKED 的线程直接让出去就行
     current->cpu_id = -1;
 
     current = tasks[index];
@@ -190,12 +231,12 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   }
   stack_check(current);
   _spin_unlock(&task_lk_spin);
+  // mutex_unlock(&task_lk); // 然后你就被中断了？？
 
   PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
 
   NO_INTR;
   asm volatile("" ::: "memory");
-  // mutex_unlock(&task_lk); // 然后你就被中断了？？
   // 然后这里怎么直接跳走了
   // log("after unlock\n");
 
@@ -285,8 +326,8 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
   sem->value = value;
   char dst[256] = "";
   snprintf(dst, strlen(name) + 4 + 1, "sem-%s", name);
-  mutex_init(&sem->lk, dst);
-  queue_init(sem->queue);
+  _spin_init(&sem->lk, dst);
+  queue_init(&(sem->queue));
   TRACE_EXIT;
 }
 
@@ -294,18 +335,37 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
 void kmt_sem_wait(sem_t *sem) {
   TRACE_ENTRY;
-  INTR;
-
-
-  INTR;
+  // INTR;
+  stack_check(current);
+  _spin_lock(&sem->lk);
+  sem->value--;
+  if (sem->value < 0) { // 阻塞
+    PANIC_ON(sem->queue == NULL, "have not initialize the queue");
+    queue_push(sem->queue, current);
+    current->status = BLOCKED;
+    _spin_unlock(&sem->lk);
+    yield(); // 当前cpu调用一次中断处理程序
+  } else {
+    _spin_unlock(&sem->lk);
+  }
+  stack_check(current);
+  // INTR;
   TRACE_EXIT;
 }
 
 void kmt_sem_signal(sem_t *sem) {
   TRACE_ENTRY;
-  INTR;
-
-  INTR;
+  // INTR;
+  stack_check(current);
+  _spin_lock(&sem->lk);
+  sem->value++;
+  if (sem->value <= 0) {
+    task_t *task = queue_pop(sem->queue);
+    task->status = RUNNABLE;
+  }
+  _spin_unlock(&sem->lk);
+  stack_check(current);
+  // INTR;
   TRACE_EXIT;
 }
 //------------------sem------------------

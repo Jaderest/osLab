@@ -60,10 +60,10 @@ task_t *task_alloc() { return pmm->alloc(sizeof(task_t)); }
 static void os_init() {
   NO_INTR;
   pmm->init();
-  printf("finish pmm init\n");
+  // printf("finish pmm init\n");
   kmt->init();
-  printf("finish kmt init\n");
-  // dev->init();
+  // printf("finish kmt init\n");
+  dev->init();
   print_handler();
   NO_INTR;
 }
@@ -89,7 +89,7 @@ static Context *os_trap(Event ev, Context *context) {
   while (p) {
     NO_INTR;
     if (p->event == ev.event || p->event == EVENT_NULL) {
-      log ("handler name: %d\n", p->seq);
+      // log ("handler name: %d\n", p->seq);
       Context *ret = p->handler(ev, context);
       PANIC_ON(ret && next, "returning multiple times");
       if (ret)
