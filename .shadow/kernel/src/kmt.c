@@ -177,7 +177,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     }
     log("--------E-monitor---------\n");
   }
-  if (count == 0) {
+  if (count == 1) {
     return current->context;
   }
 
