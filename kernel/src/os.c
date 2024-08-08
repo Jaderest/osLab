@@ -55,6 +55,8 @@ static void os_on_irq(int seq, int event, handler_t handler) {
 
 task_t *task_alloc() { return pmm->alloc(sizeof(task_t)); }
 
+
+
 static void os_init() {
   NO_INTR;
   pmm->init();
@@ -68,39 +70,40 @@ static void os_init() {
 
 #ifndef TEST
 static void os_run() {
-  // iset(true);
-  // yield();
+  iset(true);
+  yield();
 
-  // 观察课程群大佬的issue发现这个yield其实也不必要
   while (1);
 }
 #else
 static void os_run() {}
 #endif
 
-/*
-中断/异常发生后，am会将寄存器保存到栈上，建议对context做一个拷贝，并实现上下文切换
-每个处理器都各自管理中断，使用自旋锁保护 //! 共享变量
-*/
 static Context *os_trap(Event ev, Context *context) {
   NO_INTR; // 确保中断是关闭的，中断确实是关的，但是task是有可能数据竞争的对吧
+  TRACE_ENTRY;
 
   Handler *p = handler_head;
   Context *next = NULL;
   int irq_num = 0;
   while (p) {
+    NO_INTR;
     if (p->event == ev.event || p->event == EVENT_NULL) {
+      log ("handler name: %d\n", p->seq);
       Context *ret = p->handler(ev, context);
       PANIC_ON(ret && next, "returning multiple times");
       if (ret)
         next = ret;
     }
+    NO_INTR;
     irq_num++;
+    // log("irq_num: %d\n", irq_num);
     p = p->next;
   }
 
   NO_INTR;
   PANIC_ON(next == NULL, "No handler found for event %d", ev.event);
+  TRACE_EXIT;
   return next;
 }
 /*

@@ -41,13 +41,37 @@ void alignTest() {
 //     }
 // }
 
+static void testPrintL() {
+    while (1)
+    {
+        putch('(');
+        // log("(");
+    }
+}
+static void testPrintR() {
+    while (1)
+    {
+        putch(')');
+        // log(")");
+    }
+}
+static void create_threads() {
+    TRACE_ENTRY;
+    for (int i = 0; i < 2; ++i) {
+        kmt->create(pmm->alloc(sizeof(task_t)), "producer", testPrintL, NULL);
+        kmt->create(pmm->alloc(sizeof(task_t)), "consumer", testPrintR, NULL);
+    }
+    TRACE_EXIT;
+}
+
 
 int main() {
     ioe_init();
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
     log("Hello, OS World!\n");
-    // create_threads();
+    create_threads();
+    log("create threads\n");
 
     // 所有处理器运行同一份代码，拥有独立的堆栈，共享的内存
     mpe_init(os->run); // 让每个处理器都运行os->run，此时操作系统真正化身成了中断处理程序

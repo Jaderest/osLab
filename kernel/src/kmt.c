@@ -3,7 +3,7 @@
 #include <os.h>
 #include <stdint.h>
 
-struct cpu cpus[MAX_CPU_NUM];
+struct cpu cpus[MAX_CPU_NUM] = {0};
 
 #ifdef LOG
 spinlock_t log_lk = spinlock_init("log");
@@ -13,6 +13,7 @@ spinlock_t log_lk = spinlock_init("log");
 static task_t idle[MAX_CPU_NUM];      // cpu 上空转的任务
 
 static mutexlock_t task_lk; // 在kmt->init()
+static spinlock_t task_lk_spin = spinlock_init("task_lk");
 //--------protected in task_lk---------
 static task_t *tasks[MAX_TASK_NUM]; // all tasks
 static int total_task_num = 0;
@@ -69,51 +70,139 @@ task_t *queue_pop(task_queue_t *queue) {
   return task;
 }
 void mutex_init(mutexlock_t *lk, const char *name) {
-  lk->locked = 0;
+  lk->locked = UNLOCKED;
   queue_init(lk->wait_list);
   _spin_init(&lk->spinlock, name);
 }
 void mutex_lock(mutexlock_t *lk) {
+  TRACE_ENTRY;
   int acquired = 0;
+  log("mutex_lock\n");
+
   _spin_lock(&lk->spinlock);
-  if (lk->locked != 0) {
+  // 你就死在这里，可是我只有一个cpu，你到底怎么回事
+  if (lk->locked != LOCKED) {
     queue_push(lk->wait_list, current);
     current->status = BLOCKED;
   } else {
-    lk->locked = 1;
+    lk->locked = UNLOCKED;
     acquired = 1;
   }
   _spin_unlock(&lk->spinlock);
+  TRACE_EXIT;
   if (!acquired)
     yield(); // 主动切换到其他线程执行
 }
 void mutex_unlock(mutexlock_t *lk) {
+  log("mutex_unlock\n");
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
   _spin_lock(&lk->spinlock);
   if (!queue_empty(lk->wait_list)) {
     task_t *task = queue_pop(lk->wait_list);
     task->status = RUNNABLE; // 唤醒之前睡眠的线程
   } else {
-    lk->locked = 0;
+    lk->locked = LOCKED;
   }
   _spin_unlock(&lk->spinlock);
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
 }
 //----------E-mutexlock-----------
 
 Context *kmt_context_save(Event ev, Context *ctx) {
-  NO_INTR;
-  stack_check(current); // ？四个线程栈出错了，那肯定是有数据竞争
-
-  //TODO
-
+  NO_INTR; // 确保中断是关闭的，这里是不是am主动关上的中断，中断处理函数就必须关中断
+  TRACE_ENTRY;
   stack_check(current);
+
   NO_INTR;
+  PANIC_ON(holding(&task_lk_spin), "acquire task_lk_spin"); // 无锁但是关中断状态
+  NO_INTR;
+
+  _spin_lock(&task_lk_spin);
+  PANIC_ON(!holding(&task_lk_spin), "critical section err");
+  current->context = ctx; //保存当前的context
+  _spin_unlock(&task_lk_spin);
+
+  NO_INTR;
+  TRACE_EXIT;
   return NULL;
 }
 
 Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
-  //TODO
-  return NULL;
+  // int index = current->id;
+  TRACE_ENTRY;
+  // 怎么一进来就获得锁出错
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
+  PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
+
+  if (cpu_current() == cpu_count() - 1) {
+    PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
+    log("---------monitor---------\n");
+    for (int i = 0; i < cpu_count(); ++i) {
+      log("cpu%d: %s\n", i, currents[i]->name);
+    }
+    for (int i = 0; i < total_task_num; ++i) {
+      log("task%d: %s on cpu %d\n", i, tasks[i]->name, tasks[i]->cpu_id);
+    }
+    log("--------E-monitor---------\n");
+  }
+
+  int index = rand() % total_task_num;
+  int i = 0;
+  NO_INTR;
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk"); //?
+  PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
+
+  for (i = 0; i < total_task_num * 10; ++i) {
+    PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
+    index = (index + 1) % total_task_num;
+    if (tasks[index]->status == RUNNABLE) {
+      break;
+    } else if (tasks[index] == NULL) {
+      continue;
+    } else if (tasks[index]->status == RUNNING || tasks[index]->status == BLOCKED) {
+      continue;
+    } else { // DEAD
+      tasks[index] = NULL;
+    }
+  }
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk"); // 第一次调度的时候没有问题
+  PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
+
+  // mutex_lock(&task_lk);
+  _spin_lock(&task_lk_spin);
+  stack_check(current);
+  if (i == total_task_num * 10) {
+    current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
+
+    log("no task to run, idle\n");
+    current = &idle[cpu_current()];
+    current->status = RUNNING;
+  } else {
+    log("[cpu%d]current task: %s -> ", cpu_current(), current->name);
+    current->status = RUNNABLE;
+    current->cpu_id = -1;
+
+    current = tasks[index];
+    current->cpu_id = cpu_current();
+    log("next task: %s\n", current->name);
+    current->status = RUNNING;
+  }
+  stack_check(current);
+  _spin_unlock(&task_lk_spin);
+
+  PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
+
+  NO_INTR;
+  asm volatile("" ::: "memory");
+  // mutex_unlock(&task_lk); // 然后你就被中断了？？
+  // 然后这里怎么直接跳走了
+  // log("after unlock\n");
+
+  NO_INTR;
+  // log("schedule\n");
+  TRACE_EXIT;
+  return current->context;
 }
 
 void init_stack_guard(task_t *task) {
@@ -134,6 +223,7 @@ int check_stack_guard(task_t *task) {
 
 void task_init(task_t *task, const char *name) {
   task->name = name;
+  task->cpu_id = -1;
   task->status = RUNNABLE;
   init_stack_guard(task);
 }
@@ -152,7 +242,7 @@ void idle_init() {
 void kmt_init() {
   os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
   os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-  mutex_init(&task_lk, "task_lock");
+  mutex_init(&task_lk, "task_mutex_lock");
   idle_init();
 }
 
@@ -161,19 +251,22 @@ int kmt_create(task_t *task, const char *name, void (*entry)(void *arg),
                void *arg) {
   TRACE_ENTRY;
 
+
   task_init(task, name);
   Area stack = (Area){task->stack, task->stack + STACK_SIZE};
 
   task->context = kcontext(stack, entry, arg);
   init_stack_guard(task);
 
-  mutex_lock(&task_lk); // 保护全局变量
-  // 使用互斥锁的话这里是没有中断的，但是保护了task_lk需要保护的东西
+  log("task %s created\n", name);
+  _spin_lock(&task_lk_spin); // 保护全局变量
 
+  task->id = total_task_num;
   tasks[total_task_num] = task;
   total_task_num++;
 
-  mutex_unlock(&task_lk);
+  _spin_unlock(&task_lk_spin);
+  log("unlock\n");
 
   stack_check(current);
   TRACE_EXIT;
