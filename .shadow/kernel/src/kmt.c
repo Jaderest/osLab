@@ -114,6 +114,7 @@ Context *kmt_context_save(Event ev, Context *ctx) {
   NO_INTR;
 
   _spin_lock(&task_lk_spin);
+  PANIC_ON(!holding(&task_lk_spin), "critical section err");
   current->context = ctx; //保存当前的context
   _spin_unlock(&task_lk_spin);
 
