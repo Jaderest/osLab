@@ -71,15 +71,15 @@ typedef enum {
 
 struct task {
     const char *name;
-    int id; // id 编号
+    int id;
     int cpu_id; // debug need
     task_status_t status;
-    // struct task *next; // 这东西貌似没有用
     Context *context; // 指针
     uint32_t stack_fense_s[STACK_GUARD_SIZE];
     uint8_t stack[STACK_SIZE];
     uint32_t stack_fense_e[STACK_GUARD_SIZE];
 };
+
 void init_stack_guard(task_t *task);
 int check_stack_guard(task_t *task);
 void idle_init(); // cpu 上空转的任务
