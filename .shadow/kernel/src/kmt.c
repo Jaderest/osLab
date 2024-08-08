@@ -192,7 +192,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   // 访问全局变量，需要加锁
   // mutex_lock(&task_lk);/
   _spin_lock(&task_lk_spin);
-  for (i = 0; i < total_task_num * 10; ++i) {
+  for (i = 0; i < total_task_num * 8; ++i) {
     PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
     index = (index + 1) % total_task_num;
     if (tasks[index]->status == RUNNABLE) {
@@ -209,7 +209,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   // PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
 
   stack_check(current);
-  if (i == total_task_num * 10) {
+  if (i == total_task_num * 8) {
     if (current->status == RUNNING) {
       current->status = RUNNABLE; // 作为一个runnable的线程
     } //! BLOCKED 的线程可不能随便改
