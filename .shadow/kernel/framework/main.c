@@ -41,17 +41,23 @@ void alignTest() {
 //     }
 // }
 
+
+sem_t empty, fill;
 static void testPrintL() {
     while (1)
     {
+        kmt->sem_wait(&empty);
         putch('(');
+        kmt->sem_signal(&fill);
         // log("(");
     }
 }
 static void testPrintR() {
     while (1)
     {
+        kmt->sem_wait(&fill);
         putch(')');
+        kmt->sem_signal(&empty);
         // log(")");
     }
 }
@@ -69,6 +75,8 @@ int main() {
     ioe_init();
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
+    kmt->sem_init(&empty, "empty", 2);
+    kmt->sem_init(&fill, "fill", 0);
     log("Hello, OS World!\n");
     create_threads();
     log("create threads\n");
