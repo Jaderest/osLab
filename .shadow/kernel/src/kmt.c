@@ -164,7 +164,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
       tasks[index] = NULL;
     }
   }
-  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk"); // 第一次调度的时候没有问题
 
   mutex_lock(&task_lk);
   // _spin_lock(&task_lk_spin);
@@ -191,8 +191,11 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   NO_INTR;
   asm volatile("" ::: "memory");
   mutex_unlock(&task_lk); // 然后你就被中断了？？
+  // 然后这里怎么直接跳走了
+  log("after unlock\n");
 
   NO_INTR;
+  log("schedule\n");
   TRACE_EXIT;
   return current->context;
 }
