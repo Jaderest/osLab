@@ -83,9 +83,11 @@ void mutex_lock(mutexlock_t *lk) {
   log("mutex_lock\n");
   // 你就死在这里，可是我只有一个cpu，你到底怎么回事
   if (lk->locked != LOCKED) {
+    log("be locked\n");
     queue_push(lk->wait_list, current);
     current->status = BLOCKED;
   } else {
+    log("not be locked\n");
     lk->locked = UNLOCKED;
     acquired = 1;
   }
