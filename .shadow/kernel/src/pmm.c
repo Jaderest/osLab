@@ -181,7 +181,6 @@ void buddy_system_merge(buddy_pool_t *pool, buddy_block_t *block) {
     }
     block->order = order;
     block->free = BLOCK_FREE;
-    //TODO: 研究一下list的add和del呢，注意函数前后的关系，或许我可以整理一下这里，让它放在同一个地方
     // debug("add block = %p\n", block);
     list_add(&(block->node), &(pool->free_lists[order].free_list)); // 最后merge留下了那些碎片
     pool->free_lists[order].nr_free++;
@@ -263,12 +262,11 @@ static cache_t *find_cache(size_t size) {
             return &g_caches[i];
         }
     }
-    //TODO 正式项目中需要删掉这个assert
-    assert(0);
+    // assert(0);
     return NULL;
 }
 
-static slab_t *allocate_slab(cache_t *cache) { //TODO: 这里需要根据要分配的内存大小来调整元数据的宽度！
+static slab_t *allocate_slab(cache_t *cache) {
     // 从 buddy system 申请一个page
     // 前面一小段是给 slab 元数据占据的，然后计算出 object 区域的起始地址
     // 将 slab 加入 cache（它是一个可增长的链表
@@ -294,7 +292,6 @@ static slab_t *allocate_slab(cache_t *cache) { //TODO: 这里需要根据要分�
     new_slab->lock = LOCK_INIT();
     // 填充对象并链接链表
     // 是不是这里链表没对齐
-    //TODO：显示一下这里的地址的日志
     // debug("--------link log--------\n");
     for (int i = 0; i < num_objects - 1; i++) {
         obj->next = (object_t *)((uintptr_t)obj + new_slab->size);
