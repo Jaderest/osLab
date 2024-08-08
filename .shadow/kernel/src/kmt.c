@@ -54,6 +54,7 @@ void queue_push(task_queue_t *queue, task_t *task) {
     queue->head = node;
   }
   queue->tail = node;
+  log("queue_push end\n");
 }
 task_t *queue_pop(task_queue_t *queue) {
   if (queue->head == NULL)
