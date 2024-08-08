@@ -93,6 +93,7 @@ void mutex_lock(mutexlock_t *lk) {
     yield(); // 主动切换到其他线程执行
 }
 void mutex_unlock(mutexlock_t *lk) {
+  log("mutex_unlock\n");
   _spin_lock(&lk->spinlock);
   if (!queue_empty(lk->wait_list)) {
     task_t *task = queue_pop(lk->wait_list);
@@ -179,7 +180,6 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   stack_check(current);
   // _spin_unlock(&task_lk_spin);
   mutex_unlock(&task_lk);
-  log("unlock\n");
 
   NO_INTR;
   TRACE_EXIT;
@@ -223,7 +223,7 @@ void idle_init() {
 void kmt_init() {
   os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
   os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-  mutex_init(&task_lk, "task_lock");
+  mutex_init(&task_lk, "task_mutex_lock");
   idle_init();
 }
 
