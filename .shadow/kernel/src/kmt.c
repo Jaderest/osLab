@@ -70,7 +70,7 @@ task_t *queue_pop(task_queue_t *queue) {
   return task;
 }
 void mutex_init(mutexlock_t *lk, const char *name) {
-  lk->locked = 0;
+  lk->locked = UNLOCKED;
   queue_init(lk->wait_list);
   _spin_init(&lk->spinlock, name);
 }
@@ -81,11 +81,11 @@ void mutex_lock(mutexlock_t *lk) {
 
   _spin_lock(&lk->spinlock);
   // 你就死在这里，可是我只有一个cpu，你到底怎么回事
-  if (lk->locked != 0) {
+  if (lk->locked != LOCKED) {
     queue_push(lk->wait_list, current);
     current->status = BLOCKED;
   } else {
-    lk->locked = 1;
+    lk->locked = UNLOCKED;
     acquired = 1;
   }
   _spin_unlock(&lk->spinlock);
@@ -101,7 +101,7 @@ void mutex_unlock(mutexlock_t *lk) {
     task_t *task = queue_pop(lk->wait_list);
     task->status = RUNNABLE; // 唤醒之前睡眠的线程
   } else {
-    lk->locked = 0;
+    lk->locked = LOCKED;
   }
   _spin_unlock(&lk->spinlock);
   PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
