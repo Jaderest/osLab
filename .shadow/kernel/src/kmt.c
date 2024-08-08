@@ -336,6 +336,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 void kmt_sem_wait(sem_t *sem) {
   TRACE_ENTRY;
   // INTR;
+  stack_check(current);
   _spin_lock(&sem->lk);
   sem->value--;
   if (sem->value < 0) { // 阻塞
@@ -347,6 +348,7 @@ void kmt_sem_wait(sem_t *sem) {
   } else {
     _spin_unlock(&sem->lk);
   }
+  stack_check(current);
   // INTR;
   TRACE_EXIT;
 }
@@ -354,6 +356,7 @@ void kmt_sem_wait(sem_t *sem) {
 void kmt_sem_signal(sem_t *sem) {
   TRACE_ENTRY;
   // INTR;
+  stack_check(current);
   _spin_lock(&sem->lk);
   sem->value++;
   if (sem->value <= 0) {
@@ -361,6 +364,7 @@ void kmt_sem_signal(sem_t *sem) {
     task->status = RUNNABLE;
   }
   _spin_unlock(&sem->lk);
+  stack_check(current);
   // INTR;
   TRACE_EXIT;
 }
