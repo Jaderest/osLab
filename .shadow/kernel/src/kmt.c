@@ -190,7 +190,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
 
   // 访问全局变量，需要加锁
-  // mutex_lock(&task_lk);/
+  // mutex_lock(&task_lk);
   _spin_lock(&task_lk_spin);
   for (i = 0; i < total_task_num * 10; ++i) {
     PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
@@ -283,9 +283,7 @@ void idle_init() {
 void kmt_init() {
   os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
   os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-  log ("kmt_init\n");
   mutex_init(&task_lk, "task_mutex_lock");
-  log ("mutex_init\n");
   idle_init();
 }
 
