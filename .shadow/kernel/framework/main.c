@@ -63,7 +63,7 @@ static void testPrintR() {
 }
 static void create_threads() {
     TRACE_ENTRY;
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 16; ++i) {
         kmt->create(pmm->alloc(sizeof(task_t)), "producer", testPrintL, NULL);
         kmt->create(pmm->alloc(sizeof(task_t)), "consumer", testPrintR, NULL);
     }
@@ -75,7 +75,7 @@ int main() {
     ioe_init();
     cte_init(os->trap); // 对应thread-os的cte_init(on_interrupt);
     os->init();
-    kmt->sem_init(&empty, "empty", 2);
+    kmt->sem_init(&empty, "empty", 10);
     kmt->sem_init(&fill, "fill", 0);
     log("Hello, OS World!\n");
     create_threads();
