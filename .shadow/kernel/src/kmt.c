@@ -147,11 +147,16 @@ Context *kmt_context_save(Event ev, Context *ctx) {
 
 int count = 0;
 Context *kmt_schedule(Event ev, Context *ctx) {
+  _spin_lock(&task_lk_spin);
   if (count == 0) {
     tasks[0]->status = BLOCKED;
+    current = tasks[0]; // 强行赋值试一下
+    current->cpu_id = cpu_current();
+
   } else if (count == 5) {
     tasks[0]->status = RUNNABLE;
   }
+  _spin_unlock(&task_lk_spin);
   count++;
   log("schedule times: %d\n", count);
   // 获取可以运行的任务
@@ -171,6 +176,9 @@ Context *kmt_schedule(Event ev, Context *ctx) {
       log("task%d: %s status %d -- on cpu %d\n", i, tasks[i]->name, tasks[i]->status ,tasks[i]->cpu_id);
     }
     log("--------E-monitor---------\n");
+  }
+  if (count == 0) {
+    return current->context;
   }
 
   int index = rand() % total_task_num;
