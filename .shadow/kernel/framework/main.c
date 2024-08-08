@@ -47,7 +47,7 @@ static void testPrintL() {
     while (1)
     {
         // kmt->sem_wait(&empty);
-        putch('(');
+        // putch('(');
         // kmt->sem_signal(&fill);
         // log("(");
     }
@@ -56,7 +56,7 @@ static void testPrintR() {
     while (1)
     {
         // kmt->sem_wait(&fill);
-        putch(')');
+        // putch(')');
         // kmt->sem_signal(&empty);
         // log(")");
     }
