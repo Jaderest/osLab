@@ -97,7 +97,7 @@ static Context *os_trap(Event ev, Context *context) {
     }
     NO_INTR;
     irq_num++;
-    log("irq_num: %d\n", irq_num);
+    // log("irq_num: %d\n", irq_num);
     p = p->next;
   }
 
