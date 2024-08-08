@@ -41,6 +41,7 @@ int queue_empty(task_queue_t *queue) {
   return (queue->head == NULL && queue->tail == NULL);
 }
 void queue_push(task_queue_t *queue, task_t *task) {
+  log("queue_push\n");
   task_node_t *node = pmm->alloc(sizeof(task_node_t));
   PANIC_ON(node == NULL, "node alloc err");
 
@@ -84,7 +85,7 @@ void mutex_lock(mutexlock_t *lk) {
   // 你就死在这里，可是我只有一个cpu，你到底怎么回事
   if (lk->locked != LOCKED) {
     log("be locked\n");
-    queue_push(lk->wait_list, current);
+    queue_push(lk->wait_list, current); // 等会，这个current是不是要加锁？？
     current->status = BLOCKED;
   } else {
     log("not be locked\n");
