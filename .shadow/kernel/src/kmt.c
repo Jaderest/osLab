@@ -131,6 +131,7 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
   // int index = current->id;
   TRACE_ENTRY;
+  // 怎么一进来就获得锁出错
   PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
 
   if (cpu_current() == cpu_count() - 1) {
