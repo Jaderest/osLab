@@ -316,18 +316,32 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 // 怎么这里进了两次这个函数？观察一下cpu
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
 void kmt_sem_wait(sem_t *sem) {
-  TRACE_ENTRY;
-  INTR;
-
-
-  INTR;
-  TRACE_EXIT;
+  // TRACE_ENTRY;
+  // INTR;
+  _spin_lock(&sem->lk);
+  sem->value--;
+  if (sem->value < 0) { // 阻塞
+    queue_push(sem->queue, current);
+    current->status = BLOCKED;
+    _spin_unlock(&sem->lk);
+    yield(); // 当前cpu调用一次中断处理程序
+  } else {
+    _spin_unlock(&sem->lk);
+  }
+  // INTR;
+  // TRACE_EXIT;
 }
 
 void kmt_sem_signal(sem_t *sem) {
   TRACE_ENTRY;
   INTR;
-
+  _spin_lock(&sem->lk);
+  sem->value++;
+  if (sem->value <= 0) {
+    task_t *task = queue_pop(sem->queue);
+    task->status = RUNNABLE;
+  }
+  _spin_unlock(&sem->lk);
   INTR;
   TRACE_EXIT;
 }
