@@ -143,8 +143,10 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   int index = rand() % total_task_num;
   int i = 0;
   NO_INTR;
+  PANIC_ON(holding(&(task_lk.spinlock)), "acquire task_lk");
 
   for (i = 0; i < total_task_num * 10; ++i) {
+    PANIC_ON(holding(&(task_lk.spinlock)), "acquire task_lk");
     index = (index + 1) % total_task_num;
     if (tasks[index]->status == RUNNABLE) {
       break;
@@ -156,10 +158,10 @@ Context *kmt_schedule(Event ev, Context *ctx) {
       tasks[index] = NULL;
     }
   }
+  PANIC_ON(holding(&(task_lk.spinlock)), "acquire task_lk");
 
   mutex_lock(&task_lk);
   // _spin_lock(&task_lk_spin);
-  //! 有点想死，你凭什么死锁
   stack_check(current);
   if (i == total_task_num * 10) {
     current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
