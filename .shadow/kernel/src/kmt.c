@@ -197,10 +197,10 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   asm volatile("" ::: "memory");
   // mutex_unlock(&task_lk); // 然后你就被中断了？？
   // 然后这里怎么直接跳走了
-  log("after unlock\n");
+  // log("after unlock\n");
 
   NO_INTR;
-  log("schedule\n");
+  // log("schedule\n");
   TRACE_EXIT;
   return current->context;
 }
