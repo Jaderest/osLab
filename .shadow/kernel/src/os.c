@@ -60,9 +60,9 @@ task_t *task_alloc() { return pmm->alloc(sizeof(task_t)); }
 static void os_init() {
   NO_INTR;
   pmm->init();
-  printf("finish pmm init\n");
+  // printf("finish pmm init\n");
   kmt->init();
-  printf("finish kmt init\n");
+  // printf("finish kmt init\n");
   // dev->init();
   print_handler();
   NO_INTR;
