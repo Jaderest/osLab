@@ -339,6 +339,7 @@ void kmt_sem_wait(sem_t *sem) {
   _spin_lock(&sem->lk);
   sem->value--;
   if (sem->value < 0) { // 阻塞
+    PANIC_ON(sem->queue == NULL, "have not initialize the queue");
     queue_push(sem->queue, current);
     current->status = BLOCKED;
     _spin_unlock(&sem->lk);
