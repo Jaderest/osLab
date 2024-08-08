@@ -57,7 +57,7 @@ static void testPrintR() {
 }
 static void create_threads() {
     TRACE_ENTRY;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 2; ++i) {
         kmt->create(pmm->alloc(sizeof(task_t)), "producer", testPrintL, NULL);
         kmt->create(pmm->alloc(sizeof(task_t)), "consumer", testPrintR, NULL);
     }

@@ -169,8 +169,8 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk"); // 第一次调度的时候没有问题
   PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
 
-  // mutex_lock(&task_lk);
-  _spin_lock(&task_lk_spin);
+  mutex_lock(&task_lk);
+  // _spin_lock(&task_lk_spin);
   stack_check(current);
   if (i == total_task_num * 10) {
     current->status = RUNNABLE; // 作为前一个线程，重新加入可运行队列
@@ -189,13 +189,13 @@ Context *kmt_schedule(Event ev, Context *ctx) {
     current->status = RUNNING;
   }
   stack_check(current);
-  _spin_unlock(&task_lk_spin);
+  // _spin_unlock(&task_lk_spin);
+  mutex_unlock(&task_lk); // 然后你就被中断了？？
 
   PANIC_ON(holding(&task_lk_spin), "test spin task_lk"); // 第一次调度的时候没有问题
 
   NO_INTR;
   asm volatile("" ::: "memory");
-  // mutex_unlock(&task_lk); // 然后你就被中断了？？
   // 然后这里怎么直接跳走了
   // log("after unlock\n");
 
