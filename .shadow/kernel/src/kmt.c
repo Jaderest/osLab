@@ -32,10 +32,10 @@ void kmt_spin_unlock(spinlock_t *lk) { _spin_unlock(lk); }
 //-----------------E-spinlock------------------
 
 //------------mutexlock-------------
-void queue_init(task_queue_t *queue) {
-  queue = pmm->alloc(sizeof(task_queue_t));
-  queue->head = NULL;
-  queue->tail = NULL;
+void queue_init(task_queue_t **queue) {
+  *queue = pmm->alloc(sizeof(task_queue_t));
+  (*queue)->head = NULL;
+  (*queue)->tail = NULL;
 }
 int queue_empty(task_queue_t *queue) {
   return (queue->head == NULL && queue->tail == NULL);
@@ -82,7 +82,7 @@ task_t *queue_pop(task_queue_t *queue) {
 }
 void mutex_init(mutexlock_t *lk, const char *name) {
   lk->locked = UNLOCKED;
-  queue_init(lk->wait_list);
+  queue_init(&(lk->wait_list));
   _spin_init(&lk->spinlock, name);
 }
 void mutex_lock(mutexlock_t *lk) {
@@ -327,7 +327,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
   char dst[256] = "";
   snprintf(dst, strlen(name) + 4 + 1, "sem-%s", name);
   _spin_init(&sem->lk, dst);
-  queue_init(sem->queue);
+  queue_init(&(sem->queue));
   TRACE_EXIT;
 }
 
