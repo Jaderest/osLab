@@ -334,7 +334,7 @@ void kmt_sem_init(sem_t *sem, const char *name, int value) {
 // 怎么这里进了两次这个函数？观察一下cpu
 // 都是cpu0上的，cnm我现在只启动了一个cpu，肯定是0
 void kmt_sem_wait(sem_t *sem) {
-  // TRACE_ENTRY;
+  TRACE_ENTRY;
   // INTR;
   _spin_lock(&sem->lk);
   sem->value--;
@@ -348,7 +348,7 @@ void kmt_sem_wait(sem_t *sem) {
     _spin_unlock(&sem->lk);
   }
   // INTR;
-  // TRACE_EXIT;
+  TRACE_EXIT;
 }
 
 void kmt_sem_signal(sem_t *sem) {
