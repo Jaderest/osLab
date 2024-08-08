@@ -78,6 +78,7 @@ void mutex_lock(mutexlock_t *lk) {
   TRACE_ENTRY;
   int acquired = 0;
   log("mutex_lock\n");
+
   _spin_lock(&lk->spinlock);
   // 你就死在这里，可是我只有一个cpu，你到底怎么回事
   if (lk->locked != 0) {
@@ -94,6 +95,7 @@ void mutex_lock(mutexlock_t *lk) {
 }
 void mutex_unlock(mutexlock_t *lk) {
   log("mutex_unlock\n");
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
   _spin_lock(&lk->spinlock);
   if (!queue_empty(lk->wait_list)) {
     task_t *task = queue_pop(lk->wait_list);
@@ -102,6 +104,7 @@ void mutex_unlock(mutexlock_t *lk) {
     lk->locked = 0;
   }
   _spin_unlock(&lk->spinlock);
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
 }
 //----------E-mutexlock-----------
 
@@ -128,8 +131,10 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   // 获取可以运行的任务
   // int index = current->id;
   TRACE_ENTRY;
+  PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
 
   if (cpu_current() == cpu_count() - 1) {
+    PANIC_ON(holding(&(task_lk.spinlock)), "test task_lk");
     log("---------monitor---------\n");
     for (int i = 0; i < cpu_count(); ++i) {
       log("cpu%d: %s\n", i, currents[i]->name);
