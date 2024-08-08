@@ -283,7 +283,9 @@ void idle_init() {
 void kmt_init() {
   os->on_irq(INT_MIN, EVENT_NULL, kmt_context_save);
   os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
+  log ("kmt_init\n");
   mutex_init(&task_lk, "task_mutex_lock");
+  log ("mutex_init\n");
   idle_init();
 }
 
