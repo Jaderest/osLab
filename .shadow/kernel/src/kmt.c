@@ -187,7 +187,9 @@ Context *kmt_schedule(Event ev, Context *ctx) {
   }
   stack_check(current);
   // _spin_unlock(&task_lk_spin);
-  mutex_unlock(&task_lk);
+  
+  NO_INTR;
+  mutex_unlock(&task_lk); // 然后你就被中断了？？
 
   NO_INTR;
   TRACE_EXIT;
