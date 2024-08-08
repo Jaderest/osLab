@@ -63,7 +63,7 @@ static void os_init() {
   // printf("finish pmm init\n");
   kmt->init();
   // printf("finish kmt init\n");
-  dev->init();
+  // dev->init();
   print_handler();
   NO_INTR;
 }
